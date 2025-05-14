@@ -1,7 +1,6 @@
 package com.pentagon.configuaration;
 
 import java.util.Arrays;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -16,13 +15,12 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import com.pentagon.Service.CustomuserDetailsService;
+import com.pentagon.Service.CustomUserDetailsService;
 
 public class AppConfiguaration {
 	
 	@Autowired
-	private CustomuserDetailsService customuserDetailsService;
+	private CustomUserDetailsService customuserDetailsService;
 
 	@Bean
 	public PasswordEncoder passwordEncoder() {

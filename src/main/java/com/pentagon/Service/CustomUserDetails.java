@@ -1,8 +1,10 @@
 package com.pentagon.Service;
 
 import java.util.Collection;
+import java.util.List;
 
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import com.pentagon.Entity.Admin;
@@ -34,9 +36,15 @@ public class CustomUserDetails implements UserDetails{
 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+		if (admin != null) {
+            return List.of(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        } else if (manager != null) {
+            return List.of(new SimpleGrantedAuthority("ROLE_MANAGER"));
+        } else if (executive != null) {
+            return List.of(new SimpleGrantedAuthority("ROLE_EXECUTIVE"));
+        }
+        return List.of(); // Empty list if none
+    }
 
 	@Override
 	public String getPassword() {

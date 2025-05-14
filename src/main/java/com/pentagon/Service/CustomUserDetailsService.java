@@ -16,7 +16,7 @@ import com.pentagon.Repository.ExecutiveRepository;
 import com.pentagon.Repository.ManagerRepository;
 
 @Service
-public class CustomuserDetailsService implements UserDetailsService{
+public class CustomUserDetailsService implements UserDetailsService{
 
 	@Autowired
 	private AdminRepository adminRepository;
