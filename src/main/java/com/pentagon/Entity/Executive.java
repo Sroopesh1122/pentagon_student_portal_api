@@ -23,7 +23,7 @@ public class Executive {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer Id;
 	
-	@Column(name = "executive_id", nullable = false, unique = true, length = 20)
+	@Column(name = "executive_id", nullable = false, unique = true)
 	private String executiveId;
 	
 	@Column(nullable = false)

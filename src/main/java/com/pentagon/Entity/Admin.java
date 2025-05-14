@@ -21,11 +21,17 @@ public class Admin {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
 	
+	@Column(name = "admin_id", nullable = false, unique = true)
+	private String adminId;
+	
 	@Column(nullable = false)
 	private String name;
 	
 	@Column(nullable = false, unique = true)
 	private String email;
+	
+	@Column(name = "mobile_number", nullable = false, length = 10)
+	private String mobile;
 	
 	@Column(nullable = false)
 	private String password;
