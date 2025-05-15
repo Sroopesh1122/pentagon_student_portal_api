@@ -1,36 +1,29 @@
-package com.pentagon.ServiceImpl;
+package com.pentagon.serviceImpl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.pentagon.Repository.ManagerRepository;
-import com.pentagon.Service.ManagerService;
+import com.pentagon.Repository.ExecutiveRepository;
 import com.pentagon.entity.Executive;
 import com.pentagon.entity.JobDescription;
-import com.pentagon.entity.Manager;
+import com.pentagon.service.ExecutiveService;
 
 @Service
-public class ManagerServiceImpl implements ManagerService {
+public class ExecutiveServiceImpl implements ExecutiveService {
 
 	@Autowired
-	private ManagerRepository managerRepository;
+	private ExecutiveRepository executiveRepository;
 	
 	@Override
-	public Manager login(String email, String otp) {
+	public Executive login(String email, String otp) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public boolean updateManager(Manager manager) {
+	public boolean updateExecutive(Executive executive) {
 		// TODO Auto-generated method stub
 		return false;
-	}
-
-	@Override
-	public Executive addExecutive(Executive executive) {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 	@Override
@@ -40,7 +33,7 @@ public class ManagerServiceImpl implements ManagerService {
 	}
 
 	@Override
-	public boolean acceptJobDescription(Integer jobDescriptionId) {
+	public boolean updateJobDescription(JobDescription jobdescription) {
 		// TODO Auto-generated method stub
 		return false;
 	}

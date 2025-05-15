@@ -1,4 +1,4 @@
-package com.pentagon.Service;
+package com.pentagon.service;
 
 import com.pentagon.entity.JobDescription;
 import com.pentagon.entity.Student;

@@ -1,12 +1,12 @@
-package com.pentagon.ServiceImpl;
+package com.pentagon.serviceImpl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.pentagon.Repository.StudentRepository;
-import com.pentagon.Service.StudentService;
 import com.pentagon.entity.JobDescription;
 import com.pentagon.entity.Student;
+import com.pentagon.service.StudentService;
 
 @Service
 public class StudentServiceImpl implements StudentService {

@@ -1,4 +1,4 @@
-package com.pentagon.Service;
+package com.pentagon.service;
 
 import java.util.List;
 
