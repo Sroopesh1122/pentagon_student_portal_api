@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.pentagon.app.Entity.Executive;
 
-public interface ExecutiveRepository extends JpaRepository<Integer, Executive>{
+public interface ExecutiveRepository extends JpaRepository<Executive, Integer>{
 
 	Optional<Executive> findByEmail(String email);
 }
