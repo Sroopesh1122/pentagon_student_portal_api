@@ -3,9 +3,9 @@ package com.pentagon.ServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.pentagon.Entity.JobDescription;
 import com.pentagon.Repository.JobDescriptionRepository;
 import com.pentagon.Service.JobDescriptionService;
+import com.pentagon.entity.JobDescription;
 
 @Service
 public class JobDescriptionServiceImpl implements JobDescriptionService{
