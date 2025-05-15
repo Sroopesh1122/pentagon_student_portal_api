@@ -1,4 +1,4 @@
-package com.pentagon.Repository;
+package com.pentagon.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
