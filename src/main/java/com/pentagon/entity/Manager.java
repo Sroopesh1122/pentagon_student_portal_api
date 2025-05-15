@@ -35,7 +35,7 @@ public class Manager {
 	@Column(nullable = false, length = 10)
 	private String mobile;
 	
-	 @Column(nullable = false)
+	@Column(nullable = false)
 	private String password;
 	
 	@Column(name = "is_active", nullable = false)
