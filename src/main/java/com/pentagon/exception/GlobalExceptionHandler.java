@@ -64,4 +64,14 @@ public class GlobalExceptionHandler {
         errorResponse.put("status", studentException.getHttpStatus().toString());
         return new ResponseEntity<Map<String,Object>>(errorResponse, studentException.getHttpStatus());
     }
+    @ExceptionHandler(TrainerException.class)
+    public ResponseEntity<Map<String, Object>> handleTrainerException(TrainerException trainerException) {
+        Map<String,Object> errorResponse = new HashMap<>();
+        errorResponse.put("status", "failure");
+        errorResponse.put("type","Trainer Exception");
+        errorResponse.put("error", trainerException.getMessage());
+        errorResponse.put("localTime", LocalDateTime.now());
+        errorResponse.put("status", trainerException.getHttpStatus().toString());
+        return new ResponseEntity<>(errorResponse, trainerException.getHttpStatus());
+    }
 }
