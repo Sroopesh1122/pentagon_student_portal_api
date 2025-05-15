@@ -1,4 +1,4 @@
-package com.pentagon.Service;
+package com.pentagon.app.Service;
 
 import java.util.Collection;
 import java.util.List;
@@ -7,9 +7,9 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import com.pentagon.Entity.Admin;
-import com.pentagon.Entity.Executive;
-import com.pentagon.Entity.Manager;
+import com.pentagon.app.Entity.Admin;
+import com.pentagon.app.Entity.Executive;
+import com.pentagon.app.Entity.Manager;
 
 
 public class CustomUserDetails implements UserDetails{

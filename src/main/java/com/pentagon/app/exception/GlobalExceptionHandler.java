@@ -1,4 +1,4 @@
-package com.pentagon.exception;
+package com.pentagon.app.exception;
 
 public class GlobalExceptionHandler {
 

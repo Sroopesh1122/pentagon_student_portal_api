@@ -1,8 +1,8 @@
-package com.pentagon.RestController;
+package com.pentagon.app.RestController;
 
 import org.springframework.web.bind.annotation.RestController;
 
-import com.pentagon.requestDTO.LoginRequestDto;
+import com.pentagon.app.requestDTO.LoginRequestDto;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.http.ResponseEntity;
@@ -13,9 +13,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 
 @RestController
-@RequestMapping("/penatagon/api")
+@RequestMapping("/penatagon/auth")
 public class AuthController {
-	@PostMapping("/auth/login")
+	@PostMapping("/login")
 	public ResponseEntity<?> Signin(@RequestBody LoginRequestDto loginRequestDto) {
 		if (loginRequestDto.getPassword()!= null) {
 			//login logic for email with password

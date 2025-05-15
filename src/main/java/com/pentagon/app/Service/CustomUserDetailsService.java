@@ -1,4 +1,4 @@
-package com.pentagon.Service;
+package com.pentagon.app.Service;
 
 import java.util.Optional;
 
@@ -8,12 +8,12 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import com.pentagon.Entity.Admin;
-import com.pentagon.Entity.Executive;
-import com.pentagon.Entity.Manager;
-import com.pentagon.Repository.AdminRepository;
-import com.pentagon.Repository.ExecutiveRepository;
-import com.pentagon.Repository.ManagerRepository;
+import com.pentagon.app.Entity.Admin;
+import com.pentagon.app.Entity.Executive;
+import com.pentagon.app.Entity.Manager;
+import com.pentagon.app.Repository.AdminRepository;
+import com.pentagon.app.Repository.ExecutiveRepository;
+import com.pentagon.app.Repository.ManagerRepository;
 
 @Service
 public class CustomUserDetailsService implements UserDetailsService{

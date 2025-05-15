@@ -1,4 +1,4 @@
-package com.pentagon.utils;
+package com.pentagon.app.utils;
 
 import java.util.Date;
 import java.util.Map;

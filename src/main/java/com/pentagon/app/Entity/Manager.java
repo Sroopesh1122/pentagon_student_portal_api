@@ -1,4 +1,4 @@
-package com.pentagon.Entity;
+package com.pentagon.app.Entity;
 
 import java.time.LocalDateTime;
 

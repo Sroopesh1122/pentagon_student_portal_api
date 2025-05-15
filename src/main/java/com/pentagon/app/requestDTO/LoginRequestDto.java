@@ -1,4 +1,4 @@
-package com.pentagon.requestDTO;
+package com.pentagon.app.requestDTO;
 
 import lombok.Data;
 
