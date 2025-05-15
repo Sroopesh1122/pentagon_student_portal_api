@@ -3,10 +3,10 @@ package com.pentagon.serviceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.pentagon.Repository.ManagerRepository;
 import com.pentagon.entity.Executive;
 import com.pentagon.entity.JobDescription;
 import com.pentagon.entity.Manager;
+import com.pentagon.repository.ManagerRepository;
 import com.pentagon.service.ManagerService;
 
 @Service

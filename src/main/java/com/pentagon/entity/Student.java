@@ -69,6 +69,8 @@ public class Student {
     @Size(max = 50000)
 	private String projects;
     
+    private Double mockRating;
+    
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private EnrollmentStatus status = EnrollmentStatus.PENDING;

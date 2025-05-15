@@ -5,12 +5,12 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.pentagon.Repository.AdminRepository;
 import com.pentagon.entity.Admin;
 import com.pentagon.entity.Executive;
 import com.pentagon.entity.JobDescription;
 import com.pentagon.entity.Manager;
 import com.pentagon.entity.Student;
+import com.pentagon.repository.AdminRepository;
 import com.pentagon.service.AdminService;
 
 @Service
