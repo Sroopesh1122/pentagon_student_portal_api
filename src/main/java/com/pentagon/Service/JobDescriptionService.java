@@ -1,6 +1,6 @@
 package com.pentagon.Service;
 
-import com.pentagon.Entity.JobDescription;
+import com.pentagon.entity.JobDescription;
 
 public interface JobDescriptionService {
 

@@ -1,4 +1,4 @@
-package com.pentagon.Entity;
+package com.pentagon.entity;
 
 import java.time.LocalDateTime;
 
@@ -16,27 +16,26 @@ import lombok.Data;
 
 @Data
 @Entity
-@Table(name="manager")
-public class Manager {
+@Table(name="executive")
+public class Executive {
 	
 	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer Id;
 	
-	@Column(name = "manager_id", nullable = false, unique = true, length = 20)
-	private String managerId;
+	@Column(name = "executive_id", nullable = false, unique = true)
+	private String executiveId;
 	
-	@Column(nullable = false, length = 100)
+	@Column(nullable = false)
 	private String name;
 	
 	@Column(nullable = false, unique = true)
-	@Email(message = "Email should be valid")
 	private String email;
 	
-	@Column(name = "mobile_number", nullable = false, length = 10)
+	@Column(nullable = false, length = 10)
 	private String mobile;
 	
-	 @Column(nullable = false)
+    @Column(nullable = false)
 	private String password;
 	
 	@Column(name = "is_active", nullable = false)
