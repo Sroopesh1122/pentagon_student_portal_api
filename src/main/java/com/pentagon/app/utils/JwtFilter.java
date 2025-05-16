@@ -8,8 +8,8 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.pentagon.app.Service.CustomUserDetails;
-import com.pentagon.app.Service.CustomUserDetailsService;
+import com.pentagon.app.service.CustomUserDetails;
+import com.pentagon.app.service.CustomUserDetailsService;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
