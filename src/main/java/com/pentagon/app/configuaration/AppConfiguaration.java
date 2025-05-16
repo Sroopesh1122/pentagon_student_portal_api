@@ -43,7 +43,7 @@ public class AppConfiguaration {
 				.csrf(csrf -> csrf.disable())
 				.cors(cors->cors.configurationSource(corsConfigurationSource()))
 				.authorizeHttpRequests(request -> request
-						.requestMatchers("/pentagon/api/auth/login").permitAll().anyRequest().authenticated())
+						.requestMatchers("/pentagon/auth/**").permitAll().anyRequest().authenticated())
 				.httpBasic(Customizer.withDefaults())
 				.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
