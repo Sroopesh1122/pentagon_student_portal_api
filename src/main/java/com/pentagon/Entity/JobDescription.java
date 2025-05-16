@@ -50,7 +50,7 @@ public class JobDescription {
 	
 	@Column(nullable = false)
 	private String salary;
-	
+	 
 	private String bond;
 	
 	@Column(name = "job_location", nullable = false)
