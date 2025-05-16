@@ -26,8 +26,8 @@ public class StudentServiceImpl implements StudentService {
 	private JobDescriptionRepository jobDescriptionRepository;
 	
 	@Override
-	public boolean changePassword(String password, String confirmPassword) {
-		// TODO Auto-generated method stub
+	public boolean changePassword(String password, String studentId) {
+		
 		return false;
 	}
 

@@ -64,7 +64,7 @@ public class JobDescription {
 	private Integer currentRegistrations;
 	
 	@Column(name = "mock_rating")
-	private Integer mockRating;
+	private Double mockRating;
 	
 	@Column(name = "JD_status", nullable = false)
 	private boolean jdStatus = false;

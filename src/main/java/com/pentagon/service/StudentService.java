@@ -7,7 +7,7 @@ import com.pentagon.entity.Student;
 
 public interface StudentService {
 
-	public boolean changePassword(String password, String confirmPassword);
+	public boolean changePassword(String password, String studentId);
 	
 	public boolean updateStudent(Student student);
 	
