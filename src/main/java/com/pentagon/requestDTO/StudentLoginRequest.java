@@ -1,13 +1,14 @@
 package com.pentagon.requestDTO;
 
 import jakarta.persistence.Column;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
 public class StudentLoginRequest {
 
-	@Column(nullable = false)
+	@NotBlank
 	private String studentId;
-	@Column(nullable = false)
+	@NotBlank
 	private String password;
 }

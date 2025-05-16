@@ -1,14 +1,19 @@
 package com.pentagon.requestDTO;
 
 import jakarta.persistence.Column;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
 public class AddManagerRequest {
-	@Column(nullable = false)
+	@NotBlank
 	private String name;
-	@Column(nullable = false)
+	@NotBlank
+	@Email(message = "Invalid email format")
 	private String email;
-	@Column(nullable = false, length = 10)
+	@Size(min=10,max=10)
+	@NotBlank
 	private String mobile;
 }

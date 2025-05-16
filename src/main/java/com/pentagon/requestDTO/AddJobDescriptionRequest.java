@@ -3,35 +3,39 @@ package com.pentagon.requestDTO;
 import java.util.List;
 
 import jakarta.persistence.Column;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
 public class AddJobDescriptionRequest {
-	@Column(nullable = false)
+	@NotBlank
 	private String companyName;
-	@Column(nullable = false)
+	@NotBlank
 	private String website;
-	@Column(nullable = false)
 	@Size(max = 50000)
+	@NotBlank
 	private String description;
-	@Column(nullable = false)
+	@NotNull
 	private Double percentage;
-	@Column(nullable = false)
+	@NotNull
 	private Integer minYearOfPassing;
-	@Column(nullable = false)
+	@NotNull
 	private Integer maxYearOfPassing;
-	@Column(nullable = false)
+	@NotBlank
 	private String qualification;
-	@Column(nullable = false)
+	@NotBlank
 	private String stream;
-	@Column(nullable = false)
+	@NotBlank
 	private String stack;
-	@Column(nullable = false)
+	@NotBlank
 	private String salaryPackage;
-	@Column(nullable = false)
+	@NotNull
+	@Min(value=1)
 	private Integer noOfRegistraions;
-	@Column(nullable = false)
+	@NotNull
 	private Double mockRating;
 	
 }

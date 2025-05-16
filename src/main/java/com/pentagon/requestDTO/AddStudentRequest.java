@@ -1,18 +1,23 @@
 package com.pentagon.requestDTO;
 
 import jakarta.persistence.Column;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
 public class AddStudentRequest {
-	@Column(nullable = false)
+	@NotBlank
 	private String name;
-	@Column(nullable = false)
+	@NotBlank
+	@Email(message = "Invalid email format")
 	private String email;
-	@Column(nullable = false, length=10)
+	@NotBlank
+	@Size(min=10,max=10)
 	private String mobile;
-	@Column(nullable = false)
+	@NotBlank
 	private String stack;
-	@Column(nullable = false)
+	@NotBlank
 	private String typeOfAdmission;
 }

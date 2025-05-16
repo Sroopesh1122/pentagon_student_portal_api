@@ -1,13 +1,16 @@
 package com.pentagon.requestDTO;
 
 import jakarta.persistence.Column;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
 public class AdminLoginRequest {
-	@Column(nullable = false)
+	@NotBlank
+	 @Email(message = "Invalid email format")
 	private String email;
-	@Column(nullable = false)
+	@NotBlank
 	private String password;
 
 }
