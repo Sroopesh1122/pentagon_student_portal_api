@@ -15,6 +15,7 @@ import jakarta.validation.constraints.Email;
 import lombok.Data;
 
 @Data
+
 @Entity
 @Table(name="executive")
 public class Executive {
@@ -38,8 +39,8 @@ public class Executive {
     @Column(nullable = false)
 	private String password;
 	
-	@Column(name = "is_active", nullable = false)
-	private boolean isAcitve;
+	@Column(name = "is_active")
+	private boolean  active;
 	
 	@CreationTimestamp
     @Column(name = "created_at", updatable = false)

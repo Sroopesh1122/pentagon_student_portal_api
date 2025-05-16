@@ -3,6 +3,7 @@ package com.pentagon.service;
 import com.pentagon.entity.Executive;
 import com.pentagon.entity.JobDescription;
 import com.pentagon.entity.Manager;
+import com.pentagon.entity.Trainer;
 
 public interface ManagerService {
 
@@ -10,9 +11,11 @@ public interface ManagerService {
 	
 	public boolean updateManager(Manager manager);
 	
-	public Executive addExecutive(Executive executive); 
+	public boolean addExecutive(Executive executive);
 	
-	public boolean addJobDescription(JobDescription jobdescription);
+	public boolean addTrainer(Trainer trainer);
 	
-	public boolean acceptJobDescription(Integer jobDescriptionId);
+	public boolean addJobDescription(JobDescription jobDescription);
+	
+	public JobDescription acceptJobDescription(String jobDescriptionId);
 }

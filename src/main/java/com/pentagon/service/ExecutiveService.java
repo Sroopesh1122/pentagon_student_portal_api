@@ -9,9 +9,9 @@ public interface ExecutiveService {
 	
 	public boolean updateExecutive(Executive executive);
 	
-	public boolean addJobDescription(JobDescription jobdescription);
+	public boolean addJobDescription(JobDescription jobDescription);
 	
-	public boolean updateJobDescription(JobDescription jobdescription);
+	public boolean updateJobDescription(JobDescription jobDescription);
 	
 	
 }

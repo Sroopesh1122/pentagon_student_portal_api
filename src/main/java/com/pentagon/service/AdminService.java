@@ -13,14 +13,14 @@ public interface AdminService {
 	public boolean updateAdmin(Admin admin);
 	
 	//Excutive
-	public Executive addExecutive(Executive executive);
+	public boolean addExecutive(Executive executive);
 	
 	public List<Executive> viewAllExecutives();
 	
 	public void disableExecutiveByUniqueId(String executiveId);
 	
 	//Manager
-    public Manager addManager(Manager manager);
+    public boolean addManager(Manager manager);
 	
 	public List<Manager> viewAllManagers();
 	

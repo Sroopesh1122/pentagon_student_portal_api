@@ -39,7 +39,7 @@ public class Manager {
 	private String password;
 	
 	@Column(name = "is_active", nullable = false)
-	private boolean isAcitve;
+	private boolean active;
 	
 	@CreationTimestamp
     @Column(name = "created_at", updatable = false)

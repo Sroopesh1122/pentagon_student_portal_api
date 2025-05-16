@@ -78,7 +78,7 @@ public class Student {
     public enum EnrollmentStatus { 
     	PENDING,
         ACTIVE, 
-        SUSPENDED, 
+        DISABLED, 
         COMPLETED, 
         DROPPED,
         PLACED

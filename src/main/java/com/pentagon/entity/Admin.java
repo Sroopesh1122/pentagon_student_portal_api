@@ -3,6 +3,7 @@ package com.pentagon.entity;
 import java.time.LocalDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -19,7 +20,7 @@ public class Admin {
 
 	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Integer id;
+	private Integer Id;
 	
 	@Column(name = "admin_id", nullable = false, unique = true)
 	private String adminId;
@@ -40,5 +41,8 @@ public class Admin {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 	
+	@UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 	
 }
