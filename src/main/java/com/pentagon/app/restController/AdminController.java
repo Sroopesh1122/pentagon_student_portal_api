@@ -9,7 +9,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -23,6 +25,8 @@ import com.pentagon.app.service.AdminService;
 import com.pentagon.app.service.CustomUserDetails;
 import com.pentagon.app.utils.JwtUtil;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/admin")
 public class AdminController {
@@ -33,11 +37,14 @@ public class AdminController {
 	@Autowired
 	private JwtUtil jwtUtil;
 
-	@PostMapping("/addManager")
+	@PostMapping("/secure/addManager")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<?> addManagerByAdmin(@AuthenticationPrincipal CustomUserDetails customUserDetails,
-			AddManagerRequest newManager)
+			@Valid @RequestBody AddManagerRequest newManager,
+			BindingResult bindingResult)
 	{
+		if(bindingResult.hasErrors())
+			throw new AdminException("Invalid data ", HttpStatus.BAD_REQUEST);
 		if(customUserDetails==null)
 		{
 			throw new AdminException("Unauthenticated", HttpStatus.UNAUTHORIZED);
@@ -56,24 +63,27 @@ public class AdminController {
 		
 		jwtUtil.generateToken(manager.getEmail(), claims );
 		
-		boolean status=adminservice.addManager(manager);
-		if(!status)
-			throw new AdminException("Manager cannot be added", HttpStatus.CONFLICT); 
-		else
+		adminservice.addManager(manager);
+		 
 		return ResponseEntity.ok(new ApiResponse<>("success","Manager added Successfully",null));
 	}
 	
-	@PostMapping("/addExecutive")
+	@PostMapping("/secure/addExecutive")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<?> addExecutiveByAdmin(@AuthenticationPrincipal CustomUserDetails customUserDetails,
-			AddExecutiveRequest newExecutive)
+			@Valid @RequestBody	AddExecutiveRequest newExecutive,
+			BindingResult bindingResult)
 	{
+		if(bindingResult.hasErrors())
+			throw new AdminException("Invalid data ", HttpStatus.BAD_REQUEST);
 		if(customUserDetails==null)
 		{
 			throw new AdminException("Unauthorized",HttpStatus.UNAUTHORIZED);
 		}
 		Executive executive=new Executive();
 		//executive.setExecutiveId(null);
+		
+		
 		executive.setName(newExecutive.getName());
 		executive.setEmail(newExecutive.getEmail());
 		executive.setActive(true);
@@ -86,12 +96,7 @@ public class AdminController {
 		
 		jwtUtil.generateToken(executive.getEmail(), claims );
 		
-		boolean status=adminservice.addExecutive(executive);
-		
-		Map<String,String> response=new HashMap<>();
-		if(!status)
-			throw new AdminException("Manager cannot be added", HttpStatus.CONFLICT);
-		
+		adminservice.addExecutive(executive);
 		return ResponseEntity.ok(new ApiResponse<>("success","Executive added Successfully",null));
 	}
 	
