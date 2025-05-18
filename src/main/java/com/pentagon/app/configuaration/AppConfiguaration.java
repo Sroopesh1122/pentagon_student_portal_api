@@ -22,6 +22,12 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import com.pentagon.app.service.CustomUserDetailsService;
 import com.pentagon.app.utils.JwtFilter;
 
+import io.swagger.v3.oas.models.Components;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.security.SecurityScheme;
+
 @Configuration
 @EnableWebSecurity
 public class AppConfiguaration {
@@ -74,4 +80,20 @@ public class AppConfiguaration {
         source.registerCorsConfiguration("/**", corsConfiguration);
         return source;
     }
+	@Bean
+	public OpenAPI customOpenAPI() {
+	    return new OpenAPI()
+	            .info(new Info()
+	                    .title("Student Placement & Job Portal API")
+	                    .description("API documentation for the Student Placement and Job Management System"))
+	            .addSecurityItem(new SecurityRequirement().addList("Bearer Authentication"))
+	            .components(new Components().addSecuritySchemes(
+	                    "Bearer Authentication",
+	                    new SecurityScheme()
+	                            .name("Bearer Authentication")
+	                            .type(SecurityScheme.Type.HTTP)
+	                            .scheme("bearer")
+	                            .bearerFormat("JWT")        // Bearer token (JWT) support
+	            ));
+	}
 }
