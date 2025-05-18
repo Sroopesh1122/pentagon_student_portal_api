@@ -49,7 +49,12 @@ public class AppConfiguaration {
 				.csrf(csrf -> csrf.disable())
 				.cors(cors->cors.configurationSource(corsConfigurationSource()))
 				.authorizeHttpRequests(request -> request
-						.requestMatchers("/pentagon/auth/**").permitAll().anyRequest().authenticated())
+						.requestMatchers("/pentagon/auth/**").permitAll()
+						.requestMatchers(
+			                    "/v3/api-docs/**",
+			                    "/swagger-ui/**",
+			                    "/swagger-ui.html").permitAll()
+						.anyRequest().authenticated())
 				.httpBasic(Customizer.withDefaults())
 				.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
