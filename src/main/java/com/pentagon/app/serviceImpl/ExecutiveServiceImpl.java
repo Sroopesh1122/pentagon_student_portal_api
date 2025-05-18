@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.pentagon.app.entity.Executive;
@@ -12,7 +13,10 @@ import com.pentagon.app.exception.ExecutiveException;
 import com.pentagon.app.exception.JobDescriptionException;
 import com.pentagon.app.repository.ExecutiveRepository;
 import com.pentagon.app.repository.JobDescriptionRepository;
+import com.pentagon.app.requestDTO.ExecutiveLoginRequest;
+import com.pentagon.app.requestDTO.OtpVerificationRequest;
 import com.pentagon.app.service.ExecutiveService;
+import com.pentagon.app.service.OtpService;
 
 @Service
 public class ExecutiveServiceImpl implements ExecutiveService {
@@ -22,6 +26,12 @@ public class ExecutiveServiceImpl implements ExecutiveService {
 	
 	@Autowired
 	private JobDescriptionRepository jobDescriptionRepository;
+	
+	@Autowired
+	private OtpService otpService;
+	
+	@Autowired
+	private PasswordEncoder passwordEncoder;
 	
 	@Override
 	public Executive login(String email, String otp) {
@@ -66,6 +76,25 @@ public class ExecutiveServiceImpl implements ExecutiveService {
 		catch(Exception e) {
 			throw new JobDescriptionException("Failed to Update Job Description: "+ e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+	}
+	@Override
+	public String loginWithPassword(ExecutiveLoginRequest executiveLoginRequest) {
+		Executive executive = executiveRepository.findByEmail(executiveLoginRequest.getEmail())
+				.orElseThrow(()-> new ExecutiveException("Executive not found", HttpStatus.NOT_FOUND));
+		if (!passwordEncoder.matches(executiveLoginRequest.getPassword(), executive.getPassword())) {
+			throw new ExecutiveException("Inavlid password", HttpStatus.UNAUTHORIZED);
+		}
+		String otp= otpService.generateOtpAndStore(executiveLoginRequest.getEmail());
+		otpService.sendOtpToEmail(executive.getEmail(), otp);
+		
+		return "OTP sent to registered email";
+	}
+
+	@Override
+	public Boolean verifyByOtp(OtpVerificationRequest otpVerificationRequest) {
+		Executive executive = executiveRepository.findByEmail(otpVerificationRequest.getEmail())
+				.orElseThrow(()-> new ExecutiveException("Executive not found", HttpStatus.NOT_FOUND));
+		return otpService.verifyOtp(otpVerificationRequest);
 	}
 
 }

@@ -11,5 +11,5 @@ public class ManagerLoginRequest {
 	 @Email(message = "Invalid email format")
 	private String email;
 	@NotBlank
-	private String otp;
+	private String password;
 }

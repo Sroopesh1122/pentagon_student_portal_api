@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.pentagon.app.entity.Executive;
@@ -18,7 +19,10 @@ import com.pentagon.app.repository.ExecutiveRepository;
 import com.pentagon.app.repository.JobDescriptionRepository;
 import com.pentagon.app.repository.ManagerRepository;
 import com.pentagon.app.repository.TrainerRepository;
+import com.pentagon.app.requestDTO.ManagerLoginRequest;
+import com.pentagon.app.requestDTO.OtpVerificationRequest;
 import com.pentagon.app.service.ManagerService;
+import com.pentagon.app.service.OtpService;
 
 @Service
 public class ManagerServiceImpl implements ManagerService {
@@ -34,6 +38,12 @@ public class ManagerServiceImpl implements ManagerService {
 	
 	@Autowired
 	private TrainerRepository trainerRepository;
+	
+	@Autowired
+	private OtpService otpService;
+	
+	@Autowired
+	private PasswordEncoder passwordEncoder;
 	
 	@Override
 	public Manager login(String email, String otp) {
@@ -96,5 +106,26 @@ public class ManagerServiceImpl implements ManagerService {
 			throw new TrainerException("Failed to Add Trainer: "+ e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
+	@Override
+	public String loginWithPassword(ManagerLoginRequest managerLoginRequest) {
+		Manager manager= managerRepository.findByEmail(managerLoginRequest.getEmail())
+				.orElseThrow(()-> new ManagerException("Manager not found", HttpStatus.NOT_FOUND));
+		if(!passwordEncoder.matches(managerLoginRequest.getPassword(), manager.getPassword())) {
+			throw new ManagerException("Invalid password", HttpStatus.UNAUTHORIZED);
+		}
+		String otp= otpService.generateOtpAndStore(managerLoginRequest.getEmail());
+		otpService.sendOtpToEmail(managerLoginRequest.getEmail(), otp);
+		
+		return "OTP sent to registered email";
+
+	}
+
+	@Override
+	public Boolean verifyByOtp(OtpVerificationRequest otpVerificationRequest) {
+		Manager manager = managerRepository.findByEmail(otpVerificationRequest.getEmail())
+				.orElseThrow(()-> new ManagerException("Manager Not Found", HttpStatus.NOT_FOUND));
+		return otpService.verifyOtp(otpVerificationRequest);
+	}
+
 
 }

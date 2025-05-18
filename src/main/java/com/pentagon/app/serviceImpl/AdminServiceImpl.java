@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.pentagon.app.entity.Admin;
@@ -23,7 +24,10 @@ import com.pentagon.app.repository.ExecutiveRepository;
 import com.pentagon.app.repository.JobDescriptionRepository;
 import com.pentagon.app.repository.ManagerRepository;
 import com.pentagon.app.repository.StudentRepository;
+import com.pentagon.app.requestDTO.AdminLoginRequest;
+import com.pentagon.app.requestDTO.OtpVerificationRequest;
 import com.pentagon.app.service.AdminService;
+import com.pentagon.app.service.OtpService;
 
 @Service
 public class AdminServiceImpl implements AdminService {
@@ -42,6 +46,12 @@ public class AdminServiceImpl implements AdminService {
 	
 	@Autowired
 	private JobDescriptionRepository jobDescriptionRepository;
+	
+	@Autowired
+	private OtpService otpService;
+	
+	@Autowired
+	private PasswordEncoder passwordEncoder;
 	
 	@Override
 	public boolean updateAdmin(Admin admin) {
@@ -150,6 +160,29 @@ public class AdminServiceImpl implements AdminService {
         	throw new JobDescriptionException("Failed to Job Descriptions", HttpStatus.NOT_FOUND);
         }
 		
+	}
+	@Override
+	public String loginWithPassword(AdminLoginRequest request) {
+		// TODO Auto-generated method stub
+		Admin admin = adminRepository.findByEmail(request.getEmail())
+				.orElseThrow(() -> new AdminException("Admin not found", HttpStatus.NOT_FOUND));
+
+		if (!passwordEncoder.matches(request.getPassword(), admin.getPassword())) {
+			throw new AdminException("Invalid password", HttpStatus.UNAUTHORIZED);
+		}
+		String otp = otpService.generateOtpAndStore(admin.getEmail());
+		otpService.sendOtpToEmail(admin.getEmail(), otp);
+
+		return "OTP sent to registered email";
+
+	}
+
+	@Override
+	public boolean verifyOtp(OtpVerificationRequest request) {
+		
+		Admin admin = adminRepository.findByEmail(request.getEmail())
+				.orElseThrow(() -> new AdminException("Admin not found", HttpStatus.NOT_FOUND));
+		return otpService.verifyOtp(request);
 	}
 	
 }

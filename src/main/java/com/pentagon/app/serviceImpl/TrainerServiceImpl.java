@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.pentagon.app.entity.Student;
@@ -14,6 +15,9 @@ import com.pentagon.app.exception.StudentException;
 import com.pentagon.app.exception.TrainerException;
 import com.pentagon.app.repository.StudentRepository;
 import com.pentagon.app.repository.TrainerRepository;
+import com.pentagon.app.requestDTO.OtpVerificationRequest;
+import com.pentagon.app.requestDTO.TrainerLoginRequest;
+import com.pentagon.app.service.OtpService;
 import com.pentagon.app.service.TrainerService;
 
 @Service
@@ -25,10 +29,15 @@ public class TrainerServiceImpl implements TrainerService {
 	@Autowired
 	private StudentRepository studentRepository;
 	
+	@Autowired
+	private OtpService otpService;
+	
+	@Autowired
+	private PasswordEncoder passwordEncoder;
+	
 	
 	@Override
 	public boolean updateTrainer(Trainer trainer) {
-		// TODO Auto-generated method stub
 		try {
 			trainer.setUpdatedAt(LocalDateTime.now());
 			trainerRepository.save(trainer);
@@ -41,7 +50,6 @@ public class TrainerServiceImpl implements TrainerService {
 
 	@Override
 	public boolean addStudent(Student student) {
-		// TODO Auto-generated method stub
 		try {
 			student.setCreatedAt(LocalDateTime.now());
 			studentRepository.save(student);
@@ -54,7 +62,6 @@ public class TrainerServiceImpl implements TrainerService {
 
 	@Override
 	public List<Student> viewStudentsBasedOnStack(String stack) {
-		// TODO Auto-generated method stub
 		try {
 			return studentRepository.findByStack(stack);
 		}
@@ -65,7 +72,6 @@ public class TrainerServiceImpl implements TrainerService {
 
 	@Override
 	public boolean addMockRating(String studentId, Double mockRating) {
-		// TODO Auto-generated method stub
 		Student student = studentRepository.findByStudentId(studentId)
            .orElseThrow(()-> new StudentException("Student not found with id: " + studentId, HttpStatus.NOT_FOUND));	
 		
@@ -82,7 +88,6 @@ public class TrainerServiceImpl implements TrainerService {
 
 	@Override
 	public void disableStudentByUniqueId(String studentId) {
-		// TODO Auto-generated method stub
 		Student student = studentRepository.findByStudentId(studentId)
 				.orElseThrow(()->new StudentException("Student not found with id: " + studentId, HttpStatus.NOT_FOUND));
 		
@@ -93,6 +98,25 @@ public class TrainerServiceImpl implements TrainerService {
 		student.setStatus(EnrollmentStatus.DISABLED);
 		student.setUpdatedAt(LocalDateTime.now());
 		studentRepository.save(student);
+	}
+	@Override
+	public String loginWithPassword(TrainerLoginRequest trainerLoginRequest) {
+		Trainer trainer = trainerRepository.findByEmail(trainerLoginRequest.getEmail())
+				.orElseThrow(()-> new TrainerException("Trainer not found", HttpStatus.NOT_FOUND));
+		if (!passwordEncoder.matches(trainerLoginRequest.getPassword(), trainer.getPassword())) {
+			throw new TrainerException("Invalid password", HttpStatus.UNAUTHORIZED);
+		}
+		String otp = otpService.generateOtpAndStore(trainerLoginRequest.getEmail());
+		otpService.sendOtpToEmail(trainerLoginRequest.getEmail(), otp);
+
+		return "OTP sent to registered email";
+
+	}
+	@Override
+	public Boolean verifyByOtp(OtpVerificationRequest otpVerificationRequest) {
+		Trainer trainer = trainerRepository.findByEmail(otpVerificationRequest.getEmail())
+				.orElseThrow(()-> new TrainerException("Trainer not found", HttpStatus.NOT_FOUND));
+		return otpService.verifyOtp(otpVerificationRequest);
 	}
 
 }

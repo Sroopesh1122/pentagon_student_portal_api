@@ -7,6 +7,8 @@ import com.pentagon.app.entity.Executive;
 import com.pentagon.app.entity.JobDescription;
 import com.pentagon.app.entity.Manager;
 import com.pentagon.app.entity.Student;
+import com.pentagon.app.requestDTO.AdminLoginRequest;
+import com.pentagon.app.requestDTO.OtpVerificationRequest;
 
 public interface AdminService {
 
@@ -31,6 +33,10 @@ public interface AdminService {
 	
 	//JD
 	public List<JobDescription> viewAllJobDescriptions();
+
+	boolean verifyOtp(OtpVerificationRequest request);
+
+	String loginWithPassword(AdminLoginRequest request);
 	
 	
 	
