@@ -1,26 +1,26 @@
 package com.pentagon.app.requestDTO;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
-public class AddTrainerRequest {
+public class TrainerUpdateRequest {
 
 	@NotBlank
 	private String name;
+	
+	@Email(message = "Invalid email format")
 	@NotBlank
 	private String email;
+	
+	@Size(min=10,max=10)
 	@NotBlank
 	private String mobile;
+	
 	@NotBlank
 	private String password;
-	@NotBlank
-	private String trainerStack;
-	@NotBlank
-	private String qualification;
-	@NotNull
-	private Integer yearOfExperiences;
-	@NotBlank	
-	private  String technologies ;
+	
 }
+

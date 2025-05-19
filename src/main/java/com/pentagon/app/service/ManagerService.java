@@ -1,5 +1,8 @@
 package com.pentagon.app.service;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import com.pentagon.app.entity.Executive;
 import com.pentagon.app.entity.JobDescription;
 import com.pentagon.app.entity.Manager;
@@ -11,15 +14,19 @@ public interface ManagerService {
 
     public Manager login(String email, String otp);
 	
-	public boolean updateManager(Manager manager);
+	public Manager updateManager(Manager manager);
 	
-	public boolean addExecutive(Executive executive);
+	public Executive addExecutive(Executive executive);
 	
-	public boolean addTrainer(Trainer trainer);
+	public Trainer addTrainer(Trainer trainer);
 	
 	public JobDescription acceptJobDescription(String jobDescriptionId);
 
 	Boolean verifyByOtp(OtpVerificationRequest otpVerificationRequest);
 
 	String loginWithPassword(ManagerLoginRequest managerLoginRequest);
+	
+	Page<Trainer> viewAllTrainers(String stack, String name, String trainerId, Pageable pageable);
+
+
 }

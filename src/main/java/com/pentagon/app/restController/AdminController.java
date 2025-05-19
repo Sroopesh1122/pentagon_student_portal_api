@@ -50,7 +50,7 @@ public class AdminController {
 			throw new AdminException("Unauthenticated", HttpStatus.UNAUTHORIZED);
 		}
 		Manager manager=new Manager();
-		//manager.setManagerId(null);
+		manager.setManagerId("manager001");
 		manager.setName(newManager.getName());
 		manager.setEmail(newManager.getEmail());
 		manager.setMobile(newManager.getMobile());
@@ -81,7 +81,7 @@ public class AdminController {
 			throw new AdminException("Unauthorized",HttpStatus.UNAUTHORIZED);
 		}
 		Executive executive=new Executive();
-		//executive.setExecutiveId(null);
+		executive.setExecutiveId("Executive001");
 		
 		
 		executive.setName(newExecutive.getName());

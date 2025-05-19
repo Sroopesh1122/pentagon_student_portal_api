@@ -26,6 +26,9 @@ public class OtpServiceImpl implements OtpService {
 
 	@Autowired
 	private AdminRepository adminRepository;
+	
+	@Autowired
+	private MailService mailService;
 
 	@Override
 	public String generateOtpAndStore(String email) {
@@ -44,6 +47,7 @@ public class OtpServiceImpl implements OtpService {
 	@Override
 	public void sendOtpToEmail(String email, String otp) {
 		// write otp sending logic or store in database
+//		mailService.sendSimpleEmail(email, "Otp From Penatagon Sapce", otp);
 
 	}
 

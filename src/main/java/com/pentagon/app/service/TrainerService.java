@@ -9,9 +9,9 @@ import com.pentagon.app.requestDTO.TrainerLoginRequest;
 
 public interface TrainerService {
 
-	public boolean updateTrainer(Trainer trainer);
+	public Trainer updateTrainer(Trainer trainer);
 	
-	public boolean addStudent(Student student);
+	public Student addStudent(Student student);
 	
 	public List<Student> viewStudentsBasedOnStack(String stack);
 	

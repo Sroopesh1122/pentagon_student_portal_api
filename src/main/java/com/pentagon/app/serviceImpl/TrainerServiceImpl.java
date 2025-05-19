@@ -37,11 +37,11 @@ public class TrainerServiceImpl implements TrainerService {
 	
 	
 	@Override
-	public boolean updateTrainer(Trainer trainer) {
+	public Trainer updateTrainer(Trainer trainer) {
 		try {
 			trainer.setUpdatedAt(LocalDateTime.now());
-			trainerRepository.save(trainer);
-			return true;
+			return trainerRepository.save(trainer);
+			 
 		}
 		catch (Exception e) {
 	        throw new TrainerException("Failed to update Trainer: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -49,11 +49,11 @@ public class TrainerServiceImpl implements TrainerService {
 	}
 
 	@Override
-	public boolean addStudent(Student student) {
+	public Student addStudent(Student student) {
 		try {
 			student.setCreatedAt(LocalDateTime.now());
-			studentRepository.save(student);
-			return true;
+			return studentRepository.save(student);
+			 
 		}
 		catch (Exception e) {
 	        throw new StudentException("Failed to add Student: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
