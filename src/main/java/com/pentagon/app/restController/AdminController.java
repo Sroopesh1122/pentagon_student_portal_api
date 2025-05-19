@@ -4,25 +4,35 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.pentagon.app.entity.Executive;
 import com.pentagon.app.entity.Manager;
+import com.pentagon.app.entity.Trainer;
 import com.pentagon.app.exception.AdminException;
 import com.pentagon.app.requestDTO.AddExecutiveRequest;
 import com.pentagon.app.requestDTO.AddManagerRequest;
+import com.pentagon.app.requestDTO.TrainerDTO;
 import com.pentagon.app.response.ApiResponse;
+import com.pentagon.app.response.PageResponse;
 import com.pentagon.app.service.AdminService;
 import com.pentagon.app.service.CustomUserDetails;
+import com.pentagon.app.service.ManagerService;
 import com.pentagon.app.utils.JwtUtil;
 
 import jakarta.validation.Valid;
@@ -36,6 +46,8 @@ public class AdminController {
 	private PasswordEncoder passwordEncoder;
 	@Autowired
 	private JwtUtil jwtUtil;
+	@Autowired
+	private ManagerService managerService;
 
 	@PostMapping("/secure/addManager")
 	@PreAuthorize("hasRole('ADMIN')")
@@ -99,5 +111,43 @@ public class AdminController {
 		adminservice.addExecutive(executive);
 		return ResponseEntity.ok(new ApiResponse<>("success","Executive added Successfully",null));
 	}
+	
+	@GetMapping("/secure/viewAllTrainers")
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<ApiResponse<PageResponse<TrainerDTO>>> viewAllTrainers(
+			@RequestParam(defaultValue = "1") int page,
+	        @RequestParam(defaultValue = "10") int limit,
+	        @RequestParam(required = false) String stack,
+	        @RequestParam(required = false) String name,
+	        @RequestParam(required = false) String trainerId){
+		
+		Pageable pageable = PageRequest.of(page - 1, limit, Sort.by("createdAt").descending());
+		
+		Page<Trainer> trainers = managerService.viewAllTrainers(stack, name, trainerId, pageable);
+		
+		Page<TrainerDTO> TrainerDTOPage = trainers.map(trainer -> {
+            TrainerDTO dto = new TrainerDTO();
+            dto.setId(trainer.getId());
+            dto.setTrainerId(trainer.getTrainerId());
+            dto.setName(trainer.getName());
+            dto.setEmail(trainer.getEmail());
+            dto.setMobile(trainer.getMobile());
+            dto.setTrainerStack(trainer.getTrainerStack());
+            dto.setQualification(trainer.getQualification());
+            dto.setYearOfExperiences(trainer.getYearOfExperiences());
+            dto.setTechnologies(trainer.getTechnologies());
+            dto.setActive(trainer.isAcitve());
+            dto.setCreatedAt(trainer.getCreatedAt());
+            dto.setUpdatedAt(trainer.getUpdatedAt());
+            return dto;
+        });
+		
+		PageResponse<TrainerDTO> pageResponse = new PageResponse<>(TrainerDTOPage);
+		
+		return ResponseEntity.ok(
+	            new ApiResponse<>("success", "Trainers fetched successfully", pageResponse)
+	        );
+	}
+	
 	
 }
