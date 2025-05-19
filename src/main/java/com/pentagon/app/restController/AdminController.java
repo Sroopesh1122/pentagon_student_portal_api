@@ -23,6 +23,7 @@ import com.pentagon.app.requestDTO.AddManagerRequest;
 import com.pentagon.app.response.ApiResponse;
 import com.pentagon.app.service.AdminService;
 import com.pentagon.app.service.CustomUserDetails;
+import com.pentagon.app.utils.IdGeneration;
 import com.pentagon.app.utils.JwtUtil;
 
 import jakarta.validation.Valid;
@@ -30,12 +31,10 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/admin")
 public class AdminController {
-	@Autowired
-	AdminService adminservice;
-	@Autowired
-	private PasswordEncoder passwordEncoder;
-	@Autowired
-	private JwtUtil jwtUtil;
+	@Autowired AdminService adminservice;
+	@Autowired private PasswordEncoder passwordEncoder;
+	@Autowired private JwtUtil jwtUtil;
+	@Autowired private IdGeneration idGeneration;
 
 	@PostMapping("/secure/addManager")
 	@PreAuthorize("hasRole('ADMIN')")
@@ -50,7 +49,7 @@ public class AdminController {
 			throw new AdminException("Unauthenticated", HttpStatus.UNAUTHORIZED);
 		}
 		Manager manager=new Manager();
-		manager.setManagerId("manager001");
+		manager.setManagerId(idGeneration.generateId("ADMIN"));
 		manager.setName(newManager.getName());
 		manager.setEmail(newManager.getEmail());
 		manager.setMobile(newManager.getMobile());
@@ -81,9 +80,7 @@ public class AdminController {
 			throw new AdminException("Unauthorized",HttpStatus.UNAUTHORIZED);
 		}
 		Executive executive=new Executive();
-		executive.setExecutiveId("Executive001");
-		
-		
+		executive.setExecutiveId(idGeneration.generateId("EXECUTIVE"));
 		executive.setName(newExecutive.getName());
 		executive.setEmail(newExecutive.getEmail());
 		executive.setActive(true);
@@ -93,9 +90,7 @@ public class AdminController {
 		Map<String, Object> claims = new HashMap<>();
 		claims.put("email", executive.getEmail());
 	    claims.put("role","MANAGER");
-		
 		jwtUtil.generateToken(executive.getEmail(), claims );
-		
 		adminservice.addExecutive(executive);
 		return ResponseEntity.ok(new ApiResponse<>("success","Executive added Successfully",null));
 	}

@@ -40,6 +40,7 @@ import com.pentagon.app.response.ApiResponse;
 import com.pentagon.app.response.PageResponse;
 import com.pentagon.app.service.CustomUserDetails;
 import com.pentagon.app.service.ManagerService;
+import com.pentagon.app.utils.IdGeneration;
 import com.pentagon.app.utils.JwtUtil;
 
 import jakarta.validation.Valid;
@@ -53,6 +54,9 @@ public class ManagerController {
 	
 	@Autowired
 	private ManagerService managerService;
+	
+	@Autowired
+	private IdGeneration idGeneration;
 	
 	@Autowired
 	private JwtUtil jwtUtil;
@@ -71,7 +75,7 @@ public class ManagerController {
 		}
 		
 		Manager manager = managerDetails.getManager();
-		
+		manager.setManagerId(idGeneration.generateId("MANAGER"));
 		manager.setName(request.getName());
 		manager.setEmail(request.getEmail());
 		manager.setMobile(request.getMobile());
@@ -103,6 +107,7 @@ public class ManagerController {
 		}
 		
 		Executive executive = new Executive();
+		executive.setExecutiveId(idGeneration.generateId("EXECUTIVE"));
 		executive.setName(request.getName());
 		executive.setEmail(request.getEmail());
 		executive.setMobile(request.getMobile());
@@ -138,6 +143,7 @@ public class ManagerController {
 		}
 		
 		Trainer trainer = new Trainer();
+		trainer.setTrainerId(idGeneration.generateId("TRAINER"));
 		trainer.setName(request.getName());
 		trainer.setEmail(request.getEmail());
 		trainer.setMobile(request.getMobile());

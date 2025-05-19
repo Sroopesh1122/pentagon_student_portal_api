@@ -21,7 +21,7 @@ public class Trainer {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    @Column(name = "executive_id", nullable = false, unique = true)
+    @Column(name = "trainer_id", nullable = false, unique = true)
     private String trainerId;
     @Column(nullable = false)
     private String name;
