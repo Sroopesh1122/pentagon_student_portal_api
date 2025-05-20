@@ -1,17 +1,12 @@
 package com.pentagon.app.restController;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-
 import org.springframework.beans.factory.annotation.Autowired;
-
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,25 +19,21 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-
 import com.pentagon.app.entity.Executive;
-
 import com.pentagon.app.entity.Manager;
 import com.pentagon.app.entity.Trainer;
 import com.pentagon.app.exception.ManagerException;
-
 import com.pentagon.app.requestDTO.AddExecutiveRequest;
 import com.pentagon.app.requestDTO.AddTrainerRequest;
 import com.pentagon.app.requestDTO.TrainerDTO;
 import com.pentagon.app.requestDTO.UpdateManagerRequest;
 import com.pentagon.app.response.ApiResponse;
 import com.pentagon.app.response.PageResponse;
+import com.pentagon.app.response.ProfileResponceDto;
 import com.pentagon.app.service.CustomUserDetails;
 import com.pentagon.app.service.ManagerService;
 import com.pentagon.app.utils.IdGeneration;
 import com.pentagon.app.utils.JwtUtil;
-
 import jakarta.validation.Valid;
 
 @RestController
@@ -205,6 +196,16 @@ public class ManagerController {
 		return ResponseEntity.ok(
 	            new ApiResponse<>("success", "Trainers fetched successfully", pageResponse)
 	        );
+	}
+	@GetMapping("secure/profile")
+	@PreAuthorize("hasRole('MANAGER')")
+	public ResponseEntity<?> getAdminProfile(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
+		if(customUserDetails == null) {
+			throw new ManagerException("UNAUTHORIZED", HttpStatus.UNAUTHORIZED);
+		}
+	    Manager manager= customUserDetails.getManager();
+	    ProfileResponceDto details = managerService.getProfile(manager);
+	    return ResponseEntity.ok(new ApiResponse<>("success", "Admin Profile", details));
 	}
 	
 	

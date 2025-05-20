@@ -17,6 +17,7 @@ import com.pentagon.app.repository.StudentRepository;
 import com.pentagon.app.repository.TrainerRepository;
 import com.pentagon.app.requestDTO.OtpVerificationRequest;
 import com.pentagon.app.requestDTO.TrainerLoginRequest;
+import com.pentagon.app.response.ProfileResponceDto;
 import com.pentagon.app.service.OtpService;
 import com.pentagon.app.service.TrainerService;
 
@@ -113,10 +114,24 @@ public class TrainerServiceImpl implements TrainerService {
 
 	}
 	@Override
-	public Boolean verifyByOtp(OtpVerificationRequest otpVerificationRequest) {
+	public Boolean verifyOtp(OtpVerificationRequest otpVerificationRequest) {
 		Trainer trainer = trainerRepository.findByEmail(otpVerificationRequest.getEmail())
 				.orElseThrow(()-> new TrainerException("Trainer not found", HttpStatus.NOT_FOUND));
 		return otpService.verifyOtp(otpVerificationRequest);
 	}
+
+	@Override
+	public ProfileResponceDto getProfile(Trainer trainer) {
+		ProfileResponceDto result= new ProfileResponceDto();
+		result.setUniqueId(trainer.getTrainerId());
+		result.setName(trainer.getName());
+		result.setEmail(trainer.getEmail());
+		result.setMobile(trainer.getMobile());
+		return result;
+	}
+
+	
+
+	
 
 }

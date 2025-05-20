@@ -9,6 +9,10 @@ import com.pentagon.app.entity.Manager;
 import com.pentagon.app.entity.Student;
 import com.pentagon.app.requestDTO.AdminLoginRequest;
 import com.pentagon.app.requestDTO.OtpVerificationRequest;
+import com.pentagon.app.requestDTO.TrainerLoginRequest;
+import com.pentagon.app.response.ProfileResponceDto;
+
+import jakarta.validation.Valid;
 
 public interface AdminService {
 
@@ -37,6 +41,11 @@ public interface AdminService {
 	boolean verifyOtp(OtpVerificationRequest request);
 
 	String loginWithPassword(AdminLoginRequest request);
+
+	public ProfileResponceDto getProfile(Admin admin);
+
+	
+
 	
 	
 	

@@ -6,6 +6,9 @@ import com.pentagon.app.entity.Student;
 import com.pentagon.app.entity.Trainer;
 import com.pentagon.app.requestDTO.OtpVerificationRequest;
 import com.pentagon.app.requestDTO.TrainerLoginRequest;
+import com.pentagon.app.response.ProfileResponceDto;
+
+import jakarta.validation.Valid;
 
 public interface TrainerService {
 
@@ -19,7 +22,9 @@ public interface TrainerService {
 	
 	public void disableStudentByUniqueId(String studentId);
 
-	Boolean verifyByOtp(OtpVerificationRequest otpVerificationRequest);
-
 	String loginWithPassword(TrainerLoginRequest trainerLoginRequest);
+
+	public Boolean verifyOtp(OtpVerificationRequest otpVerificationRequest);
+
+	public ProfileResponceDto getProfile(Trainer trainer);
 }

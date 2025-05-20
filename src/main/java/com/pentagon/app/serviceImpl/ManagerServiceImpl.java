@@ -23,6 +23,7 @@ import com.pentagon.app.repository.ManagerRepository;
 import com.pentagon.app.repository.TrainerRepository;
 import com.pentagon.app.requestDTO.ManagerLoginRequest;
 import com.pentagon.app.requestDTO.OtpVerificationRequest;
+import com.pentagon.app.response.ProfileResponceDto;
 import com.pentagon.app.service.ManagerService;
 import com.pentagon.app.service.OtpService;
 
@@ -133,10 +134,20 @@ public class ManagerServiceImpl implements ManagerService {
 	}
 
 	@Override
-	public Boolean verifyByOtp(OtpVerificationRequest otpVerificationRequest) {
+	public Boolean verifyOtp(OtpVerificationRequest otpVerificationRequest) {
 		Manager manager = managerRepository.findByEmail(otpVerificationRequest.getEmail())
 				.orElseThrow(()-> new ManagerException("Manager Not Found", HttpStatus.NOT_FOUND));
 		return otpService.verifyOtp(otpVerificationRequest);
+	}
+
+	@Override
+	public ProfileResponceDto getProfile(Manager manager) {
+		ProfileResponceDto result= new ProfileResponceDto();
+		result.setUniqueId(manager.getManagerId());
+		result.setName(manager.getName());
+		result.setEmail(manager.getEmail());
+		result.setMobile(manager.getMobile());
+		return result;
 	}
 
 

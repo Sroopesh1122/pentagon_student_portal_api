@@ -91,7 +91,7 @@ public class ExecutiveServiceImpl implements ExecutiveService {
 	}
 
 	@Override
-	public Boolean verifyByOtp(OtpVerificationRequest otpVerificationRequest) {
+	public Boolean verifyOtp(OtpVerificationRequest otpVerificationRequest) {
 		Executive executive = executiveRepository.findByEmail(otpVerificationRequest.getEmail())
 				.orElseThrow(()-> new ExecutiveException("Executive not found", HttpStatus.NOT_FOUND));
 		return otpService.verifyOtp(otpVerificationRequest);

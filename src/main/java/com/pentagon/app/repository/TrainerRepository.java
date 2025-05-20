@@ -20,6 +20,6 @@ public interface TrainerRepository extends JpaRepository<Trainer, Integer> {
 	Page<Trainer> findByFilters(@Param("stack") String stack, @Param("name") String name,
 			@Param("trainerId") String trainerId, Pageable pageable);
 
-	@Query("SELECT COUNT(T) FROM TRAINER T")
+	@Query("SELECT COUNT(T) FROM Trainer T")
 	int getTrainerCount();
 }

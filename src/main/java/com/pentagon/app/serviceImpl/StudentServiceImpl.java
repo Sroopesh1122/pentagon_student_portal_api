@@ -5,16 +5,24 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.pentagon.app.entity.JobDescription;
+import com.pentagon.app.entity.Manager;
 import com.pentagon.app.entity.Student;
 import com.pentagon.app.exception.ExecutiveException;
 import com.pentagon.app.exception.JobDescriptionException;
+import com.pentagon.app.exception.ManagerException;
 import com.pentagon.app.exception.StudentException;
 import com.pentagon.app.repository.JobDescriptionRepository;
 import com.pentagon.app.repository.StudentRepository;
+import com.pentagon.app.requestDTO.OtpVerificationRequest;
+import com.pentagon.app.requestDTO.StudentLoginRequest;
+import com.pentagon.app.service.OtpService;
 import com.pentagon.app.service.StudentService;
+
+import jakarta.validation.Valid;
 
 @Service
 public class StudentServiceImpl implements StudentService {
@@ -24,6 +32,12 @@ public class StudentServiceImpl implements StudentService {
 	
 	@Autowired
 	private JobDescriptionRepository jobDescriptionRepository;
+	
+	@Autowired
+	private PasswordEncoder passwordEncoder;
+
+	@Autowired
+	private OtpService otpService;
 	
 	@Override
 	public boolean changePassword(String password, String studentId) {
@@ -53,6 +67,26 @@ public class StudentServiceImpl implements StudentService {
 		catch(Exception e) {
 			 throw new JobDescriptionException("Failed to Fetch Job Descriptions : " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+	}
+
+	@Override
+	public String loginWithPassword(StudentLoginRequest studentLoginRequest) {
+		Student student= studentRepository.findByStudentId(studentLoginRequest.getStudentId())
+				.orElseThrow(()-> new StudentException("Manager not found", HttpStatus.NOT_FOUND));
+		if(!passwordEncoder.matches(studentLoginRequest.getPassword(), student.getPassword())) {
+			throw new StudentException("Invalid password", HttpStatus.UNAUTHORIZED);
+		}
+		String otp= otpService.generateOtpAndStore(student.getEmail());
+		otpService.sendOtpToEmail(student.getEmail(), otp);
+		
+		return "OTP sent to registered email";
+	}
+
+	@Override
+	public Boolean verifyOtp(OtpVerificationRequest otpVerificationRequest) {
+		Student student  = studentRepository.findByEmail(otpVerificationRequest.getEmail())
+				.orElseThrow(()-> new StudentException("Manager Not Found", HttpStatus.NOT_FOUND));
+		return otpService.verifyOtp(otpVerificationRequest);
 	}
 
 }

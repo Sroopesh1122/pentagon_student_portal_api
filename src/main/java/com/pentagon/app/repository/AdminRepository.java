@@ -11,6 +11,6 @@ public interface AdminRepository extends JpaRepository<Admin, Integer> {
 
 	Optional<Admin> findByEmail(String email);
 
-	@Query("SELECT COUNT(A) FROM ADMIN A")
+	@Query("SELECT COUNT(A) FROM Admin A")
 	int getAdminCount();
 }

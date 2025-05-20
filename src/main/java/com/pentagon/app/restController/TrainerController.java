@@ -10,11 +10,13 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.pentagon.app.entity.Admin;
 import com.pentagon.app.entity.Student;
 import com.pentagon.app.entity.Student.EnrollmentStatus;
 import com.pentagon.app.entity.Trainer;
@@ -22,6 +24,7 @@ import com.pentagon.app.exception.TrainerException;
 import com.pentagon.app.requestDTO.AddStudentRequest;
 import com.pentagon.app.requestDTO.TrainerUpdateRequest;
 import com.pentagon.app.response.ApiResponse;
+import com.pentagon.app.response.ProfileResponceDto;
 import com.pentagon.app.service.CustomUserDetails;
 import com.pentagon.app.service.TrainerService;
 import com.pentagon.app.utils.JwtUtil;
@@ -119,6 +122,16 @@ public class TrainerController {
 		
 		return ResponseEntity.ok(new ApiResponse<>("success", "Student Added Successfully", null));
 		
+	}
+	@GetMapping("secure/profile")
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<?> getAdminProfile(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
+		if(customUserDetails == null) {
+			throw new TrainerException("UNAUTHORIZED", HttpStatus.UNAUTHORIZED);
+		}
+	    Trainer trainer = customUserDetails.getTrainer();
+	    ProfileResponceDto details = trainerService.getProfile(trainer);
+	    return ResponseEntity.ok(new ApiResponse<>("success", "Admin Profile", details));
 	}
 	
 	

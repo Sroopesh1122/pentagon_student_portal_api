@@ -17,7 +17,7 @@ public interface ExecutiveService {
 
 	String loginWithPassword(ExecutiveLoginRequest executiveLoginRequest);
 
-	Boolean verifyByOtp(OtpVerificationRequest otpVerificationRequest);
+	Boolean verifyOtp(OtpVerificationRequest otpVerificationRequest);
 	
 	
 }

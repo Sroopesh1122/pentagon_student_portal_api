@@ -4,6 +4,10 @@ import java.util.List;
 
 import com.pentagon.app.entity.JobDescription;
 import com.pentagon.app.entity.Student;
+import com.pentagon.app.requestDTO.OtpVerificationRequest;
+import com.pentagon.app.requestDTO.StudentLoginRequest;
+
+import jakarta.validation.Valid;
 
 public interface StudentService {
 
@@ -12,6 +16,10 @@ public interface StudentService {
 	public boolean updateStudent(Student student);
 	
 	public List<JobDescription> viewJobDescriptionBasedOnStack(String stack);
+
+	public String loginWithPassword(StudentLoginRequest studentLoginRequest);
+
+	public Boolean verifyOtp(@Valid OtpVerificationRequest request);
 	
 	
 //	public JobDescription viewJobDescriptionBasedOnStackandMockRating(String stack, String mockRating);

@@ -9,6 +9,7 @@ import com.pentagon.app.entity.Manager;
 import com.pentagon.app.entity.Trainer;
 import com.pentagon.app.requestDTO.ManagerLoginRequest;
 import com.pentagon.app.requestDTO.OtpVerificationRequest;
+import com.pentagon.app.response.ProfileResponceDto;
 
 public interface ManagerService {
 
@@ -22,11 +23,14 @@ public interface ManagerService {
 	
 	public JobDescription acceptJobDescription(String jobDescriptionId);
 
-	Boolean verifyByOtp(OtpVerificationRequest otpVerificationRequest);
+	Boolean verifyOtp(OtpVerificationRequest otpVerificationRequest);
 
 	String loginWithPassword(ManagerLoginRequest managerLoginRequest);
 	
 	Page<Trainer> viewAllTrainers(String stack, String name, String trainerId, Pageable pageable);
+
+	public ProfileResponceDto getProfile(Manager manager);
+
 
 
 }

@@ -2,8 +2,10 @@ package com.pentagon.app.utils;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.pentagon.app.repository.AdminRepository;
 import com.pentagon.app.repository.ExecutiveRepository;
@@ -11,6 +13,7 @@ import com.pentagon.app.repository.ManagerRepository;
 import com.pentagon.app.repository.StudentRepository;
 import com.pentagon.app.repository.TrainerRepository;
 
+@Component
 public class IdGeneration {
 	
 	@Autowired
@@ -22,6 +25,18 @@ public class IdGeneration {
 	@Autowired private ManagerRepository managerRepository;
 	
 	public String generateStudentId(String stack) {
+	    Map<String, String> stackCodeMap = Map.of(
+	        "java full stack", "JFS",
+	        "python full stack", "PFS",
+	        "mern full stack", "MFS",
+	        "software testing", "ST"
+	    );
+
+	    String code = stackCodeMap.get(stack.toLowerCase());
+	    if (code == null) {
+	        throw new IllegalArgumentException("Invalid stack: " + stack);
+	    }
+
 	    LocalDate now = LocalDate.now();
 	    int month = now.getMonthValue();
 	    int year = now.getYear();
@@ -29,11 +44,12 @@ public class IdGeneration {
 	    int count = studentRepository.countByCourseAndMonthYear(stack, month, year);
 	    int next = count + 1;
 
-	    String paddedNumber = String.format("%03d", next); // 001
-	    String datePart = now.format(DateTimeFormatter.ofPattern("ddMMMyy")).toUpperCase(); // e.g., 19MAY25
+	    String paddedNumber = code.equals("ST")
+	            ? String.format("%04d", next)  // ST -> 0001
+	            : String.format("%03d", next); // Others -> 001
+	    String datePart = now.format(DateTimeFormatter.ofPattern("ddMMMyy")).toUpperCase(); // 19MAY25
 
-	    return "PS" + datePart + "OF" + stack.toUpperCase() + paddedNumber;
-	    //PS19MAY25OFXXX001
+	    return "PS" + datePart + "OF" + code + paddedNumber; // PS19MAY25OFJFS001
 	}
 	
 	public String generateId(String userType) {

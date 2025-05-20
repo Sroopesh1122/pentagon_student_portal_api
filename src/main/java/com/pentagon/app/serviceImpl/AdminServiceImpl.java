@@ -26,6 +26,8 @@ import com.pentagon.app.repository.ManagerRepository;
 import com.pentagon.app.repository.StudentRepository;
 import com.pentagon.app.requestDTO.AdminLoginRequest;
 import com.pentagon.app.requestDTO.OtpVerificationRequest;
+import com.pentagon.app.requestDTO.TrainerLoginRequest;
+import com.pentagon.app.response.ProfileResponceDto;
 import com.pentagon.app.service.AdminService;
 import com.pentagon.app.service.OtpService;
 
@@ -184,5 +186,17 @@ public class AdminServiceImpl implements AdminService {
 				.orElseThrow(() -> new AdminException("Admin not found", HttpStatus.NOT_FOUND));
 		return otpService.verifyOtp(request);
 	}
+
+	@Override
+	public ProfileResponceDto getProfile(Admin admin) {
+		ProfileResponceDto result= new ProfileResponceDto();
+		result.setUniqueId(admin.getAdminId());
+		result.setName(admin.getName());
+		result.setEmail(admin.getEmail());
+		result.setMobile(admin.getMobile());
+		return result;
+	}
+
+	
 	
 }

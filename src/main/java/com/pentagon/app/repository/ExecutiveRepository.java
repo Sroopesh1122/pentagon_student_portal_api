@@ -13,6 +13,6 @@ public interface ExecutiveRepository extends JpaRepository<Executive, Integer>{
 	
 	public Optional<Executive> findByExecutiveId(String executiveId);
 
-	@Query("SELECT COUNT(E) FROM EXECUTIVE E")
+	@Query("SELECT COUNT(E) FROM Executive E")
 	int getExecutiveCount();
 }

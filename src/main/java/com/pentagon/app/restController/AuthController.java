@@ -1,200 +1,130 @@
+// Enhanced AuthController with improvements in structure, reusability, and consistency
 package com.pentagon.app.restController;
 
 import java.util.HashMap;
 import java.util.Map;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import com.pentagon.app.exception.AdminException;
-import com.pentagon.app.exception.ExecutiveException;
-import com.pentagon.app.exception.ManagerException;
-import com.pentagon.app.exception.TrainerException;
-import com.pentagon.app.requestDTO.AdminLoginRequest;
-import com.pentagon.app.requestDTO.ExecutiveLoginRequest;
-import com.pentagon.app.requestDTO.ManagerLoginRequest;
-import com.pentagon.app.requestDTO.OtpVerificationRequest;
-import com.pentagon.app.requestDTO.TrainerLoginRequest;
+import org.springframework.web.bind.annotation.*;
+
+import com.pentagon.app.exception.*;
+import com.pentagon.app.requestDTO.*;
 import com.pentagon.app.response.ApiResponse;
-import com.pentagon.app.service.AdminService;
-import com.pentagon.app.service.ExecutiveService;
-import com.pentagon.app.service.ManagerService;
-import com.pentagon.app.service.StudentService;
-import com.pentagon.app.service.TrainerService;
+import com.pentagon.app.service.*;
 import com.pentagon.app.utils.JwtUtil;
+
 import jakarta.validation.Valid;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
 @RequestMapping("/pentagon/auth")
 public class AuthController {
 
-	private final AdminService adminService;
-	private final ExecutiveService executiveService;
-	private final ManagerService managerService;
-	private final StudentService studentService;
-	private final TrainerService trainerService;
-	private final JwtUtil jwtUtil;
+    private final AdminService adminService;
+    private final ExecutiveService executiveService;
+    private final ManagerService managerService;
+    private final StudentService studentService;
+    private final TrainerService trainerService;
+    private final JwtUtil jwtUtil;
 
-	public AuthController(AdminService adminService, ManagerService managerService, ExecutiveService executiveService, 
-			TrainerService trainerService, StudentService studentService, 
-			JwtUtil jwtUtil) {
-		this.adminService = adminService;
-		this.managerService = managerService;
-		this.executiveService = executiveService;
-		this.trainerService = trainerService;
-		this.studentService = studentService;
-		this.jwtUtil = jwtUtil;
-	}
+    public AuthController(AdminService adminService, ManagerService managerService, ExecutiveService executiveService,
+                          TrainerService trainerService, StudentService studentService, JwtUtil jwtUtil) {
+        this.adminService = adminService;
+        this.managerService = managerService;
+        this.executiveService = executiveService;
+        this.trainerService = trainerService;
+        this.studentService = studentService;
+        this.jwtUtil = jwtUtil;
+    }
 
-	@PostMapping("/public/admin/login")
-	public ResponseEntity<?> adminLogin(@RequestBody @Valid AdminLoginRequest adminLoginRequest,
-			BindingResult bindingResult) {
+    private ResponseEntity<?> handleLogin(String role, String result) {
+        return ResponseEntity.ok(new ApiResponse<>("success", result, null));
+    }
 
-		if (bindingResult.hasErrors()) {
-			throw new AdminException("Invalid details", HttpStatus.BAD_REQUEST);
-		}
-		String result = adminService.loginWithPassword(adminLoginRequest);
-		return ResponseEntity.ok(new ApiResponse<>("success", result, null));
-	}
+    private ResponseEntity<?> handleOtpVerification(String role, OtpVerificationRequest request, Boolean isVerified) {
+        if (!isVerified) {
+            throw switch (role.toUpperCase()) {
+                case "ADMIN" -> new AdminException("OTP is Invalid/Expired", HttpStatus.UNAUTHORIZED);
+                case "MANAGER" -> new ManagerException("OTP is Invalid/Expired", HttpStatus.UNAUTHORIZED);
+                case "EXECUTIVE" -> new ExecutiveException("OTP is Invalid/Expired", HttpStatus.UNAUTHORIZED);
+                case "TRAINER" -> new TrainerException("OTP is Invalid/Expired", HttpStatus.UNAUTHORIZED);
+                case "STUDENT" -> new StudentException("OTP is Invalid/Expired", HttpStatus.UNAUTHORIZED);
+                default -> new RuntimeException("Unknown role");
+            };
+        }
 
-	@PostMapping("/admin/verify-OTP")
-	public ResponseEntity<?> adminOtpVerification(@RequestBody @Valid OtpVerificationRequest otpVerificationRequest,
-			BindingResult bindingResult) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("email", request.getEmail());
+        claims.put("role", role);
 
-		if (bindingResult.hasErrors()) {
-			throw new AdminException("Invalid details", HttpStatus.BAD_REQUEST);
-		}
-		Boolean verified = adminService.verifyOtp(otpVerificationRequest);
-		if (!verified) {
-			throw new AdminException("OTP is Invalid/Expired", HttpStatus.UNAUTHORIZED);
-		}
+        String token = jwtUtil.generateToken(request.getEmail(), claims);
 
-		Map<String, Object> claims = new HashMap<>();
-		claims.put("email", otpVerificationRequest.getEmail());
-		claims.put("role", "ADMIN");
+        Map<String, String> response = new HashMap<>();
+        response.put("status", "success");
+        response.put("token", token);
+        response.put("message", "LOGIN SUCCESSFULLY");
 
-		String generatedToken = jwtUtil.generateToken(otpVerificationRequest.getEmail(), claims);
+        return ResponseEntity.ok(new ApiResponse<>("success", "Login Successfully", response));
+    }
 
-		Map<String, String> response = new HashMap<>();
-		response.put("status", "success");
-		response.put("token", generatedToken);
-		response.put("message", "LOGIN SUCCESSFULLY");
+    @PostMapping("/public/admin/login")
+    public ResponseEntity<?> adminLogin(@RequestBody @Valid AdminLoginRequest request, BindingResult result) {
+        if (result.hasErrors()) throw new AdminException("Invalid details", HttpStatus.BAD_REQUEST);
+        return handleLogin("ADMIN", adminService.loginWithPassword(request));
+    }
 
-		return ResponseEntity.ok(new ApiResponse<>("success", "Login Successfully", response));
-	}
+    @PostMapping("/admin/verify-OTP")
+    public ResponseEntity<?> adminVerify(@RequestBody @Valid OtpVerificationRequest request, BindingResult result) {
+        if (result.hasErrors()) throw new AdminException("Invalid details", HttpStatus.BAD_REQUEST);
+        return handleOtpVerification("ADMIN", request, adminService.verifyOtp(request));
+    }
 
-	@PostMapping("/public/manager/login")
-	public ResponseEntity<?> managerLogin(@RequestBody @Valid ManagerLoginRequest managerLoginRequest,
-			BindingResult bindingResult) {
+    @PostMapping("/public/manager/login")
+    public ResponseEntity<?> managerLogin(@RequestBody @Valid ManagerLoginRequest request, BindingResult result) {
+        if (result.hasErrors()) throw new ManagerException("Invalid details", HttpStatus.BAD_REQUEST);
+        return handleLogin("MANAGER", managerService.loginWithPassword(request));
+    }
 
-		if (bindingResult.hasErrors()) {
-			throw new ManagerException("Incalid details", HttpStatus.BAD_REQUEST);
-		}
-		String result = managerService.loginWithPassword(managerLoginRequest);
-		return ResponseEntity.ok(new ApiResponse<>("success", result, null));
-	}
+    @PostMapping("/manager/verify-OTP")
+    public ResponseEntity<?> managerVerify(@RequestBody @Valid OtpVerificationRequest request, BindingResult result) {
+        if (result.hasErrors()) throw new ManagerException("Invalid details", HttpStatus.BAD_REQUEST);
+        return handleOtpVerification("MANAGER", request, managerService.verifyOtp(request));
+    }
 
-	@PostMapping("/manager/verify-OTP")
-	public ResponseEntity<?> managerOtpVerification(@RequestBody @Valid OtpVerificationRequest otpVerificationRequest,
-			BindingResult bindingResult) {
+    @PostMapping("/public/executive/login")
+    public ResponseEntity<?> executiveLogin(@RequestBody @Valid ExecutiveLoginRequest request, BindingResult result) {
+        if (result.hasErrors()) throw new ExecutiveException("Invalid details", HttpStatus.BAD_REQUEST);
+        return handleLogin("EXECUTIVE", executiveService.loginWithPassword(request));
+    }
 
-		if (bindingResult.hasErrors()) {
-			throw new ManagerException("Invalid details", HttpStatus.BAD_REQUEST);
-		}
-		Boolean verified = managerService.verifyByOtp(otpVerificationRequest);
-		if (!verified) {
-			throw new ManagerException("OTP is Invalid/Expired", HttpStatus.UNAUTHORIZED);
-		}
+    @PostMapping("/executive/verify-OTP")
+    public ResponseEntity<?> executiveVerify(@RequestBody @Valid OtpVerificationRequest request, BindingResult result) {
+        if (result.hasErrors()) throw new ExecutiveException("Invalid details", HttpStatus.BAD_REQUEST);
+        return handleOtpVerification("EXECUTIVE", request, executiveService.verifyOtp(request));
+    }
 
-		Map<String, Object> claims = new HashMap<>();
-		claims.put("email", otpVerificationRequest.getEmail());
-		claims.put("role", "MANAGER");
+    @PostMapping("/public/trainer/login")
+    public ResponseEntity<?> trainerLogin(@RequestBody @Valid TrainerLoginRequest request, BindingResult result) {
+        if (result.hasErrors()) throw new TrainerException("Invalid details", HttpStatus.BAD_REQUEST);
+        return handleLogin("TRAINER", trainerService.loginWithPassword(request));
+    }
 
-		String generatedToken = jwtUtil.generateToken(otpVerificationRequest.getEmail(), claims);
+    @PostMapping("/trainer/verify-OTP")
+    public ResponseEntity<?> trainerVerify(@RequestBody @Valid OtpVerificationRequest request, BindingResult result) {
+        if (result.hasErrors()) throw new TrainerException("Invalid details", HttpStatus.BAD_REQUEST);
+        return handleOtpVerification("TRAINER", request, trainerService.verifyOtp(request));
+    }
 
-		Map<String, String> response = new HashMap<>();
-		response.put("status", "success");
-		response.put("token", generatedToken);
-		response.put("message", "LOGIN SUCCESSFULLY");
+    @PostMapping("/public/student/login")
+    public ResponseEntity<?> studentLogin(@RequestBody @Valid StudentLoginRequest request, BindingResult result) {
+        if (result.hasErrors()) throw new StudentException("Invalid details", HttpStatus.BAD_REQUEST);
+        return handleLogin("STUDENT", studentService.loginWithPassword(request));
+    }
 
-		return ResponseEntity.ok(new ApiResponse<>("success", "Login Successfully", response));
-	}
-
-	@PostMapping("/public/executive/login")
-	public ResponseEntity<?> executiveLogin(@RequestBody @Valid ExecutiveLoginRequest executiveLoginRequest,
-			BindingResult bindingResult) {
-
-		if (bindingResult.hasErrors()) {
-			throw new ExecutiveException("Incalid details", HttpStatus.BAD_REQUEST);
-		}
-		String result = executiveService.loginWithPassword(executiveLoginRequest);
-		return ResponseEntity.ok(new ApiResponse<>("success", result, null));
-	}
-
-	@PostMapping("/executive/verify-OTP")
-	public ResponseEntity<?> ExecutiveOtpVerification(@RequestBody @Valid OtpVerificationRequest otpVerificationRequest,
-			BindingResult bindingResult) {
-
-		if (bindingResult.hasErrors()) {
-			throw new ExecutiveException("Invalid details", HttpStatus.BAD_REQUEST);
-		}
-		Boolean verified = adminService.verifyOtp(otpVerificationRequest);
-		if (!verified) {
-			throw new ExecutiveException("OTP is Invalid/Expired", HttpStatus.UNAUTHORIZED);
-		}
-
-		Map<String, Object> claims = new HashMap<>();
-		claims.put("email", otpVerificationRequest.getEmail());
-		claims.put("role", "EXECUTIVE");
-
-		String generatedToken = jwtUtil.generateToken(otpVerificationRequest.getEmail(), claims);
-
-		Map<String, String> response = new HashMap<>();
-		response.put("status", "success");
-		response.put("token", generatedToken);
-		response.put("message", "LOGIN SUCCESSFULLY");
-
-		return ResponseEntity.ok(new ApiResponse<>("success", "Login Successfully", response));
-	}
-
-	@PostMapping("/public/Trainer/login")
-	public ResponseEntity<?> TrainerLogin(@RequestBody @Valid TrainerLoginRequest trainerLoginRequest,
-			BindingResult bindingResult) {
-
-		if (bindingResult.hasErrors()) {
-			throw new TrainerException("Incalid details", HttpStatus.BAD_REQUEST);
-		}
-		String result = trainerService.loginWithPassword(trainerLoginRequest);
-		return ResponseEntity.ok(new ApiResponse<>("success", result, null));
-	}
-
-	@PostMapping("/Trainer/verify-OTP")
-	public ResponseEntity<?> TrainerOtpVerification(@RequestBody @Valid OtpVerificationRequest otpVerificationRequest,
-			BindingResult bindingResult) {
-
-		if (bindingResult.hasErrors()) {
-			throw new TrainerException("Invalid details", HttpStatus.BAD_REQUEST);
-		}
-		Boolean verified = adminService.verifyOtp(otpVerificationRequest);
-		if (!verified) {
-			throw new TrainerException("OTP is Invalid/Expired", HttpStatus.UNAUTHORIZED);
-		}
-
-		Map<String, Object> claims = new HashMap<>();
-		claims.put("email", otpVerificationRequest.getEmail());
-		claims.put("role", "TRAINER");
-
-		String generatedToken = jwtUtil.generateToken(otpVerificationRequest.getEmail(), claims);
-
-		Map<String, String> response = new HashMap<>();
-		response.put("status", "success");
-		response.put("token", generatedToken);
-		response.put("message", "LOGIN SUCCESSFULLY");
-
-		return ResponseEntity.ok(new ApiResponse<>("success", "Login Successfully", response));
-	}
-	
+    @PostMapping("/student/verify-OTP")
+    public ResponseEntity<?> studentVerify(@RequestBody @Valid OtpVerificationRequest request, BindingResult result) {
+        if (result.hasErrors()) throw new StudentException("Invalid details", HttpStatus.BAD_REQUEST);
+        return handleOtpVerification("STUDENT", request, studentService.verifyOtp(request));
+    }
 }

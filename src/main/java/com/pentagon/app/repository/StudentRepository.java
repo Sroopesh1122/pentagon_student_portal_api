@@ -17,4 +17,6 @@ public interface StudentRepository extends JpaRepository<Student, Integer> {
 	
 	@Query("SELECT COUNT(s) FROM Student s WHERE s.stack = :stack AND FUNCTION('MONTH', s.createdAt) = :month AND FUNCTION('YEAR', s.createdAt) = :year")
 	int countByCourseAndMonthYear( String stack, int month, int year);
+
+	public Optional<Student> findByEmail(String email);
 }

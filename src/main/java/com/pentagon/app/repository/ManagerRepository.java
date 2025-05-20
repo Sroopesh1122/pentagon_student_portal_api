@@ -13,7 +13,7 @@ public interface ManagerRepository extends JpaRepository<Manager, Integer> {
 	
 	public Optional<Manager> findByManagerId(String managerId);
 
-	@Query("SELECT COUNT(M) FROM MANAGER M")
+	@Query("SELECT COUNT(M) FROM Manager M")
 	int getManagerCount();
 
 }
