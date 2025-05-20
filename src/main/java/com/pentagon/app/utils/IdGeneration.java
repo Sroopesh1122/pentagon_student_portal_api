@@ -24,7 +24,12 @@ public class IdGeneration {
 	@Autowired private TrainerRepository trainerRepository;
 	@Autowired private ManagerRepository managerRepository;
 	
-	public String generateStudentId(String stack) {
+	// PS19MAY25OFJFS0001 paid-offline
+	// PS19MAY25ONJFS0001 paid-online
+	// PS19MAY25OFJFS#001 CSR-offline
+	// PS19MAY25ONJFS#001 CSR-online
+
+	public String generateStudentId(String stack, String mode, String typeOfAdmission) {
 	    Map<String, String> stackCodeMap = Map.of(
 	        "java full stack", "JFS",
 	        "python full stack", "PFS",
@@ -33,8 +38,8 @@ public class IdGeneration {
 	    );
 
 	    String code = stackCodeMap.get(stack.toLowerCase());
-	    if (code == null) {
-	        throw new IllegalArgumentException("Invalid stack: " + stack);
+	    if (code == null || mode == null || typeOfAdmission == null) {
+	        throw new IllegalArgumentException("Invalid data");
 	    }
 
 	    LocalDate now = LocalDate.now();
@@ -47,10 +52,19 @@ public class IdGeneration {
 	    String paddedNumber = code.equals("ST")
 	            ? String.format("%04d", next)  // ST -> 0001
 	            : String.format("%03d", next); // Others -> 001
-	    String datePart = now.format(DateTimeFormatter.ofPattern("ddMMMyy")).toUpperCase(); // 19MAY25
 
-	    return "PS" + datePart + "OF" + code + paddedNumber; // PS19MAY25OFJFS001
+	    String datePart = now.format(DateTimeFormatter.ofPattern("ddMMMyy")).toUpperCase(); // e.g., 19MAY25
+
+	    String modePart = mode.equalsIgnoreCase("online") ? "ON" : "OF";
+	    String prefix = "PS" + datePart + modePart + code;
+
+	    if (typeOfAdmission.equalsIgnoreCase("csr")) {
+	        return prefix + "#" + paddedNumber; // PS19MAY25OFJFS#0001
+	    } else {
+	        return prefix + "0" + paddedNumber;       // PS19MAY25OFJFS0001
+	    }
 	}
+
 	
 	public String generateId(String userType) {
 	    String prefix;
@@ -79,6 +93,7 @@ public class IdGeneration {
 	    String padded = String.format("%04d", count + 1);
 	    return prefix + padded;
 	}
+	// CSR and paid ofline online
 
 
 }

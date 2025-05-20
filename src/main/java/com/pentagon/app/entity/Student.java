@@ -43,9 +43,11 @@ public class Student {
 	private String mobile;
 	
 	@Column(nullable = false)
-    private String stack;
+    private String stack; 
 	@Column(nullable = false)
-	private String typeOfAdmission;
+	private String typeOfAdmission; //paid or CSR
+	
+	private String mode; // offline,online
 	
 	private String address;
 	
