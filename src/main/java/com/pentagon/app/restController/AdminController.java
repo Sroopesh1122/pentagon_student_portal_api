@@ -28,18 +28,12 @@ import com.pentagon.app.requestDTO.AddExecutiveRequest;
 import com.pentagon.app.requestDTO.AddManagerRequest;
 import com.pentagon.app.requestDTO.TrainerDTO;
 import com.pentagon.app.response.ApiResponse;
-<<<<<<< HEAD
 import com.pentagon.app.response.ProfileResponceDto;
-=======
 import com.pentagon.app.response.PageResponse;
->>>>>>> branch 'adi-reddy' of https://github.com/Sroopesh1122/pentagon_student_portal_api.git
 import com.pentagon.app.service.AdminService;
 import com.pentagon.app.service.CustomUserDetails;
-<<<<<<< HEAD
 import com.pentagon.app.utils.IdGeneration;
-=======
 import com.pentagon.app.service.ManagerService;
->>>>>>> branch 'adi-reddy' of https://github.com/Sroopesh1122/pentagon_student_portal_api.git
 import com.pentagon.app.utils.JwtUtil;
 import jakarta.validation.Valid;
 
