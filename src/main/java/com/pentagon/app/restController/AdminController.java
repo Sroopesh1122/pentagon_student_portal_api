@@ -43,7 +43,7 @@ public class AdminController {
 			BindingResult bindingResult)
 	{
 		if(bindingResult.hasErrors())
-			throw new AdminException("Invalid data ", HttpStatus.BAD_REQUEST);
+			throw new AdminException("Invalid data", HttpStatus.BAD_REQUEST);
 		if(customUserDetails==null)
 		{
 			throw new AdminException("Unauthenticated", HttpStatus.UNAUTHORIZED);
@@ -63,7 +63,6 @@ public class AdminController {
 		jwtUtil.generateToken(manager.getEmail(), claims );
 		
 		adminservice.addManager(manager);
-		 
 		return ResponseEntity.ok(new ApiResponse<>("success","Manager added Successfully",null));
 	}
 	

@@ -103,7 +103,7 @@ public class TrainerController {
 		student.setEmail(request.getEmail());
 		student.setMobile(request.getMobile());
 		student.setStack(request.getStack());
-		student.setStatus(EnrollmentStatus.ACTIVE);
+//		student.setStatus(EnrollmentStatus.ACTIVE);
 		student.setTypeOfAdmission(request.getTypeOfAdmission());
 		
 		if(request.getPassword() != null && !request.getPassword().isBlank()) {
