@@ -20,15 +20,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.pentagon.app.entity.Executive;
+import com.pentagon.app.entity.JobDescription;
 import com.pentagon.app.entity.Manager;
 import com.pentagon.app.entity.Trainer;
+import com.pentagon.app.exception.JobDescriptionException;
 import com.pentagon.app.exception.ManagerException;
 import com.pentagon.app.requestDTO.AddExecutiveRequest;
 import com.pentagon.app.requestDTO.AddTrainerRequest;
 import com.pentagon.app.requestDTO.TrainerDTO;
 import com.pentagon.app.requestDTO.UpdateManagerRequest;
 import com.pentagon.app.response.ApiResponse;
-import com.pentagon.app.response.PageResponse;
 import com.pentagon.app.response.ProfileResponceDto;
 import com.pentagon.app.service.CustomUserDetails;
 import com.pentagon.app.service.ManagerService;
@@ -163,7 +164,7 @@ public class ManagerController {
 	
 	@GetMapping("/secure/viewAllTrainers")
 	@PreAuthorize("hasRole('MANAGER')")
-	public ResponseEntity<ApiResponse<PageResponse<TrainerDTO>>> viewAllTrainers(
+	public ResponseEntity<?> viewAllTrainers(
 			@RequestParam(defaultValue = "1") int page,
 	        @RequestParam(defaultValue = "10") int limit,
 	        @RequestParam(required = false) String stack,
@@ -174,38 +175,57 @@ public class ManagerController {
 		
 		Page<Trainer> trainers = managerService.viewAllTrainers(stack, name, trainerId, pageable);
 		
-		Page<TrainerDTO> TrainerDTOPage = trainers.map(trainer -> {
-            TrainerDTO dto = new TrainerDTO();
-            dto.setId(trainer.getId());
-            dto.setTrainerId(trainer.getTrainerId());
-            dto.setName(trainer.getName());
-            dto.setEmail(trainer.getEmail());
-            dto.setMobile(trainer.getMobile());
-            dto.setTrainerStack(trainer.getTrainerStack());
-            dto.setQualification(trainer.getQualification());
-            dto.setYearOfExperiences(trainer.getYearOfExperiences());
-            dto.setTechnologies(trainer.getTechnologies());
-            dto.setActive(trainer.isAcitve());
-            dto.setCreatedAt(trainer.getCreatedAt());
-            dto.setUpdatedAt(trainer.getUpdatedAt());
-            return dto;
+		Page<TrainerDTO> TrainerDTOResponse = trainers.map(trainer -> {
+            TrainerDTO Trainerdto = new TrainerDTO();
+            Trainerdto.setId(trainer.getId());
+            Trainerdto.setTrainerId(trainer.getTrainerId());
+            Trainerdto.setName(trainer.getName());
+            Trainerdto.setEmail(trainer.getEmail());
+            Trainerdto.setMobile(trainer.getMobile());
+            Trainerdto.setTrainerStack(trainer.getTrainerStack());
+            Trainerdto.setQualification(trainer.getQualification());
+            Trainerdto.setYearOfExperiences(trainer.getYearOfExperiences());
+            Trainerdto.setTechnologies(trainer.getTechnologies());
+            Trainerdto.setActive(trainer.isAcitve());
+            Trainerdto.setCreatedAt(trainer.getCreatedAt());
+            Trainerdto.setUpdatedAt(trainer.getUpdatedAt());
+            return Trainerdto;
         });
 		
-		PageResponse<TrainerDTO> pageResponse = new PageResponse<>(TrainerDTOPage);
-		
 		return ResponseEntity.ok(
-	            new ApiResponse<>("success", "Trainers fetched successfully", pageResponse)
+	            new ApiResponse<>("success", "Trainers fetched successfully", TrainerDTOResponse)
 	        );
 	}
-	@GetMapping("secure/profile")
+	
+	@PostMapping("/secure/acceptJobDescription")
 	@PreAuthorize("hasRole('MANAGER')")
-	public ResponseEntity<?> getAdminProfile(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
-		if(customUserDetails == null) {
+	public ResponseEntity<?> acceptJobDescription(@AuthenticationPrincipal CustomUserDetails managerDetails,
+	        @RequestParam String jobDescriptionId){
+		
+		if (managerDetails == null) {
+	        throw new ManagerException("UNAUTHORIZED", HttpStatus.UNAUTHORIZED);
+	    }
+		
+		try {
+			JobDescription acceptedJobDescription = managerService.acceptJobDescription(jobDescriptionId);
+			return ResponseEntity.ok(new ApiResponse<>("success", "Job Description accepted successfully", null));
+		}
+		catch(JobDescriptionException e) {
+			return ResponseEntity.ok(new ApiResponse<>("failure","Could not accept JobDEscription", null));
+		}
+	
+	}
+	
+	
+	@GetMapping("/secure/profile")
+	@PreAuthorize("hasRole('MANAGER')")
+	public ResponseEntity<?> getManagerProfile(@AuthenticationPrincipal CustomUserDetails managerDetails) {
+		if(managerDetails == null) {
 			throw new ManagerException("UNAUTHORIZED", HttpStatus.UNAUTHORIZED);
 		}
-	    Manager manager= customUserDetails.getManager();
+	    Manager manager= managerDetails.getManager();
 	    ProfileResponceDto details = managerService.getProfile(manager);
-	    return ResponseEntity.ok(new ApiResponse<>("success", "Admin Profile", details));
+	    return ResponseEntity.ok(new ApiResponse<>("success", "Manager Profile", details));
 	}
 	
 	

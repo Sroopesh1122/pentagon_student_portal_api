@@ -29,7 +29,6 @@ import com.pentagon.app.requestDTO.AddManagerRequest;
 import com.pentagon.app.requestDTO.TrainerDTO;
 import com.pentagon.app.response.ApiResponse;
 import com.pentagon.app.response.ProfileResponceDto;
-import com.pentagon.app.response.PageResponse;
 import com.pentagon.app.service.AdminService;
 import com.pentagon.app.service.CustomUserDetails;
 import com.pentagon.app.utils.IdGeneration;
@@ -126,7 +125,7 @@ public class AdminController {
 
 	@GetMapping("/secure/viewAllTrainers")
 	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<ApiResponse<PageResponse<TrainerDTO>>> viewAllTrainers(
+	public ResponseEntity<?> viewAllTrainers(
 			@RequestParam(defaultValue = "1") int page,
 	        @RequestParam(defaultValue = "10") int limit,
 	        @RequestParam(required = false) String stack,
@@ -154,10 +153,9 @@ public class AdminController {
             return dto;
         });
 		
-		PageResponse<TrainerDTO> pageResponse = new PageResponse<>(TrainerDTOPage);
 		
 		return ResponseEntity.ok(
-	            new ApiResponse<>("success", "Trainers fetched successfully", pageResponse)
+	            new ApiResponse<>("success", "Trainers fetched successfully", TrainerDTOPage)
 	        );
 	}
 	

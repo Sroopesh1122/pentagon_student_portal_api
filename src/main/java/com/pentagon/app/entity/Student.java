@@ -43,7 +43,9 @@ public class Student {
 	private String mobile;
 	
 	@Column(nullable = false)
+	
     private String stack; 
+	
 	@Column(nullable = false)
 	private String typeOfAdmission; //paid or CSR
 	
