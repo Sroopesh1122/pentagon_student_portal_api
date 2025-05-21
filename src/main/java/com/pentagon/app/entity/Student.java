@@ -44,6 +44,7 @@ public class Student {
 	
 	@Column(nullable = false)
     private String stack;
+	
 	@Column(nullable = false)
 	private String typeOfAdmission;
 	

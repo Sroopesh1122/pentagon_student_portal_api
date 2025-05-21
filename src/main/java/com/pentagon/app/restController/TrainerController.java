@@ -66,7 +66,6 @@ public class TrainerController {
             throw new TrainerException("Trainer not found", HttpStatus.NOT_FOUND);
         }
 
-		
 		trainer.setName(request.getName());
 		trainer.setEmail(request.getEmail());
 		trainer.setMobile(request.getMobile());
@@ -74,13 +73,11 @@ public class TrainerController {
 		if (request.getPassword() != null && !request.getPassword().isBlank()) {
 			
             String hashedPassword = passwordEncoder.encode(request.getPassword());
-            trainer.setPassword(hashedPassword);
-            
+            trainer.setPassword(hashedPassword);    
         }
 		 
 		Trainer updatedTrainer = trainerService.updateTrainer(trainer);
-		
-	
+
         return  ResponseEntity.ok(new ApiResponse<>("success", "Profile Updated Successfully", null));
 		
 	}
@@ -123,15 +120,15 @@ public class TrainerController {
 		return ResponseEntity.ok(new ApiResponse<>("success", "Student Added Successfully", null));
 		
 	}
-	@GetMapping("secure/profile")
-	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<?> getAdminProfile(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
-		if(customUserDetails == null) {
+	@GetMapping("/secure/profile")
+	@PreAuthorize("hasRole('TRAINER')")
+	public ResponseEntity<?> getAdminProfile(@AuthenticationPrincipal CustomUserDetails trainerDetails) {
+		if(trainerDetails == null) {
 			throw new TrainerException("UNAUTHORIZED", HttpStatus.UNAUTHORIZED);
 		}
-	    Trainer trainer = customUserDetails.getTrainer();
+	    Trainer trainer = trainerDetails.getTrainer();
 	    ProfileResponceDto details = trainerService.getProfile(trainer);
-	    return ResponseEntity.ok(new ApiResponse<>("success", "Admin Profile", details));
+	    return ResponseEntity.ok(new ApiResponse<>("success", "Trainer Profile", details));
 	}
 	
 	
