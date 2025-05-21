@@ -15,6 +15,7 @@ public class MailService {
     // Send Plain Text Email
     public void sendSimpleEmail(String to, String subject, String text) {
         SimpleMailMessage message = new SimpleMailMessage();
+        System.out.println(to+" "+text);
         message.setTo(to);
         message.setSubject(subject);
         message.setText(text);
