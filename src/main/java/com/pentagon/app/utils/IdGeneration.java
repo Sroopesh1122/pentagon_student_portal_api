@@ -5,8 +5,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
+import com.pentagon.app.exception.IdGenerationException;
 import com.pentagon.app.repository.AdminRepository;
 import com.pentagon.app.repository.ExecutiveRepository;
 import com.pentagon.app.repository.ManagerRepository;
@@ -39,7 +41,7 @@ public class IdGeneration {
 
 	    String code = stackCodeMap.get(stack.toLowerCase());
 	    if (code == null || mode == null || typeOfAdmission == null) {
-	        throw new IllegalArgumentException("Invalid data");
+	        throw new IdGenerationException("Invalid input for ID generation. Please check stack, mode, or admission type.", HttpStatus.BAD_REQUEST);
 	    }
 
 	    LocalDate now = LocalDate.now();
@@ -87,13 +89,13 @@ public class IdGeneration {
 	        	prefix = "TRN";
 	        	count = trainerRepository.getTrainerCount(); //TRN0001
 	        }
-	        default -> throw new IllegalArgumentException("Invalid user type");
+	        default -> throw new IdGenerationException("Invalid user type: " + userType, HttpStatus.BAD_REQUEST);
 	    }
 
 	    String padded = String.format("%04d", count + 1);
 	    return prefix + padded;
 	}
-	// CSR and paid ofline online
+	// CSR, paid and offline, online
 
 
 }

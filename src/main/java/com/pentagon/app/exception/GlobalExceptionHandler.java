@@ -83,6 +83,15 @@ public class GlobalExceptionHandler {
         errorResponse.put("localTime", LocalDateTime.now());
         errorResponse.put("status", otpException.getHttpStatus().toString());
         return new ResponseEntity<>(errorResponse, otpException.getHttpStatus());
-    	
+    }
+    @ExceptionHandler(IdGenerationException.class)
+    public ResponseEntity<Map<String, Object>> handleIdException(IdGenerationException idGenerationException){
+    	Map<String,Object> errorResponse = new HashMap<>();
+        errorResponse.put("status", "failure");
+        errorResponse.put("type","IdGeneration Exception");
+        errorResponse.put("error", idGenerationException.getMessage());
+        errorResponse.put("localTime", LocalDateTime.now());
+        errorResponse.put("status", idGenerationException.getHttpStatus().toString());
+        return new ResponseEntity<>(errorResponse, idGenerationException.getHttpStatus());
     }
 }
