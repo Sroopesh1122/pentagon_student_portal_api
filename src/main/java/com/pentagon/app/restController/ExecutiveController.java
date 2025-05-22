@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.pentagon.app.exception.TrainerException;
-import com.pentagon.app.requestDTO.AddJobDescriptionRequest;
+import com.pentagon.app.request.AddJobDescriptionRequest;
 import com.pentagon.app.service.CustomUserDetails;
 
 import jakarta.validation.Valid;

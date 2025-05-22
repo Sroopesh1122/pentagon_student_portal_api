@@ -14,7 +14,7 @@ import com.pentagon.app.exception.AdminException;
 import com.pentagon.app.exception.OtpException;
 import com.pentagon.app.repository.AdminRepository;
 import com.pentagon.app.repository.OtpRepository;
-import com.pentagon.app.requestDTO.OtpVerificationRequest;
+import com.pentagon.app.request.OtpVerificationRequest;
 import com.pentagon.app.service.OtpService;
 
 import jakarta.transaction.Transactional;

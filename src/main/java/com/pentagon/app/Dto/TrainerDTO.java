@@ -1,4 +1,4 @@
-package com.pentagon.app.requestDTO;
+package com.pentagon.app.Dto;
 
 import java.time.LocalDateTime;
 

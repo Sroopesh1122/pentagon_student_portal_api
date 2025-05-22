@@ -1,6 +1,6 @@
 package com.pentagon.app.service;
 
-import com.pentagon.app.requestDTO.OtpVerificationRequest;
+import com.pentagon.app.request.OtpVerificationRequest;
 
 public interface OtpService {
 	public int MAX_RESEND = 3;

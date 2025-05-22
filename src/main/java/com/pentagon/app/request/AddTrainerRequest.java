@@ -1,4 +1,4 @@
-package com.pentagon.app.requestDTO;
+package com.pentagon.app.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

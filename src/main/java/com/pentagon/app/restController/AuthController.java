@@ -9,7 +9,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import com.pentagon.app.exception.*;
-import com.pentagon.app.requestDTO.*;
+import com.pentagon.app.request.*;
 import com.pentagon.app.response.ApiResponse;
 import com.pentagon.app.service.*;
 import com.pentagon.app.utils.JwtUtil;
