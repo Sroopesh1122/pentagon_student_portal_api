@@ -7,9 +7,9 @@ import com.pentagon.app.entity.Executive;
 import com.pentagon.app.entity.JobDescription;
 import com.pentagon.app.entity.Manager;
 import com.pentagon.app.entity.Student;
-import com.pentagon.app.requestDTO.AdminLoginRequest;
-import com.pentagon.app.requestDTO.OtpVerificationRequest;
-import com.pentagon.app.requestDTO.TrainerLoginRequest;
+import com.pentagon.app.request.AdminLoginRequest;
+import com.pentagon.app.request.OtpVerificationRequest;
+import com.pentagon.app.request.TrainerLoginRequest;
 import com.pentagon.app.response.ProfileResponceDto;
 
 import jakarta.validation.Valid;

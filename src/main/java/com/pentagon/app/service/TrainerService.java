@@ -4,8 +4,8 @@ import java.util.List;
 
 import com.pentagon.app.entity.Student;
 import com.pentagon.app.entity.Trainer;
-import com.pentagon.app.requestDTO.OtpVerificationRequest;
-import com.pentagon.app.requestDTO.TrainerLoginRequest;
+import com.pentagon.app.request.OtpVerificationRequest;
+import com.pentagon.app.request.TrainerLoginRequest;
 import com.pentagon.app.response.ProfileResponceDto;
 
 import jakarta.validation.Valid;

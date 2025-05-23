@@ -19,14 +19,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.pentagon.app.Dto.TrainerDTO;
 import com.pentagon.app.entity.Admin;
 import com.pentagon.app.entity.Executive;
 import com.pentagon.app.entity.Manager;
 import com.pentagon.app.entity.Trainer;
 import com.pentagon.app.exception.AdminException;
-import com.pentagon.app.requestDTO.AddExecutiveRequest;
-import com.pentagon.app.requestDTO.AddManagerRequest;
-import com.pentagon.app.requestDTO.TrainerDTO;
+import com.pentagon.app.request.AddExecutiveRequest;
+import com.pentagon.app.request.AddManagerRequest;
 import com.pentagon.app.response.ApiResponse;
 import com.pentagon.app.response.ProfileResponceDto;
 import com.pentagon.app.service.AdminService;

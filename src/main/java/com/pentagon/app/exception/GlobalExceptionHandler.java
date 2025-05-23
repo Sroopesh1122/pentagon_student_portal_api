@@ -74,4 +74,15 @@ public class GlobalExceptionHandler {
         errorResponse.put("status", trainerException.getHttpStatus().toString());
         return new ResponseEntity<>(errorResponse, trainerException.getHttpStatus());
     }
+    @ExceptionHandler(OtpException.class)
+    public ResponseEntity<Map<String, Object>> handleOtpException(OtpException otpException){
+    	Map<String,Object> errorResponse = new HashMap<>();
+        errorResponse.put("status", "failure");
+        errorResponse.put("type","OTP Exception");
+        errorResponse.put("error", otpException.getMessage());
+        errorResponse.put("localTime", LocalDateTime.now());
+        errorResponse.put("status", otpException.getHttpStatus().toString());
+        return new ResponseEntity<>(errorResponse, otpException.getHttpStatus());
+    	
+    }
 }

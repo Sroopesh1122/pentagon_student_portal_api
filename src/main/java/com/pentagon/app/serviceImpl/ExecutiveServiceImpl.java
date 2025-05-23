@@ -13,8 +13,8 @@ import com.pentagon.app.exception.ExecutiveException;
 import com.pentagon.app.exception.JobDescriptionException;
 import com.pentagon.app.repository.ExecutiveRepository;
 import com.pentagon.app.repository.JobDescriptionRepository;
-import com.pentagon.app.requestDTO.ExecutiveLoginRequest;
-import com.pentagon.app.requestDTO.OtpVerificationRequest;
+import com.pentagon.app.request.ExecutiveLoginRequest;
+import com.pentagon.app.request.OtpVerificationRequest;
 import com.pentagon.app.service.ExecutiveService;
 import com.pentagon.app.service.OtpService;
 

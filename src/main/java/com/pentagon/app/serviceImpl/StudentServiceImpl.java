@@ -17,8 +17,8 @@ import com.pentagon.app.exception.ManagerException;
 import com.pentagon.app.exception.StudentException;
 import com.pentagon.app.repository.JobDescriptionRepository;
 import com.pentagon.app.repository.StudentRepository;
-import com.pentagon.app.requestDTO.OtpVerificationRequest;
-import com.pentagon.app.requestDTO.StudentLoginRequest;
+import com.pentagon.app.request.OtpVerificationRequest;
+import com.pentagon.app.request.StudentLoginRequest;
 import com.pentagon.app.service.OtpService;
 import com.pentagon.app.service.StudentService;
 

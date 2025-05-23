@@ -7,8 +7,8 @@ import com.pentagon.app.entity.Executive;
 import com.pentagon.app.entity.JobDescription;
 import com.pentagon.app.entity.Manager;
 import com.pentagon.app.entity.Trainer;
-import com.pentagon.app.requestDTO.ManagerLoginRequest;
-import com.pentagon.app.requestDTO.OtpVerificationRequest;
+import com.pentagon.app.request.ManagerLoginRequest;
+import com.pentagon.app.request.OtpVerificationRequest;
 import com.pentagon.app.response.ProfileResponceDto;
 
 public interface ManagerService {

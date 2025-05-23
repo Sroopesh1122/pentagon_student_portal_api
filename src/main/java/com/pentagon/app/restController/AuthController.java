@@ -9,7 +9,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import com.pentagon.app.exception.*;
-import com.pentagon.app.requestDTO.*;
+import com.pentagon.app.request.*;
 import com.pentagon.app.response.ApiResponse;
 import com.pentagon.app.service.*;
 import com.pentagon.app.utils.JwtUtil;
@@ -44,18 +44,27 @@ public class AuthController {
     }
 
     @PostMapping("/secure/verify-OTP")
-    private ResponseEntity<?> handleOtpVerification(OtpVerificationRequest request) {
-    	otpService.verifyOtp(request);
-//        if (!isVerified) {
-//            throw switch (role.toUpperCase()) {
-//                case "ADMIN" -> new AdminException("OTP is Invalid/Expired", HttpStatus.UNAUTHORIZED);
-//                case "MANAGER" -> new ManagerException("OTP is Invalid/Expired", HttpStatus.UNAUTHORIZED);
-//                case "EXECUTIVE" -> new ExecutiveException("OTP is Invalid/Expired", HttpStatus.UNAUTHORIZED);
-//                case "TRAINER" -> new TrainerException("OTP is Invalid/Expired", HttpStatus.UNAUTHORIZED);
-//                case "STUDENT" -> new StudentException("OTP is Invalid/Expired", HttpStatus.UNAUTHORIZED);
-//                default -> new RuntimeException("Unknown role");
-//            };
-//        }
+    public ResponseEntity<?> handleOtpVerification(
+            @Valid @RequestBody OtpVerificationRequest request,
+            BindingResult bindingResult) {
+
+        if (bindingResult.hasErrors()) {
+        }
+
+        boolean isVerified = otpService.verifyOtp(request);
+
+        if (!isVerified) {
+            String role = request.getRole().toUpperCase();
+
+            switch (role) {
+                case "ADMIN" -> throw new AdminException("OTP is Invalid/Expired", HttpStatus.UNAUTHORIZED);
+                case "MANAGER" -> throw new ManagerException("OTP is Invalid/Expired", HttpStatus.UNAUTHORIZED);
+                case "EXECUTIVE" -> throw new ExecutiveException("OTP is Invalid/Expired", HttpStatus.UNAUTHORIZED);
+                case "TRAINER" -> throw new TrainerException("OTP is Invalid/Expired", HttpStatus.UNAUTHORIZED);
+                case "STUDENT" -> throw new StudentException("OTP is Invalid/Expired", HttpStatus.UNAUTHORIZED);
+                default -> throw new RuntimeException("Unknown role: " + role);
+            }
+        }
 
         Map<String, Object> claims = new HashMap<>();
         claims.put("email", request.getEmail());
@@ -70,6 +79,7 @@ public class AuthController {
 
         return ResponseEntity.ok(new ApiResponse<>("success", "Login Successfully", response));
     }
+
 
     @PostMapping("/public/admin/login")
     public ResponseEntity<?> adminLogin(@RequestBody @Valid AdminLoginRequest request, BindingResult result) {

@@ -23,5 +23,10 @@ public interface OtpRepository extends JpaRepository<Otp, Integer> {
 	@Modifying
     @Transactional
 	void deleteByEmail(String email);
+	
+	@Modifying
+    @Transactional
+    @Query("DELETE FROM Otp o WHERE o.createdAt <= :expiryTime")
+    void deleteExpiredOtps(@Param("expiryTime") LocalDateTime expiryTime);
 
 }
