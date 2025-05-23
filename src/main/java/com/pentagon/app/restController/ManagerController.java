@@ -81,7 +81,6 @@ public class ManagerController {
 		
 		Manager updatedManager = managerService.updateManager(manager);
 		
-		
 		return ResponseEntity.ok(new ApiResponse<>("success", "Manager Updated Successfully", null));
 	}
 	
@@ -162,6 +161,7 @@ public class ManagerController {
 		return ResponseEntity.ok(new ApiResponse<>("success", "Trainer Added Successfully", null));
 	}
 	
+	
 	@GetMapping("/secure/viewAllTrainers")
 	@PreAuthorize("hasRole('MANAGER')")
 	public ResponseEntity<?> viewAllTrainers(
@@ -221,8 +221,9 @@ public class ManagerController {
 	@PreAuthorize("hasRole('MANAGER')")
 	public ResponseEntity<?> getManagerProfile(@AuthenticationPrincipal CustomUserDetails managerDetails) {
 		if(managerDetails == null) {
-			throw new ManagerException("UNAUTHORIZED", HttpStatus.UNAUTHORIZED);
+			 throw new ManagerException("UNAUTHORIZED", HttpStatus.UNAUTHORIZED);
 		}
+		
 	    Manager manager= managerDetails.getManager();
 	    ProfileResponceDto details = managerService.getProfile(manager);
 	    return ResponseEntity.ok(new ApiResponse<>("success", "Manager Profile", details));
