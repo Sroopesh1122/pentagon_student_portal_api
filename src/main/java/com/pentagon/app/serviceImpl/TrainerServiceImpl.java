@@ -113,12 +113,6 @@ public class TrainerServiceImpl implements TrainerService {
 		return "OTP sent to registered email";
 
 	}
-	@Override
-	public Boolean verifyOtp(OtpVerificationRequest otpVerificationRequest) {
-		Trainer trainer = trainerRepository.findByEmail(otpVerificationRequest.getEmail())
-				.orElseThrow(()-> new TrainerException("Trainer not found", HttpStatus.NOT_FOUND));
-		return otpService.verifyOtp(otpVerificationRequest);
-	}
 
 	@Override
 	public ProfileResponceDto getProfile(Trainer trainer) {

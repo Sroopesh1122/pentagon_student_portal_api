@@ -40,7 +40,7 @@ public class ExecutiveController {
 		{
 	            throw new ExecutiveException("Invalid input data", HttpStatus.BAD_REQUEST);   
 		}
-		if(executiveDetails==null)
+		if(executiveDetails.getExecutive()==null)
 		{
 			throw new ExecutiveException("UNAUTHORIZED", HttpStatus.UNAUTHORIZED);
 		}

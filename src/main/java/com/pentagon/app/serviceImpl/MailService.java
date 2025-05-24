@@ -26,22 +26,13 @@ public class MailService {
 	}
 
 	// Send HTML Email
-//    public void sendHtmlEmail(String to, String subject, String htmlContent) throws MessagingException {
-//        MimeMessage mimeMessage = mailSender.createMimeMessage();
-//        MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true);
-//
-//        helper.setTo(to);
-//        helper.setSubject(subject);
-//        helper.setText(htmlContent, true);
-//
-//        mailSender.send(mimeMessage);
-//    }
 	public void sendPasswordEmail(String toEmail, String subject, String htmlContent) throws Exception {
 		MimeMessage message = javaMailSender.createMimeMessage();
 		MimeMessageHelper helper = new MimeMessageHelper(message, true);
 		helper.setTo(toEmail);
 		helper.setSubject(subject);
 		helper.setText(htmlContent, true); // true = isHtml
+		System.out.println("sedding email");
 		javaMailSender.send(message);
 
 	}
