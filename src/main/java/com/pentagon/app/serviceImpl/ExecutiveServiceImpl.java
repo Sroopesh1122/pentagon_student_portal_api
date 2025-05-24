@@ -65,18 +65,18 @@ public class ExecutiveServiceImpl implements ExecutiveService {
 		}
 	}
     
-	@Override
-	public boolean updateJobDescription(JobDescription jobDescription) {
-		// TODO Auto-generated method stub
-		try {
-			jobDescription.setUpdatedAt(LocalDateTime.now());
-			jobDescriptionRepository.save(jobDescription);
-			return true;
-		}
-		catch(Exception e) {
-			throw new JobDescriptionException("Failed to Update Job Description: "+ e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-	}
+//	@Override
+//	public boolean updateJobDescription(JobDescription jobDescription) {
+//		// TODO Auto-generated method stub
+//		try {
+//			jobDescription.setUpdatedAt(LocalDateTime.now());
+//			jobDescriptionRepository.save(jobDescription);
+//			return true;
+//		}
+//		catch(Exception e) {
+//			throw new JobDescriptionException("Failed to Update Job Description: "+ e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+//		}
+//	}
 	@Override
 	public String loginWithPassword(ExecutiveLoginRequest executiveLoginRequest) {
 		Executive executive = executiveRepository.findByEmail(executiveLoginRequest.getEmail())
