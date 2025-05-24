@@ -61,20 +61,23 @@ public class JobDescription {
 	private Integer numberOfRegistrations=0;
 	
 	@Column(name = "current_registrations")
-	private Integer currentRegistrations;
+	private Integer currentRegistrations=0;
 	
 	@Column(name = "mock_rating")
 	private Double mockRating;
 	
+	//to show closures
 	@Column(name = "JD_status", nullable = false)
 	private boolean jdStatus = false;
 	
+	//change to accept/reject/hold - enum
 	@Column(name = "manager_approval", nullable = false)
 	private boolean managerApproval;
 	
 	@Column(name = "number_of_closures")
 	private Integer numberOfClosures=0;
 	
+	//to close the complete jd after total number of resgitrations reached
 	@Column(name="jd_closed")
 	private boolean isClosed = false;
 	
@@ -86,15 +89,29 @@ public class JobDescription {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 	
-    // Business method to close the JD
-    public void closeJobDescription() {
-        this.jdStatus = true;
-        this.updatedAt = LocalDateTime.now();
+	//update current registration count
+	public void updateCurrentRegistrations(int newCount) {
+        if (newCount < 0) {
+            throw new IllegalArgumentException("Registration count cannot be negative");
+        }
+        this.currentRegistrations = newCount;
+        checkAndAutoClose();
+    }
+	
+	private void checkAndAutoClose() {
+        if (!isClosed && 
+            numberOfRegistrations != null && 
+            currentRegistrations != null &&
+            currentRegistrations >= numberOfRegistrations) {
+            closeJobDescription();
+        }
     }
 
-    // Business method to increment registrations
-//    public void incrementRegistrations() {
-//        this.numberOfRegistrations = (this.numberOfRegistrations == null) ? 1 : this.numberOfRegistrations + 1;
-//    }
-	
+    // close JD once the resgistration count limit is closed
+    public void closeJobDescription() {
+        this.isClosed = true;
+    }
+    
+    
+    
 }

@@ -230,7 +230,7 @@ public class ManagerController {
 			activityLogService.log(managerDetails.getManager().getEmail(), 
 					managerDetails.getManager().getManagerId(), 
 					"MANAGER", 
-					"Manager with ID " + managerDetails.getManager().getManagerId() + " Approved the JOb Posted, Job Id " + jobDescriptionId);
+					"Manager with ID " + managerDetails.getManager().getManagerId() + " Approved the Job Posted, Job Id " + jobDescriptionId);
 			return ResponseEntity.ok(new ApiResponse<>("success", "Job Description accepted successfully", null));
 		}
 		catch(JobDescriptionException e) {
