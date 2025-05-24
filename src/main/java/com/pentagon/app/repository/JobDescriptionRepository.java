@@ -12,4 +12,5 @@ public interface JobDescriptionRepository extends JpaRepository<JobDescription,I
 	Optional<JobDescription> findByJobDescriptionId(String jobDescriptionId);
 	
 	List<JobDescription> findByStack(String stack);
+	
 }
