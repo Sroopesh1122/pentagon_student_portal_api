@@ -15,4 +15,6 @@ public interface ActivityLogService {
 
 	List<ActivityLog> getLogsByDateRange(LocalDateTime start, LocalDateTime end);
 
+	void log(String email, String userId, String role, String description);
+
 }

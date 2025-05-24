@@ -67,7 +67,6 @@ public class IdGeneration {
 	    }
 	}
 
-	
 	public String generateId(String userType) {
 	    String prefix;
 	    int count = 0;

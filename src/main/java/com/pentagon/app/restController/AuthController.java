@@ -27,9 +27,10 @@ public class AuthController {
     private final TrainerService trainerService;
     private final OtpService otpService;
     private final JwtUtil jwtUtil;
+    private final ActivityLogService activityLogService;
 
     public AuthController(AdminService adminService, ManagerService managerService, ExecutiveService executiveService,
-                          TrainerService trainerService, StudentService studentService,OtpService otpService, JwtUtil jwtUtil) {
+                          TrainerService trainerService, StudentService studentService,OtpService otpService, JwtUtil jwtUtil, ActivityLogService activityLogService) {
         this.adminService = adminService;
         this.managerService = managerService;
         this.executiveService = executiveService;
@@ -37,6 +38,7 @@ public class AuthController {
         this.studentService = studentService;
         this.otpService =otpService;
         this.jwtUtil = jwtUtil;
+        this.activityLogService=activityLogService;
     }
 
     private ResponseEntity<?> handleLogin(String role, String result) {
@@ -76,7 +78,10 @@ public class AuthController {
         response.put("status", "success");
         response.put("token", token);
         response.put("message", "LOGIN SUCCESSFULLY");
-
+        activityLogService.log(request.getEmail(), 
+				null,
+				request.getRole(), 
+				request.getRole()+" Logged In Successfully");
         return ResponseEntity.ok(new ApiResponse<>("success", "Login Successfully", response));
     }
 

@@ -24,4 +24,6 @@ public class AddStudentRequest {
 	private String stack;
 	@NotBlank
 	private String typeOfAdmission;
+	@NotBlank
+	private String  mode; // online or offline
 }

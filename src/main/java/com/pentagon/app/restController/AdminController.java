@@ -30,6 +30,7 @@ import com.pentagon.app.request.AddExecutiveRequest;
 import com.pentagon.app.request.AddManagerRequest;
 import com.pentagon.app.response.ApiResponse;
 import com.pentagon.app.response.ProfileResponceDto;
+import com.pentagon.app.service.ActivityLogService;
 import com.pentagon.app.service.AdminService;
 import com.pentagon.app.service.CustomUserDetails;
 import com.pentagon.app.utils.IdGeneration;
@@ -53,6 +54,8 @@ public class AdminController {
 
 	@Autowired
 	private ManagerService managerService;
+	@Autowired
+	private ActivityLogService activityLogService;
 
 	@PostMapping("/secure/addManager")
 	@PreAuthorize("hasRole('ADMIN')")
@@ -81,6 +84,10 @@ public class AdminController {
 		jwtUtil.generateToken(manager.getEmail(), claims );
 		
 		adminservice.addManager(manager);
+		activityLogService.log(customUserDetails.getAdmin().getEmail(), 
+				customUserDetails.getAdmin().getAdminId(), 
+				"ADMIN", 
+				"Manager with Unique Id "+ manager.getManagerId()+" Added Successfully");
 		return ResponseEntity.ok(new ApiResponse<>("success","Manager added Successfully",null));
 	}
 	
@@ -108,7 +115,13 @@ public class AdminController {
 		claims.put("email", executive.getEmail());
 	    claims.put("role","MANAGER");
 		jwtUtil.generateToken(executive.getEmail(), claims );
+		
+		
 		adminservice.addExecutive(executive);
+		activityLogService.log(customUserDetails.getAdmin().getEmail(), 
+				customUserDetails.getAdmin().getAdminId(), 
+				"ADMIN", 
+				"Executive with Unique Id "+ executive.getExecutiveId()+" Added Successfully");
 		return ResponseEntity.ok(new ApiResponse<>("success","Executive added Successfully",null));
 	}
 	

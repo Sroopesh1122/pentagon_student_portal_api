@@ -32,6 +32,7 @@ import com.pentagon.app.request.AddTrainerRequest;
 import com.pentagon.app.request.UpdateManagerRequest;
 import com.pentagon.app.response.ApiResponse;
 import com.pentagon.app.response.ProfileResponceDto;
+import com.pentagon.app.service.ActivityLogService;
 import com.pentagon.app.service.CustomUserDetails;
 import com.pentagon.app.service.ManagerService;
 import com.pentagon.app.utils.IdGeneration;
@@ -54,6 +55,9 @@ public class ManagerController {
 	@Autowired
 	private JwtUtil jwtUtil;
 	
+	@Autowired
+	private ActivityLogService activityLogService;
+	
 	@PostMapping("/secure/updateManager")
 	@PreAuthorize("hasRole('MANAGER')")
 	public ResponseEntity<?> updateManager(@AuthenticationPrincipal CustomUserDetails managerDetails,
@@ -68,7 +72,6 @@ public class ManagerController {
 		}
 		
 		Manager manager = managerDetails.getManager();
-		manager.setManagerId(idGeneration.generateId("MANAGER"));
 		manager.setName(request.getName());
 		manager.setEmail(request.getEmail());
 		manager.setMobile(request.getMobile());
@@ -82,6 +85,10 @@ public class ManagerController {
 		
 		Manager updatedManager = managerService.updateManager(manager);
 		
+		activityLogService.log(managerDetails.getManager().getEmail(), 
+				managerDetails.getManager().getManagerId(), 
+				"MANAGER", 
+				"Manager with ID "+managerDetails.getManager().getManagerId() +" updated their own profile details");
 		
 		return ResponseEntity.ok(new ApiResponse<>("success", "Manager Updated Successfully", null));
 	}
@@ -118,6 +125,11 @@ public class ManagerController {
 		jwtUtil.generateToken(executive.getEmail(), claims);
 		
 		Executive newExecutive = managerService.addExecutive(executive);
+		
+		activityLogService.log(managerDetails.getManager().getEmail(), 
+				managerDetails.getManager().getManagerId(), 
+				"MANAGER", 
+				"Manager with ID " + managerDetails.getManager().getManagerId() + " added a new Executive with ID " + newExecutive.getExecutiveId());
 		
 		return ResponseEntity.ok(new ApiResponse<>("success", "Executive Added Successfully", null));
 	}
@@ -159,6 +171,11 @@ public class ManagerController {
 		jwtUtil.generateToken(trainer.getEmail(), claims);
 		
 		Trainer newTrainer = managerService.addTrainer(trainer);
+		
+		activityLogService.log(managerDetails.getManager().getEmail(), 
+				managerDetails.getManager().getManagerId(), 
+				"MANAGER", 
+				"Manager with ID " + managerDetails.getManager().getManagerId() + " added a new Trainer with ID " + newTrainer.getTrainerId());
 		
 		return ResponseEntity.ok(new ApiResponse<>("success", "Trainer Added Successfully", null));
 	}
@@ -209,6 +226,10 @@ public class ManagerController {
 		
 		try {
 			JobDescription acceptedJobDescription = managerService.acceptJobDescription(jobDescriptionId);
+			activityLogService.log(managerDetails.getManager().getEmail(), 
+					managerDetails.getManager().getManagerId(), 
+					"MANAGER", 
+					"Manager with ID " + managerDetails.getManager().getManagerId() + " Approved the JOb Posted, Job Id " + jobDescriptionId);
 			return ResponseEntity.ok(new ApiResponse<>("success", "Job Description accepted successfully", null));
 		}
 		catch(JobDescriptionException e) {

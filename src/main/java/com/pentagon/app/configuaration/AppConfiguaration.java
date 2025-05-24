@@ -76,7 +76,7 @@ public class AppConfiguaration {
 	@Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
-        corsConfiguration.setAllowedOrigins(Arrays.asList("http://192.168.0.128:5173")); // need to add port number
+        corsConfiguration.setAllowedOrigins(Arrays.asList("http://192.168.0.109:5173")); // need to add port number
         corsConfiguration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS")); 
         corsConfiguration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With")); 
         corsConfiguration.setAllowCredentials(true); 
