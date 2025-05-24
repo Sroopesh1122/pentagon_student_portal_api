@@ -13,13 +13,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.pentagon.app.entity.JobDescription;
 import com.pentagon.app.exception.ExecutiveException;
-import com.pentagon.app.exception.TrainerException;
 import com.pentagon.app.request.AddJobDescriptionRequest;
 import com.pentagon.app.response.ApiResponse;
-
+import com.pentagon.app.service.ActivityLogService;
 import com.pentagon.app.service.CustomUserDetails;
 import com.pentagon.app.service.ExecutiveService;
-import com.pentagon.app.requestDTO.updateJobDescription;
 
 import jakarta.validation.Valid;
 
@@ -28,6 +26,9 @@ import jakarta.validation.Valid;
 public class ExecutiveController {
 	@Autowired
 	private ExecutiveService executiveService;
+	
+	@Autowired
+	private ActivityLogService activityLogService;
 	
 	@PostMapping("/secure/addJobDescription")
 	@PreAuthorize("hasRole('EXECUTIVE')")
@@ -60,7 +61,10 @@ public class ExecutiveController {
         jd.setManagerApproval(false);
         jd.setCurrentRegistrations(0);
         executiveService.addJobDescription(jd);
-        
+		activityLogService.log(executiveDetails.getExecutive().getEmail(), 
+				executiveDetails.getExecutive().getExecutiveId(), 
+				"EXECUTIVE", 
+				"Executive with ID " + executiveDetails.getExecutive().getExecutiveId() + " Added new job Description ");
 		return ResponseEntity.ok(new ApiResponse<>("status","JobDescription added successfully",null));
 	}
 	
