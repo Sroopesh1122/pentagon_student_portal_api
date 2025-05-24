@@ -64,7 +64,7 @@ public class AuthController {
                 case "EXECUTIVE" -> throw new ExecutiveException("OTP is Invalid/Expired", HttpStatus.UNAUTHORIZED);
                 case "TRAINER" -> throw new TrainerException("OTP is Invalid/Expired", HttpStatus.UNAUTHORIZED);
                 case "STUDENT" -> throw new StudentException("OTP is Invalid/Expired", HttpStatus.UNAUTHORIZED);
-                default -> throw new RuntimeException("Unknown role: " + role);
+                default -> throw new UserException("Unknown role: " + role, HttpStatus.UNAUTHORIZED);
             }
         }
 
@@ -77,6 +77,7 @@ public class AuthController {
         Map<String, String> response = new HashMap<>();
         response.put("status", "success");
         response.put("token", token);
+        response.put("Role", request.getRole());
         response.put("message", "LOGIN SUCCESSFULLY");
         activityLogService.log(request.getEmail(), 
 				null,

@@ -94,4 +94,15 @@ public class GlobalExceptionHandler {
         errorResponse.put("status", idGenerationException.getHttpStatus().toString());
         return new ResponseEntity<>(errorResponse, idGenerationException.getHttpStatus());
     }
+    @ExceptionHandler(UserException.class)
+    public ResponseEntity<Map<String, Object>> handleUserException(UserException userException){
+    	Map<String,Object> errorResponse = new HashMap<>();
+        errorResponse.put("status", "failure");
+        errorResponse.put("type","User Exception");
+        errorResponse.put("error", userException.getMessage());
+        errorResponse.put("localTime", LocalDateTime.now());
+        errorResponse.put("status", userException.getHttpStatus().toString());
+        return new ResponseEntity<>(errorResponse, userException.getHttpStatus());
+    }
+    
 }
