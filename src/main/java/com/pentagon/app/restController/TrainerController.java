@@ -25,8 +25,10 @@ import com.pentagon.app.request.AddStudentRequest;
 import com.pentagon.app.request.TrainerUpdateRequest;
 import com.pentagon.app.response.ApiResponse;
 import com.pentagon.app.response.ProfileResponceDto;
+import com.pentagon.app.service.ActivityLogService;
 import com.pentagon.app.service.CustomUserDetails;
 import com.pentagon.app.service.TrainerService;
+import com.pentagon.app.utils.IdGeneration;
 import com.pentagon.app.utils.JwtUtil;
 
 import jakarta.validation.Valid;
@@ -44,6 +46,12 @@ public class TrainerController {
 	
 	@Autowired
 	private JwtUtil jwtUtil;
+	
+	@Autowired
+	private ActivityLogService activityLogService;
+	
+	@Autowired
+	private IdGeneration idGeneration;
 	
 	
 	@PostMapping("/secure/updateTrainer")
@@ -77,7 +85,11 @@ public class TrainerController {
         }
 		 
 		Trainer updatedTrainer = trainerService.updateTrainer(trainer);
-
+		
+		activityLogService.log(trainerDetails.getTrainer().getEmail(), 
+				trainerDetails.getTrainer().getTrainerId(), 
+				"TRAINER", 
+				"Trainer with ID " + trainerDetails.getTrainer().getTrainerId() + "Updated his profile details");
         return  ResponseEntity.ok(new ApiResponse<>("success", "Profile Updated Successfully", null));
 		
 	}
@@ -96,6 +108,7 @@ public class TrainerController {
 		}
 		
 		Student student = new Student();
+		student.setStudentId(idGeneration.generateStudentId(request.getStack(), request.getMode(), request.getTypeOfAdmission()));
 		student.setName(request.getName());
 		student.setEmail(request.getEmail());
 		student.setMobile(request.getMobile());
@@ -117,6 +130,10 @@ public class TrainerController {
 		
 		Student newStudent = trainerService.addStudent(student);
 		
+		activityLogService.log(trainerDetails.getTrainer().getEmail(), 
+				trainerDetails.getTrainer().getTrainerId(), 
+				"TRAINER", 
+				"Trainer with ID " + trainerDetails.getTrainer().getTrainerId() + "New Student added with Id "+ newStudent.getStudentId() );
 		return ResponseEntity.ok(new ApiResponse<>("success", "Student Added Successfully", null));
 		
 	}

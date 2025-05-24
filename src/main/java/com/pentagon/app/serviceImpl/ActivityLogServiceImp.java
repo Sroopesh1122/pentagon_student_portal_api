@@ -16,6 +16,7 @@ public class ActivityLogServiceImp implements ActivityLogService{
     @Autowired
     private ActivityLogRepository repository;
 
+    @Override
     public void log(String email, String userId, String role, String description) {
         ActivityLog log = new ActivityLog();
         log.setEmail(email);
