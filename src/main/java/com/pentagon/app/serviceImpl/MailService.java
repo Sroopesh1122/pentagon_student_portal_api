@@ -16,24 +16,31 @@ public class MailService {
 	private JavaMailSender javaMailSender;
 
 	// Send Plain Text Email
-	public void sendSimpleEmail(String to, String subject, String text) {
-		SimpleMailMessage message = new SimpleMailMessage();
-		System.out.println(to + " " + text);
-		message.setTo(to);
-		message.setSubject(subject);
-		message.setText(text);
-		javaMailSender.send(message);
+	public void sendOtpToEmail(String to, String subject, String htmlContent) throws Exception {
+		try {
+			MimeMessage message = javaMailSender.createMimeMessage();
+			MimeMessageHelper helper = new MimeMessageHelper(message, true);
+			helper.setTo(to);
+			helper.setSubject(subject);
+			helper.setText(htmlContent, true); // true = isHtml
+			javaMailSender.send(message);
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to send email", e);
+		}
 	}
 
 	// Send HTML Email
 	public void sendPasswordEmail(String toEmail, String subject, String htmlContent) throws Exception {
-		MimeMessage message = javaMailSender.createMimeMessage();
-		MimeMessageHelper helper = new MimeMessageHelper(message, true);
-		helper.setTo(toEmail);
-		helper.setSubject(subject);
-		helper.setText(htmlContent, true); // true = isHtml
-		System.out.println("sedding email");
-		javaMailSender.send(message);
+		try {
+			MimeMessage message = javaMailSender.createMimeMessage();
+			MimeMessageHelper helper = new MimeMessageHelper(message, true);
+			helper.setTo(toEmail);
+			helper.setSubject(subject);
+			helper.setText(htmlContent, true); // true = isHtml
+			javaMailSender.send(message);
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to send email", e);
+		}
 
 	}
 }
