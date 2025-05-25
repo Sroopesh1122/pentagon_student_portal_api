@@ -35,6 +35,7 @@ import com.pentagon.app.service.AdminService;
 import com.pentagon.app.service.CustomUserDetails;
 import com.pentagon.app.utils.IdGeneration;
 import com.pentagon.app.service.ManagerService;
+import com.pentagon.app.service.OtpService;
 import com.pentagon.app.utils.JwtUtil;
 import com.pentagon.app.utils.PasswordGenration;
 
@@ -53,12 +54,13 @@ public class AdminController {
 	private JwtUtil jwtUtil;
 	@Autowired 
 	private IdGeneration idGeneration;
-
 	@Autowired
 	private ManagerService managerService;
 	@Autowired
 	private ActivityLogService activityLogService;
-
+	@Autowired
+	private OtpService otpService;
+	
 	@PostMapping("/secure/addManager")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<?> addManagerByAdmin(
@@ -73,6 +75,7 @@ public class AdminController {
 	    adminservice.addManager(adminDetails, newManager);  // wrapped in @Transactional  for rollback action
 	    return ResponseEntity.ok(new ApiResponse<>("success", "Manager added successfully", null));
 	}
+	
 	
 	@PostMapping("/secure/addExecutive")
 	@PreAuthorize("hasRole('ADMIN')")

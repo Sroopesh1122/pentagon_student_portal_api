@@ -121,5 +121,4 @@ public class OtpServiceImpl implements OtpService {
             throw new OtpException("Invalid OTP. Attempt " + wrongAttempts + " of " + MAX_WRONG_ATTEMPTS, HttpStatus.UNAUTHORIZED);
         }
     }
-
 }
