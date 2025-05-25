@@ -86,7 +86,7 @@ public class OtpServiceImpl implements OtpService {
 	        "</html>";
 
 	    // Send HTML email
-	    mailService.sendSimpleEmail(email, subject, htmlContent);
+	    mailService.sendHtmlEmail(email, subject, htmlContent);
 	}
 
 
