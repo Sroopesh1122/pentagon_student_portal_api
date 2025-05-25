@@ -3,11 +3,9 @@ package com.pentagon.app.utils;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-
 import com.pentagon.app.exception.IdGenerationException;
 import com.pentagon.app.repository.AdminRepository;
 import com.pentagon.app.repository.ExecutiveRepository;
@@ -31,6 +29,7 @@ public class IdGeneration {
 	// PS19MAY25OFJFS#001 CSR-offline
 	// PS19MAY25ONJFS#001 CSR-online
 
+	// CSR, paid and offline, online
 	public String generateStudentId(String stack, String mode, String typeOfAdmission) {
 	    Map<String, String> stackCodeMap = Map.of(
 	        "java full stack", "JFS",
@@ -66,7 +65,7 @@ public class IdGeneration {
 	        return prefix + "0" + paddedNumber;       // PS19MAY25OFJFS0001
 	    }
 	}
-
+	
 	public String generateId(String userType) {
 	    String prefix;
 	    int count = 0;
@@ -94,7 +93,9 @@ public class IdGeneration {
 	    String padded = String.format("%04d", count + 1);
 	    return prefix + padded;
 	}
-	// CSR, paid and offline, online
+	
+	
+	
 
 
 }

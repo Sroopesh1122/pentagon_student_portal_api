@@ -12,30 +12,29 @@ import jakarta.mail.internet.MimeMessage;
 @Service
 public class MailService {
 
-    @Autowired
-    private JavaMailSender javaMailSender;
+	@Autowired
+	private JavaMailSender javaMailSender;
 
-    // Send Plain Text Email
-    public void sendSimpleEmail(String to, String subject, String text) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        System.out.println(to+" "+text);
-        message.setTo(to);
-        message.setSubject(subject);
-        message.setText(text);
-        javaMailSender.send(message);
-    }
+	// Send Plain Text Email
+	public void sendSimpleEmail(String to, String subject, String text) {
+		SimpleMailMessage message = new SimpleMailMessage();
+		System.out.println(to + " " + text);
+		message.setTo(to);
+		message.setSubject(subject);
+		message.setText(text);
+		javaMailSender.send(message);
+	}
 
-    // Send HTML Email
-    public void sendHtmlEmail(String to, String subject, String htmlContent) {
-    try {
-        MimeMessage message = javaMailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-        helper.setTo(to);
-        helper.setSubject(subject);
-        helper.setText(htmlContent, true); // `true` means HTML content
-        javaMailSender.send(message);
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
-}
+
+	// Send HTML Email
+	public void sendPasswordEmail(String toEmail, String subject, String htmlContent) throws Exception {
+		MimeMessage message = javaMailSender.createMimeMessage();
+		MimeMessageHelper helper = new MimeMessageHelper(message, true);
+		helper.setTo(toEmail);
+		helper.setSubject(subject);
+		helper.setText(htmlContent, true); // true = isHtml
+		System.out.println("sedding email");
+		javaMailSender.send(message);
+
+	}
 }

@@ -86,7 +86,11 @@ public class OtpServiceImpl implements OtpService {
 	        "</html>";
 
 	    // Send HTML email
-	    mailService.sendHtmlEmail(email, subject, htmlContent);
+	    try {
+	        mailService.sendPasswordEmail(email, subject, htmlContent);
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
 	}
 
 

@@ -67,7 +67,7 @@ public class ManagerController {
 			throw new ManagerException("Ivalid Input Data", HttpStatus.BAD_REQUEST);
 		}
 		
-		if(managerDetails == null) {
+		if(managerDetails.getManager() == null) {
 			throw new ManagerException("UNAUTHORIZED", HttpStatus.UNAUTHORIZED);
 		}
 		
@@ -102,7 +102,7 @@ public class ManagerController {
 			throw new ManagerException("Invaid Input Data", HttpStatus.BAD_REQUEST );
 		}
 		
-		if(managerDetails == null) {
+		if(managerDetails.getManager() == null) {
 			throw new ManagerException("UNAUTORIZED", HttpStatus.UNAUTHORIZED);
 		}
 		
@@ -143,7 +143,7 @@ public class ManagerController {
 			throw new ManagerException("Invaid Input Data", HttpStatus.BAD_REQUEST );
 		}
 		
-		if(managerDetails == null) {
+		if(managerDetails.getManager() == null) {
 			throw new ManagerException("UNAUTORIZED", HttpStatus.UNAUTHORIZED);
 		}
 		
@@ -183,12 +183,15 @@ public class ManagerController {
 	
 	@GetMapping("/secure/viewAllTrainers")
 	@PreAuthorize("hasRole('MANAGER')")
-	public ResponseEntity<?> viewAllTrainers(
+	public ResponseEntity<?> viewAllTrainers(@AuthenticationPrincipal CustomUserDetails managerDetails,
 			@RequestParam(defaultValue = "1") int page,
 	        @RequestParam(defaultValue = "10") int limit,
 	        @RequestParam(required = false) String stack,
 	        @RequestParam(required = false) String name,
 	        @RequestParam(required = false) String trainerId){
+		if (managerDetails.getManager() == null) {
+	        throw new ManagerException("UNAUTHORIZED", HttpStatus.UNAUTHORIZED);
+	    }
 		
 		Pageable pageable = PageRequest.of(page - 1, limit, Sort.by("createdAt").descending());
 		
@@ -221,7 +224,7 @@ public class ManagerController {
 	public ResponseEntity<?> acceptJobDescription(@AuthenticationPrincipal CustomUserDetails managerDetails,
 	        @RequestParam String jobDescriptionId){
 		
-		if (managerDetails == null) {
+		if (managerDetails.getManager() == null) {
 	        throw new ManagerException("UNAUTHORIZED", HttpStatus.UNAUTHORIZED);
 	    }
 		
@@ -243,10 +246,9 @@ public class ManagerController {
 	@GetMapping("/secure/profile")
 	@PreAuthorize("hasRole('MANAGER')")
 	public ResponseEntity<?> getManagerProfile(@AuthenticationPrincipal CustomUserDetails managerDetails) {
-		if(managerDetails == null) {
-			 throw new ManagerException("UNAUTHORIZED", HttpStatus.UNAUTHORIZED);
+		if(managerDetails.getManager() == null) {
+			throw new ManagerException("UNAUTHORIZED", HttpStatus.UNAUTHORIZED);
 		}
-		
 	    Manager manager= managerDetails.getManager();
 	    ProfileResponceDto details = managerService.getProfile(manager);
 	    return ResponseEntity.ok(new ApiResponse<>("success", "Manager Profile", details));

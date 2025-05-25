@@ -24,7 +24,5 @@ public interface TrainerService {
 
 	String loginWithPassword(TrainerLoginRequest trainerLoginRequest);
 
-	public Boolean verifyOtp(OtpVerificationRequest otpVerificationRequest);
-
 	public ProfileResponceDto getProfile(Trainer trainer);
 }

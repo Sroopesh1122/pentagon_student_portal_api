@@ -82,11 +82,5 @@ public class StudentServiceImpl implements StudentService {
 		return "OTP sent to registered email";
 	}
 
-	@Override
-	public Boolean verifyOtp(OtpVerificationRequest otpVerificationRequest) {
-		Student student  = studentRepository.findByEmail(otpVerificationRequest.getEmail())
-				.orElseThrow(()-> new StudentException("Manager Not Found", HttpStatus.NOT_FOUND));
-		return otpService.verifyOtp(otpVerificationRequest);
-	}
 
 }

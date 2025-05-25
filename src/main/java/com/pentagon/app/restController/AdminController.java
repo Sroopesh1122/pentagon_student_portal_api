@@ -36,6 +36,8 @@ import com.pentagon.app.service.CustomUserDetails;
 import com.pentagon.app.utils.IdGeneration;
 import com.pentagon.app.service.ManagerService;
 import com.pentagon.app.utils.JwtUtil;
+import com.pentagon.app.utils.PasswordGenration;
+
 import jakarta.validation.Valid;
 
 @RestController
@@ -59,47 +61,28 @@ public class AdminController {
 
 	@PostMapping("/secure/addManager")
 	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<?> addManagerByAdmin(@AuthenticationPrincipal CustomUserDetails customUserDetails,
-			@Valid @RequestBody AddManagerRequest newManager,
-			BindingResult bindingResult)
-	{
-		if(bindingResult.hasErrors())
-			throw new AdminException("Invalid data", HttpStatus.BAD_REQUEST);
-		if(customUserDetails==null)
-		{
-			throw new AdminException("Unauthenticated", HttpStatus.UNAUTHORIZED);
-		}
-		Manager manager=new Manager();
-		manager.setManagerId(idGeneration.generateId("ADMIN"));
-		manager.setName(newManager.getName());
-		manager.setEmail(newManager.getEmail());
-		manager.setMobile(newManager.getMobile());
-		manager.setPassword(passwordEncoder.encode(newManager.getPassword()));
-		manager.setActive(true);
-		
-		Map<String, Object> claims = new HashMap<>();
-		claims.put("email", manager.getEmail());
-	    claims.put("role","MANAGER");
-		
-		jwtUtil.generateToken(manager.getEmail(), claims );
-		
-		adminservice.addManager(manager);
-		activityLogService.log(customUserDetails.getAdmin().getEmail(), 
-				customUserDetails.getAdmin().getAdminId(), 
-				"ADMIN", 
-				"Manager with Unique Id "+ manager.getManagerId()+" Added Successfully");
-		return ResponseEntity.ok(new ApiResponse<>("success","Manager added Successfully",null));
+	public ResponseEntity<?> addManagerByAdmin(
+	        @AuthenticationPrincipal CustomUserDetails adminDetails,
+	        @Valid @RequestBody AddManagerRequest newManager,
+	        BindingResult bindingResult) {
+
+	    if (bindingResult.hasErrors()) {
+	        throw new AdminException("Invalid data", HttpStatus.BAD_REQUEST);
+	    }
+
+	    adminservice.addManager(adminDetails, newManager);  // wrapped in @Transactional  for rollback action
+	    return ResponseEntity.ok(new ApiResponse<>("success", "Manager added successfully", null));
 	}
 	
 	@PostMapping("/secure/addExecutive")
 	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<?> addExecutiveByAdmin(@AuthenticationPrincipal CustomUserDetails customUserDetails,
+	public ResponseEntity<?> addExecutiveByAdmin(@AuthenticationPrincipal CustomUserDetails adminDetails,
 			@Valid @RequestBody	AddExecutiveRequest newExecutive,
 			BindingResult bindingResult)
 	{
 		if(bindingResult.hasErrors())
 			throw new AdminException("Invalid data ", HttpStatus.BAD_REQUEST);
-		if(customUserDetails==null)
+		if(adminDetails.getAdmin()==null)
 		{
 			throw new AdminException("Unauthorized",HttpStatus.UNAUTHORIZED);
 		}
@@ -118,8 +101,8 @@ public class AdminController {
 		
 		
 		adminservice.addExecutive(executive);
-		activityLogService.log(customUserDetails.getAdmin().getEmail(), 
-				customUserDetails.getAdmin().getAdminId(), 
+		activityLogService.log(adminDetails.getAdmin().getEmail(), 
+				adminDetails.getAdmin().getAdminId(), 
 				"ADMIN", 
 				"Executive with Unique Id "+ executive.getExecutiveId()+" Added Successfully");
 		return ResponseEntity.ok(new ApiResponse<>("success","Executive added Successfully",null));
@@ -128,18 +111,18 @@ public class AdminController {
 
 	@GetMapping("secure/profile")
 	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<?> getAdminProfile(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
-		if(customUserDetails == null) {
+	public ResponseEntity<?> getAdminProfile(@AuthenticationPrincipal CustomUserDetails adminDetails) {
+		if(adminDetails.getAdmin() == null) {
 			throw new AdminException("UNAUTHORIZED", HttpStatus.UNAUTHORIZED);
 		}
-	    Admin admin= customUserDetails.getAdmin();
+	    Admin admin= adminDetails.getAdmin();
 	    ProfileResponceDto details = adminservice.getProfile(admin);
 	    return ResponseEntity.ok(new ApiResponse<>("success", "Admin Profile", details));
 	}
 
 	@GetMapping("/secure/viewAllTrainers")
 	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<?> viewAllTrainers(
+	public ResponseEntity<?> viewAllTrainers(@AuthenticationPrincipal CustomUserDetails adminDetails,
 			@RequestParam(defaultValue = "1") int page,
 	        @RequestParam(defaultValue = "10") int limit,
 	        @RequestParam(required = false) String stack,
@@ -165,14 +148,10 @@ public class AdminController {
             dto.setCreatedAt(trainer.getCreatedAt());
             dto.setUpdatedAt(trainer.getUpdatedAt());
             return dto;
-        });
-		
+        });		
 		
 		return ResponseEntity.ok(
 	            new ApiResponse<>("success", "Trainers fetched successfully", TrainerDTOPage)
 	        );
-	}
-	
-
-	
+	}	
 }

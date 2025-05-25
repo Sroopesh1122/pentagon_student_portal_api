@@ -23,8 +23,6 @@ public interface ManagerService {
 	
 	public JobDescription acceptJobDescription(String jobDescriptionId);
 
-	Boolean verifyOtp(OtpVerificationRequest otpVerificationRequest);
-
 	String loginWithPassword(ManagerLoginRequest managerLoginRequest);
 	
 	Page<Trainer> viewAllTrainers(String stack, String name, String trainerId, Pageable pageable);

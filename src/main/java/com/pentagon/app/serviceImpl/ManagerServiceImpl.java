@@ -133,12 +133,6 @@ public class ManagerServiceImpl implements ManagerService {
 
 	}
 
-	@Override
-	public Boolean verifyOtp(OtpVerificationRequest otpVerificationRequest) {
-		Manager manager = managerRepository.findByEmail(otpVerificationRequest.getEmail())
-				.orElseThrow(()-> new ManagerException("Manager Not Found", HttpStatus.NOT_FOUND));
-		return otpService.verifyOtp(otpVerificationRequest);
-	}
 
 	@Override
 	public ProfileResponceDto getProfile(Manager manager) {
