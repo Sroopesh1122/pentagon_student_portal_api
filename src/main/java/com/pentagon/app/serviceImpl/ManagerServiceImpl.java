@@ -120,7 +120,8 @@ public class ManagerServiceImpl implements ManagerService {
 	}
 	    
 	@Override
-	public String loginWithPassword(ManagerLoginRequest managerLoginRequest) {
+	public String loginWithPassword(ManagerLoginRequest managerLoginRequest) 
+	{
 		Manager manager= managerRepository.findByEmail(managerLoginRequest.getEmail())
 				.orElseThrow(()-> new ManagerException("Manager not found", HttpStatus.NOT_FOUND));
 		if(!passwordEncoder.matches(managerLoginRequest.getPassword(), manager.getPassword())) {

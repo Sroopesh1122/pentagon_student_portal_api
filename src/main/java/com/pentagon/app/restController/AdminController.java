@@ -93,7 +93,8 @@ public class AdminController {
 	
 	@PostMapping("/secure/addExecutive")
 	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<?> addExecutiveByAdmin(@AuthenticationPrincipal CustomUserDetails customUserDetails,
+	public ResponseEntity<?> addExecutiveByAdmin(
+			@AuthenticationPrincipal CustomUserDetails customUserDetails,
 			@Valid @RequestBody	AddExecutiveRequest newExecutive,
 			BindingResult bindingResult)
 	{
