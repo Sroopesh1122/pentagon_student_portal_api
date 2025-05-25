@@ -6,8 +6,8 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
-import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+
 
 @Service
 public class MailService {
@@ -28,6 +28,7 @@ public class MailService {
 			throw new RuntimeException("Failed to send email", e);
 		}
 	}
+
 
 	// Send HTML Email
 	public void sendPasswordEmail(String toEmail, String subject, String htmlContent) throws Exception {
