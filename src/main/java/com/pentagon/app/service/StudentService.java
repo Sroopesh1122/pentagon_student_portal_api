@@ -19,7 +19,6 @@ public interface StudentService {
 
 	public String loginWithPassword(StudentLoginRequest studentLoginRequest);
 
-	public Boolean verifyOtp(@Valid OtpVerificationRequest request);
 	
 	
 //	public JobDescription viewJobDescriptionBasedOnStackandMockRating(String stack, String mockRating);

@@ -9,6 +9,6 @@ public interface OtpService {
 	
 	public String generateOtpAndStore(String email);
 	public void sendOtpToEmail(String email, String otp);
-	public boolean verifyOtp(OtpVerificationRequest request);	
+	public boolean verifyOtp(OtpVerificationRequest request);
 
 }

@@ -64,7 +64,7 @@ public class TrainerController {
             throw new TrainerException("Invalid input data", HttpStatus.BAD_REQUEST);
         }
 		
-		if(trainerDetails == null) {
+		if(trainerDetails.getTrainer() == null) {
 			throw new TrainerException("UNAUTHORIZED", HttpStatus.UNAUTHORIZED);
 		}
 		
@@ -103,7 +103,7 @@ public class TrainerController {
 			throw new TrainerException("Invaid Input Data", HttpStatus.BAD_REQUEST );
 		}
 		
-		if(trainerDetails == null) {
+		if(trainerDetails.getTrainer() == null) {
 			throw new TrainerException("UNAUTHORIZED", HttpStatus.UNAUTHORIZED);
 		}
 		
@@ -140,7 +140,7 @@ public class TrainerController {
 	@GetMapping("/secure/profile")
 	@PreAuthorize("hasRole('TRAINER')")
 	public ResponseEntity<?> getAdminProfile(@AuthenticationPrincipal CustomUserDetails trainerDetails) {
-		if(trainerDetails == null) {
+		if(trainerDetails.getTrainer() == null) {
 			throw new TrainerException("UNAUTHORIZED", HttpStatus.UNAUTHORIZED);
 		}
 	    Trainer trainer = trainerDetails.getTrainer();

@@ -8,16 +8,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import com.pentagon.app.entity.Admin;
 import com.pentagon.app.entity.Otp;
-import com.pentagon.app.exception.AdminException;
 import com.pentagon.app.exception.OtpException;
 import com.pentagon.app.repository.AdminRepository;
 import com.pentagon.app.repository.OtpRepository;
 import com.pentagon.app.request.OtpVerificationRequest;
 import com.pentagon.app.service.OtpService;
 
-import jakarta.transaction.Transactional;
 
 @Service
 public class OtpServiceImpl implements OtpService {
@@ -65,10 +62,35 @@ public class OtpServiceImpl implements OtpService {
 
 	@Override
 	public void sendOtpToEmail(String email, String otp) {
-		// write otp sending logic or store in database
-//		mailService.sendSimpleEmail(email, "Otp From Penatagon Sapce", otp);
+	    String subject = "Your OTP for Pentagon Space Login";
 
+	    String htmlContent = "<html>" +
+	        "<body style='font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;'>" +
+	        "<div style='max-width: 500px; margin: auto; background-color: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 0 10px rgba(0,0,0,0.1);'>" +
+	        "<div style='background-color: #3f51b5; padding: 20px; text-align: center;'>" +
+	        "<h2 style='color: #ffffff; margin: 0;'>Email OTP</h2>" +
+	        "</div>" +
+	        "<div style='padding: 30px; text-align: center;'>" +
+	        "<p style='font-size: 16px; color: #333;'>Your One-Time Password (OTP) is:</p>" +
+	        "<div style='font-size: 32px; font-weight: bold; color: #3f51b5; background-color: #f0f0f0; padding: 15px 30px; border-radius: 8px; display: inline-block; letter-spacing: 5px;'>" + otp + "</div>" +
+	        "<p style='font-size: 14px; color: #777; margin-top: 20px;'>Please use this OTP to complete your login process.It is valid only for 5 minutes. Do not share this code with anyone.</p>" +
+	        "</div>" +
+	        "<div style='padding: 10px; text-align: center; background-color: #fafafa; font-size: 12px; color: #aaa;'>" +
+	        "© <a href='https://online.pentagonspace.in/' style='color: #3f51b5; text-decoration: none;'>www.pentagonspace.in</a>. All rights reserved." +
+	        "</div>" +
+	        "</div>" +
+	        "</body>" +
+	        "</html>";
+
+	    // Send HTML email
+	    try {
+			mailService.sendOtpToEmail(email, subject, htmlContent);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			throw new RuntimeException("Failed to send email", e);
+		}
 	}
+
 
 	@Override
 	public boolean verifyOtp(OtpVerificationRequest request) {
@@ -101,5 +123,4 @@ public class OtpServiceImpl implements OtpService {
             throw new OtpException("Invalid OTP. Attempt " + wrongAttempts + " of " + MAX_WRONG_ATTEMPTS, HttpStatus.UNAUTHORIZED);
         }
     }
-
 }

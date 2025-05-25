@@ -15,11 +15,10 @@ public interface ExecutiveService {
 	
 	public boolean addJobDescription(JobDescription jobDescription);
 	
-	//public boolean updateJobDescription(updateJobDescription updateJd);
+	public JobDescription updateJobDescription(JobDescription jobDescription);
 
 	String loginWithPassword(ExecutiveLoginRequest executiveLoginRequest);
 
-	Boolean verifyOtp(OtpVerificationRequest otpVerificationRequest);
 	
 	
 }

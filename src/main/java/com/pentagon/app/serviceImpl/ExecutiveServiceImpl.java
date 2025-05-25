@@ -65,18 +65,18 @@ public class ExecutiveServiceImpl implements ExecutiveService {
 		}
 	}
     
-//	@Override
-//	public boolean updateJobDescription(JobDescription jobDescription) {
-//		// TODO Auto-generated method stub
-//		try {
-//			jobDescription.setUpdatedAt(LocalDateTime.now());
-//			jobDescriptionRepository.save(jobDescription);
-//			return true;
-//		}
-//		catch(Exception e) {
-//			throw new JobDescriptionException("Failed to Update Job Description: "+ e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-//		}
-//	}
+	@Override
+	public JobDescription updateJobDescription(JobDescription jobDescription) {
+		// TODO Auto-generated method stub
+		try {
+			jobDescription.setUpdatedAt(LocalDateTime.now());
+			return jobDescriptionRepository.save(jobDescription);
+		}
+		catch(Exception e) {
+			throw new JobDescriptionException("Failed to Update Job Description: "+ e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
 	@Override
 	public String loginWithPassword(ExecutiveLoginRequest executiveLoginRequest) {
 		Executive executive = executiveRepository.findByEmail(executiveLoginRequest.getEmail())
@@ -90,11 +90,6 @@ public class ExecutiveServiceImpl implements ExecutiveService {
 		return "OTP sent to registered email";
 	}
 
-	@Override
-	public Boolean verifyOtp(OtpVerificationRequest otpVerificationRequest) {
-		Executive executive = executiveRepository.findByEmail(otpVerificationRequest.getEmail())
-				.orElseThrow(()-> new ExecutiveException("Executive not found", HttpStatus.NOT_FOUND));
-		return otpService.verifyOtp(otpVerificationRequest);
-	}
+	
 
 }

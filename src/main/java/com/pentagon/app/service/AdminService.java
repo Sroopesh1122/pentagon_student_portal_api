@@ -7,6 +7,7 @@ import com.pentagon.app.entity.Executive;
 import com.pentagon.app.entity.JobDescription;
 import com.pentagon.app.entity.Manager;
 import com.pentagon.app.entity.Student;
+import com.pentagon.app.request.AddManagerRequest;
 import com.pentagon.app.request.AdminLoginRequest;
 import com.pentagon.app.request.OtpVerificationRequest;
 import com.pentagon.app.request.TrainerLoginRequest;
@@ -26,7 +27,7 @@ public interface AdminService {
 	public void disableExecutiveByUniqueId(String executiveId);
 	
 	//Manager
-    public boolean addManager(Manager manager);
+	public void addManager(CustomUserDetails adminDetails, @Valid AddManagerRequest newManager);
 	
 	public List<Manager> viewAllManagers();
 	
@@ -38,11 +39,10 @@ public interface AdminService {
 	//JD
 	public List<JobDescription> viewAllJobDescriptions();
 
-	boolean verifyOtp(OtpVerificationRequest request);
-
 	String loginWithPassword(AdminLoginRequest request);
 
 	public ProfileResponceDto getProfile(Admin admin);
+
 
 	
 

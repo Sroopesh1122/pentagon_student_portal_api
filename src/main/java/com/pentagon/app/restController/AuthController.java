@@ -87,6 +87,29 @@ public class AuthController {
     }
 
 
+    @PostMapping("/public/verify-otp")
+	public ResponseEntity<?> verifyOtp(
+	        @RequestParam String email,
+	        @RequestParam String otp) {
+
+    	OtpVerificationRequest request= new OtpVerificationRequest();
+    	request.setEmail(email);
+    	request.setOtp(otp);
+	    boolean isValid = otpService.verifyOtp(request);
+
+	    if (isValid) {
+	        return ResponseEntity.ok(new ApiResponse<>("success", "Email Otp Verified", null));
+	    } else {
+	        throw new OtpException("Ivalid/Expired Otp", HttpStatus.UNAUTHORIZED);
+	    } 
+	}
+	@PostMapping("/public/send-otp")
+	public ResponseEntity<?> sendOtp(@RequestParam String email) {
+		otpService.sendOtpToEmail(email, otpService.generateOtpAndStore(email));
+	    return ResponseEntity.ok(new ApiResponse<>("success", "Email Verification Otp Sent Successfully", null));
+	}
+	
+	
     @PostMapping("/public/admin/login")
     public ResponseEntity<?> adminLogin(@RequestBody @Valid AdminLoginRequest request, BindingResult result) {
         if (result.hasErrors()) throw new AdminException("Invalid details", HttpStatus.BAD_REQUEST);
