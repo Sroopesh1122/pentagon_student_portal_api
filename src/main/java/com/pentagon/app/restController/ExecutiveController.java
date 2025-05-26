@@ -15,8 +15,10 @@ import org.springframework.web.bind.annotation.RestController;
 import com.pentagon.app.entity.Admin;
 import com.pentagon.app.entity.Executive;
 import com.pentagon.app.entity.JobDescription;
+import com.pentagon.app.entity.Manager;
 import com.pentagon.app.exception.ExecutiveException;
 import com.pentagon.app.exception.JobDescriptionException;
+import com.pentagon.app.exception.ManagerException;
 import com.pentagon.app.repository.JobDescriptionRepository;
 import com.pentagon.app.request.AddJobDescriptionRequest;
 import com.pentagon.app.request.UpdateClosuresRequest;
@@ -144,7 +146,10 @@ public class ExecutiveController {
 	@GetMapping("/secure/profile")
 	@PreAuthorize("hasRole('EXECUTIVE')")
 	public ResponseEntity<?> getExecutiveProfile(@AuthenticationPrincipal CustomUserDetails executiveDetails) {
-	    Executive executive= executiveDetails.getExecutive();
+		if(executiveDetails.getExecutive() == null) {
+			throw new ExecutiveException("UNAUTHORIZED", HttpStatus.UNAUTHORIZED);
+		}
+	    Executive  executive = executiveDetails.getExecutive();
 	    ProfileResponse details = executiveService.getProfile(executive);
 	    return ResponseEntity.ok(new ApiResponse<>("success", "Executive Profile", details));
 	}
