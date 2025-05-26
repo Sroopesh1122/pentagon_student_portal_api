@@ -15,4 +15,7 @@ public interface ExecutiveRepository extends JpaRepository<Executive, Integer>{
 
 	@Query("SELECT COUNT(E) FROM Executive E")
 	int getExecutiveCount();
+	
+	boolean existsByEmail(String email);
+
 }

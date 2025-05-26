@@ -22,4 +22,6 @@ public interface TrainerRepository extends JpaRepository<Trainer, Integer> {
 
 	@Query("SELECT COUNT(T) FROM Trainer T")
 	int getTrainerCount();
+	
+	boolean existsByEmail(String email);
 }

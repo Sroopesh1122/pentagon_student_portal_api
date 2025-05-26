@@ -17,7 +17,7 @@ import com.pentagon.app.repository.StudentRepository;
 import com.pentagon.app.repository.TrainerRepository;
 import com.pentagon.app.request.OtpVerificationRequest;
 import com.pentagon.app.request.TrainerLoginRequest;
-import com.pentagon.app.response.ProfileResponceDto;
+import com.pentagon.app.response.ProfileResponse;
 import com.pentagon.app.service.OtpService;
 import com.pentagon.app.service.TrainerService;
 
@@ -115,8 +115,8 @@ public class TrainerServiceImpl implements TrainerService {
 	}
 
 	@Override
-	public ProfileResponceDto getProfile(Trainer trainer) {
-		ProfileResponceDto result= new ProfileResponceDto();
+	public ProfileResponse getProfile(Trainer trainer) {
+		ProfileResponse result= new ProfileResponse();
 		result.setUniqueId(trainer.getTrainerId());
 		result.setName(trainer.getName());
 		result.setEmail(trainer.getEmail());

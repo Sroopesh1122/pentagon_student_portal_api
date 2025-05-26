@@ -1,7 +1,5 @@
 package com.pentagon.app.restController;
 
-import java.util.HashMap;
-import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Page;
@@ -25,16 +23,22 @@ import com.pentagon.app.entity.Executive;
 import com.pentagon.app.entity.JobDescription;
 import com.pentagon.app.entity.Manager;
 import com.pentagon.app.entity.Trainer;
+import com.pentagon.app.exception.ExecutiveException;
 import com.pentagon.app.exception.JobDescriptionException;
 import com.pentagon.app.exception.ManagerException;
+import com.pentagon.app.exception.OtpException;
+import com.pentagon.app.repository.ExecutiveRepository;
+import com.pentagon.app.repository.TrainerRepository;
 import com.pentagon.app.request.AddExecutiveRequest;
 import com.pentagon.app.request.AddTrainerRequest;
 import com.pentagon.app.request.UpdateManagerRequest;
 import com.pentagon.app.response.ApiResponse;
-import com.pentagon.app.response.ProfileResponceDto;
+import com.pentagon.app.response.ProfileResponse;
 import com.pentagon.app.service.ActivityLogService;
 import com.pentagon.app.service.CustomUserDetails;
 import com.pentagon.app.service.ManagerService;
+import com.pentagon.app.serviceImpl.MailService;
+import com.pentagon.app.utils.HtmlContent;
 import com.pentagon.app.utils.IdGeneration;
 import com.pentagon.app.utils.JwtUtil;
 import com.pentagon.app.utils.PasswordGenration;
@@ -60,9 +64,20 @@ public class ManagerController {
 	@Autowired
 	private ActivityLogService activityLogService;
 	
+	@Autowired
+	private ExecutiveRepository executiveRepository;
 	
 	@Autowired
 	private PasswordGenration passwordGenration;
+	
+	@Autowired
+	private HtmlContent htmlContentService;
+	
+	@Autowired
+	private MailService mailService;
+	
+	@Autowired
+	private TrainerRepository trainerRepository;
 	
 	@PostMapping("/secure/updateManager")
 	@PreAuthorize("hasRole('MANAGER')")
@@ -71,10 +86,6 @@ public class ManagerController {
 		
 		if(bindingResult.hasErrors()) {
 			throw new ManagerException("Ivalid Input Data", HttpStatus.BAD_REQUEST);
-		}
-		
-		if(managerDetails.getManager() == null) {
-			throw new ManagerException("UNAUTHORIZED", HttpStatus.UNAUTHORIZED);
 		}
 		
 		Manager manager = managerDetails.getManager();
@@ -105,11 +116,11 @@ public class ManagerController {
 			@Valid @RequestBody AddExecutiveRequest request, BindingResult bindingResult){
 		
 		if(bindingResult.hasErrors()) {
-			throw new ManagerException("Invaid Input Data", HttpStatus.BAD_REQUEST );
+			throw new ManagerException("Invalid Input Data", HttpStatus.BAD_REQUEST );
 		}
 		
-		if(managerDetails.getManager() == null) {
-			throw new ManagerException("UNAUTORIZED", HttpStatus.UNAUTHORIZED);
+		if(executiveRepository.existsByEmail(request.getEmail())) {
+			throw new ExecutiveException("Email already in use by another executive", HttpStatus.CONFLICT);
 		}
 		
 		Executive executive = new Executive();
@@ -117,15 +128,21 @@ public class ManagerController {
 		executive.setName(request.getName());
 		executive.setEmail(request.getEmail());
 		executive.setMobile(request.getMobile());
-		executive.setPassword(passwordGenration.generateRandomPassword());
-        
-        Map<String, Object> claims = new HashMap<>();
-		claims.put("email", executive.getEmail());
-		claims.put("role", "EXECUTIVE");
+		executive.setActive(true);
 		
-		jwtUtil.generateToken(executive.getEmail(), claims);
+		String password = passwordGenration.generateRandomPassword();
+		executive.setPassword(passwordEncoder.encode(password));
 		
 		Executive newExecutive = managerService.addExecutive(executive);
+		
+		String htmlContent=htmlContentService.getHtmlContent(executive.getName(), executive.getEmail(), password);
+		
+		try {
+				mailService.sendPasswordEmail(executive.getEmail(), "Welcome to Pentagon – Login Credentials Enclosed",
+				htmlContent);
+		}catch(Exception e) {
+			throw new OtpException("Mail couldn't be sent", HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 		
 		activityLogService.log(managerDetails.getManager().getEmail(), 
 				managerDetails.getManager().getManagerId(), 
@@ -134,6 +151,7 @@ public class ManagerController {
 		
 		return ResponseEntity.ok(new ApiResponse<>("success", "Executive Added Successfully", null));
 	}
+
 	
 	@PostMapping("secure/addTrainer")
 	@PreAuthorize("hasRole('MANAGER')")
@@ -141,11 +159,11 @@ public class ManagerController {
 			@Valid @RequestBody AddTrainerRequest request, BindingResult bindingResult){
 		
 		if(bindingResult.hasErrors()) {
-			throw new ManagerException("Invaid Input Data", HttpStatus.BAD_REQUEST );
+			throw new ManagerException("Invalid Input Data", HttpStatus.BAD_REQUEST );
 		}
 		
-		if(managerDetails.getManager() == null) {
-			throw new ManagerException("UNAUTORIZED", HttpStatus.UNAUTHORIZED);
+		if(trainerRepository.existsByEmail(request.getEmail())) {
+			throw new ExecutiveException("Email already in use by another trainer", HttpStatus.CONFLICT);
 		}
 		
 		Trainer trainer = new Trainer();
@@ -159,19 +177,19 @@ public class ManagerController {
 		trainer.setQualification(request.getQualification());
 		trainer.setAcitve(true);
 		
-		if(request.getPassword() != null && !request.getPassword().isBlank()) {
-			
-			String hashedPassword = passwordEncoder.encode(request.getPassword());
-			trainer.setPassword(hashedPassword);
-		}
-		
-		Map<String, Object> claims = new HashMap<>();
-		claims.put("email", trainer.getEmail());
-		claims.put("role", "TRAINER");
-		
-		jwtUtil.generateToken(trainer.getEmail(), claims);
+		String password = passwordGenration.generateRandomPassword();
+		trainer.setPassword(passwordEncoder.encode(password));
 		
 		Trainer newTrainer = managerService.addTrainer(trainer);
+		
+		String htmlContent=htmlContentService.getHtmlContent(trainer.getName(), trainer.getEmail(), password);
+		
+		try {
+				mailService.sendPasswordEmail(trainer.getEmail(), "Welcome to Pentagon – Login Credentials Enclosed",
+				htmlContent);
+		}catch(Exception e) {
+			throw new OtpException("Mail couldn't be sent", HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 		
 		activityLogService.log(managerDetails.getManager().getEmail(), 
 				managerDetails.getManager().getManagerId(), 
@@ -180,7 +198,7 @@ public class ManagerController {
 		
 		return ResponseEntity.ok(new ApiResponse<>("success", "Trainer Added Successfully", null));
 	}
-	
+
 	
 	@GetMapping("/secure/viewAllTrainers")
 	@PreAuthorize("hasRole('MANAGER')")
@@ -251,7 +269,7 @@ public class ManagerController {
 			throw new ManagerException("UNAUTHORIZED", HttpStatus.UNAUTHORIZED);
 		}
 	    Manager manager= managerDetails.getManager();
-	    ProfileResponceDto details = managerService.getProfile(manager);
+	    ProfileResponse details = managerService.getProfile(manager);
 	    return ResponseEntity.ok(new ApiResponse<>("success", "Manager Profile", details));
 	}
 	
