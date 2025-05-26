@@ -24,6 +24,7 @@ import com.pentagon.app.entity.Admin;
 import com.pentagon.app.entity.Executive;
 import com.pentagon.app.entity.Trainer;
 import com.pentagon.app.exception.AdminException;
+import com.pentagon.app.exception.OtpException;
 import com.pentagon.app.request.AddExecutiveRequest;
 import com.pentagon.app.request.AddManagerRequest;
 import com.pentagon.app.response.ApiResponse;
@@ -31,9 +32,11 @@ import com.pentagon.app.response.ProfileResponceDto;
 import com.pentagon.app.service.ActivityLogService;
 import com.pentagon.app.service.AdminService;
 import com.pentagon.app.service.CustomUserDetails;
+import com.pentagon.app.utils.HtmlContent;
 import com.pentagon.app.utils.IdGeneration;
 import com.pentagon.app.service.ManagerService;
 import com.pentagon.app.service.OtpService;
+import com.pentagon.app.serviceImpl.MailService;
 import com.pentagon.app.utils.JwtUtil;
 import com.pentagon.app.utils.PasswordGenration;
 
@@ -48,8 +51,8 @@ public class AdminController {
 	AdminService adminservice;
 	@Autowired
 	private PasswordEncoder passwordEncoder;
-	@Autowired 
-	private JwtUtil jwtUtil;
+	@Autowired
+	private MailService mailService;
 	@Autowired 
 	private IdGeneration idGeneration;
 	@Autowired
@@ -58,7 +61,8 @@ public class AdminController {
 	private ActivityLogService activityLogService;
 	@Autowired
 	private OtpService otpService;
-	
+	@Autowired
+	private HtmlContent htmlContentService;
 	@Autowired
 	private PasswordGenration passwordGenration;
 	
@@ -69,11 +73,45 @@ public class AdminController {
 	        @Valid @RequestBody AddManagerRequest newManager,
 	        BindingResult bindingResult) {
 
+		try {
 	    if (bindingResult.hasErrors()) {
 	        throw new AdminException("Invalid data", HttpStatus.BAD_REQUEST);
 	    }
+	    if(adminDetails==null)
+	    {
+	    	throw new AdminException("Admin details not found",HttpStatus.UNAUTHORIZED);
+	    }
+	    boolean checkManagerEmail=adminservice.getManagerByEmail(newManager.getEmail());
+	    
+	    if(checkManagerEmail)
+	    {
+	    	Manager manager = new Manager();
+			manager.setManagerId(idGeneration.generateId("MANAGER"));
+			manager.setName(newManager.getName());
+			manager.setEmail(newManager.getEmail());
+			manager.setMobile(newManager.getMobile());
+			manager.setActive(true);
+			String password = passwordGenration.generateRandomPassword();
+			manager.setPassword(passwordEncoder.encode(password));
+			
+			manager=adminservice.addManager(manager); 
+			
+			String htmlContent=htmlContentService.getHtmlContent(manager.getName(), manager.getEmail(), password);
 
-	    adminservice.addManager(adminDetails, newManager); 
+			mailService.sendPasswordEmail(manager.getEmail(), "Welcome to Pentagon – Login Credentials Enclosed",
+					htmlContent);
+			
+			activityLogService.log(adminDetails.getAdmin().getEmail(), adminDetails.getAdmin().getAdminId(), "ADMIN",
+					"Manager with Unique Id " + manager.getManagerId() + " Added Successfully");
+
+	    }else
+		{
+			throw new AdminException("Email is already exists", HttpStatus.CONFLICT);
+		}
+		}catch(Exception e)
+		{
+			throw new OtpException("Mail couldn't be sent", HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 	    return ResponseEntity.ok(new ApiResponse<>("success", "Manager added successfully", null));
 	}
 	
@@ -86,7 +124,14 @@ public class AdminController {
 	{
 		if(bindingResult.hasErrors())
 		  throw new AdminException("Invalid data ", HttpStatus.BAD_REQUEST);
+		if(adminDetails==null)
+	    {
+	    	throw new AdminException("Admin details not found",HttpStatus.UNAUTHORIZED);
+	    }
 		
+		try {
+		boolean checkExecutiveEmail=adminservice.getExecutiveByEmail(newExecutive.getEmail());
+		if(checkExecutiveEmail) {
 		
 		Executive executive=new Executive();
 		executive.setExecutiveId(idGeneration.generateId("EXECUTIVE"));
@@ -94,14 +139,26 @@ public class AdminController {
 		executive.setEmail(newExecutive.getEmail());
 		executive.setActive(true);
 		executive.setMobile(newExecutive.getMobile());
-		executive.setPassword(passwordEncoder.encode(passwordGenration.generateRandomPassword()));
+		String password = passwordGenration.generateRandomPassword();
+		executive.setPassword(passwordEncoder.encode(password));
 		executive.setCreatedAt(LocalDateTime.now());
-		adminservice.addExecutive(executive);
+		executive=adminservice.addExecutive(executive);
+		
+		String htmlContent=htmlContentService.getHtmlContent(executive.getName(), executive.getEmail(), password);
+
+		mailService.sendPasswordEmail(executive.getEmail(), "Welcome to Pentagon – Login Credentials Enclosed",
+				htmlContent);
+
 		
 		activityLogService.log(adminDetails.getAdmin().getEmail(), 
 				adminDetails.getAdmin().getAdminId(), 
 				"ADMIN", 
 				"Executive with Unique Id "+ executive.getExecutiveId()+" Added Successfully");
+		}
+		}catch(Exception e)
+		{
+			throw new OtpException("Mail couldn't be sent", HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 		return ResponseEntity.ok(new ApiResponse<>("success","Executive added Successfully",null));
 	}
 	

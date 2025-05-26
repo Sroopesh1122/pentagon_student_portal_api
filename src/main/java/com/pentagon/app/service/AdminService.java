@@ -20,14 +20,14 @@ public interface AdminService {
 	public boolean updateAdmin(Admin admin);
 	
 	//Excutive
-	public boolean addExecutive(Executive executive);
+	public Executive addExecutive(Executive executive);
 	
 	public List<Executive> viewAllExecutives();
 	
 	public void disableExecutiveByUniqueId(String executiveId);
 	
 	//Manager
-	public void addManager(CustomUserDetails adminDetails, @Valid AddManagerRequest newManager);
+	public Manager addManager( Manager manager);
 	
 	public List<Manager> viewAllManagers();
 	
@@ -39,9 +39,13 @@ public interface AdminService {
 	//JD
 	public List<JobDescription> viewAllJobDescriptions();
 
-	String loginWithPassword(AdminLoginRequest request);
+	public String loginWithPassword(AdminLoginRequest request);
 
 	public ProfileResponceDto getProfile(Admin admin);
+	
+	public boolean getManagerByEmail(String email);
+	
+	public boolean getExecutiveByEmail(String email);
 
 
 	
