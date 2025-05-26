@@ -1,5 +1,8 @@
 package com.pentagon.app.utils;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class HtmlContent {
 
 	public String getHtmlContent(String name, String email,String password)

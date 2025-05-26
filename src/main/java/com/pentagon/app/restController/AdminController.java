@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.pentagon.app.Dto.TrainerDTO;
 import com.pentagon.app.entity.Admin;
 import com.pentagon.app.entity.Executive;
+import com.pentagon.app.entity.Manager;
 import com.pentagon.app.entity.Trainer;
 import com.pentagon.app.exception.AdminException;
 import com.pentagon.app.exception.OtpException;
@@ -45,15 +46,14 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/api/admin")
 public class AdminController {
-	
-	
-	@Autowired 
+
+	@Autowired
 	AdminService adminservice;
 	@Autowired
 	private PasswordEncoder passwordEncoder;
 	@Autowired
 	private MailService mailService;
-	@Autowired 
+	@Autowired
 	private IdGeneration idGeneration;
 	@Autowired
 	private ManagerService managerService;
@@ -65,27 +65,22 @@ public class AdminController {
 	private HtmlContent htmlContentService;
 	@Autowired
 	private PasswordGenration passwordGenration;
-	
+
 	@PostMapping("/secure/addManager")
 	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<?> addManagerByAdmin(
-	        @AuthenticationPrincipal CustomUserDetails adminDetails,
-	        @Valid @RequestBody AddManagerRequest newManager,
-	        BindingResult bindingResult) {
+	public ResponseEntity<?> addManagerByAdmin(@AuthenticationPrincipal CustomUserDetails adminDetails,
+			@Valid @RequestBody AddManagerRequest newManager, BindingResult bindingResult) {
 
-		try {
-	    if (bindingResult.hasErrors()) {
-	        throw new AdminException("Invalid data", HttpStatus.BAD_REQUEST);
-	    }
-	    if(adminDetails==null)
-	    {
-	    	throw new AdminException("Admin details not found",HttpStatus.UNAUTHORIZED);
-	    }
-	    boolean checkManagerEmail=adminservice.getManagerByEmail(newManager.getEmail());
-	    
-	    if(checkManagerEmail)
-	    {
-	    	Manager manager = new Manager();
+		if (bindingResult.hasErrors()) {
+			throw new AdminException("Invalid data", HttpStatus.BAD_REQUEST);
+		}
+		if (adminDetails == null) {
+			throw new AdminException("Admin details not found", HttpStatus.UNAUTHORIZED);
+		}
+		boolean checkManagerEmail = adminservice.getManagerByEmail(newManager.getEmail());
+
+		if (checkManagerEmail) {
+			Manager manager = new Manager();
 			manager.setManagerId(idGeneration.generateId("MANAGER"));
 			manager.setName(newManager.getName());
 			manager.setEmail(newManager.getEmail());
@@ -93,116 +88,104 @@ public class AdminController {
 			manager.setActive(true);
 			String password = passwordGenration.generateRandomPassword();
 			manager.setPassword(passwordEncoder.encode(password));
-			
-			manager=adminservice.addManager(manager); 
-			
-			String htmlContent=htmlContentService.getHtmlContent(manager.getName(), manager.getEmail(), password);
 
-			mailService.sendPasswordEmail(manager.getEmail(), "Welcome to Pentagon – Login Credentials Enclosed",
-					htmlContent);
-			
+			manager = adminservice.addManager(manager);
+
+			String htmlContent = htmlContentService.getHtmlContent(manager.getName(), manager.getEmail(), password);
+
+			try {
+				mailService.sendPasswordEmail(manager.getEmail(), "Welcome to Pentagon – Login Credentials Enclosed",
+						htmlContent);
+			} catch (Exception e) {
+				throw new OtpException("Mail couldn't be sent", HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+
 			activityLogService.log(adminDetails.getAdmin().getEmail(), adminDetails.getAdmin().getAdminId(), "ADMIN",
 					"Manager with Unique Id " + manager.getManagerId() + " Added Successfully");
 
-	    }else
-		{
+		} else {
 			throw new AdminException("Email is already exists", HttpStatus.CONFLICT);
 		}
-		}catch(Exception e)
-		{
-			throw new OtpException("Mail couldn't be sent", HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-	    return ResponseEntity.ok(new ApiResponse<>("success", "Manager added successfully", null));
+
+		return ResponseEntity.ok(new ApiResponse<>("success", "Manager added successfully", null));
 	}
-	
-	
+
 	@PostMapping("/secure/addExecutive")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<?> addExecutiveByAdmin(@AuthenticationPrincipal CustomUserDetails adminDetails,
-			@Valid @RequestBody	AddExecutiveRequest newExecutive,
-			BindingResult bindingResult)
-	{
-		if(bindingResult.hasErrors())
-		  throw new AdminException("Invalid data ", HttpStatus.BAD_REQUEST);
-		if(adminDetails==null)
-	    {
-	    	throw new AdminException("Admin details not found",HttpStatus.UNAUTHORIZED);
-	    }
-		
-		try {
-		boolean checkExecutiveEmail=adminservice.getExecutiveByEmail(newExecutive.getEmail());
-		if(checkExecutiveEmail) {
-		
-		Executive executive=new Executive();
-		executive.setExecutiveId(idGeneration.generateId("EXECUTIVE"));
-		executive.setName(newExecutive.getName());
-		executive.setEmail(newExecutive.getEmail());
-		executive.setActive(true);
-		executive.setMobile(newExecutive.getMobile());
-		String password = passwordGenration.generateRandomPassword();
-		executive.setPassword(passwordEncoder.encode(password));
-		executive.setCreatedAt(LocalDateTime.now());
-		executive=adminservice.addExecutive(executive);
-		
-		String htmlContent=htmlContentService.getHtmlContent(executive.getName(), executive.getEmail(), password);
-
-		mailService.sendPasswordEmail(executive.getEmail(), "Welcome to Pentagon – Login Credentials Enclosed",
-				htmlContent);
-
-		
-		activityLogService.log(adminDetails.getAdmin().getEmail(), 
-				adminDetails.getAdmin().getAdminId(), 
-				"ADMIN", 
-				"Executive with Unique Id "+ executive.getExecutiveId()+" Added Successfully");
+			@Valid @RequestBody AddExecutiveRequest newExecutive, BindingResult bindingResult) {
+		if (bindingResult.hasErrors())
+			throw new AdminException("Invalid data ", HttpStatus.BAD_REQUEST);
+		if (adminDetails == null) {
+			throw new AdminException("Admin details not found", HttpStatus.UNAUTHORIZED);
 		}
-		}catch(Exception e)
-		{
-			throw new OtpException("Mail couldn't be sent", HttpStatus.INTERNAL_SERVER_ERROR);
+
+		boolean checkExecutiveEmail = adminservice.getExecutiveByEmail(newExecutive.getEmail());
+		if (checkExecutiveEmail) {
+
+			Executive executive = new Executive();
+			executive.setExecutiveId(idGeneration.generateId("EXECUTIVE"));
+			executive.setName(newExecutive.getName());
+			executive.setEmail(newExecutive.getEmail());
+			executive.setActive(true);
+			executive.setMobile(newExecutive.getMobile());
+			String password = passwordGenration.generateRandomPassword();
+			executive.setPassword(passwordEncoder.encode(password));
+			executive.setCreatedAt(LocalDateTime.now());
+			executive = adminservice.addExecutive(executive);
+
+			String htmlContent = htmlContentService.getHtmlContent(executive.getName(), executive.getEmail(), password);
+
+			try {
+				mailService.sendPasswordEmail(executive.getEmail(), "Welcome to Pentagon – Login Credentials Enclosed",
+						htmlContent);
+			} catch (Exception e) {
+				throw new OtpException("Mail couldn't be sent", HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+
+			activityLogService.log(adminDetails.getAdmin().getEmail(), adminDetails.getAdmin().getAdminId(), "ADMIN",
+					"Executive with Unique Id " + executive.getExecutiveId() + " Added Successfully");
 		}
-		return ResponseEntity.ok(new ApiResponse<>("success","Executive added Successfully",null));
+
+		return ResponseEntity.ok(new ApiResponse<>("success", "Executive added Successfully", null));
 	}
-	
 
 	@GetMapping("/secure/profile")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<?> getAdminProfile(@AuthenticationPrincipal CustomUserDetails adminDetails) {
-	    Admin admin= adminDetails.getAdmin();
-	    ProfileResponceDto details = adminservice.getProfile(admin);
-	    return ResponseEntity.ok(new ApiResponse<>("success", "Admin Profile", details));
+		Admin admin = adminDetails.getAdmin();
+		ProfileResponceDto details = adminservice.getProfile(admin);
+		return ResponseEntity.ok(new ApiResponse<>("success", "Admin Profile", details));
 	}
 
 	@GetMapping("/secure/viewAllTrainers")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<?> viewAllTrainers(@AuthenticationPrincipal CustomUserDetails adminDetails,
-			@RequestParam(defaultValue = "1") int page,
-	        @RequestParam(defaultValue = "10") int limit,
-	        @RequestParam(required = false) String stack,
-	        @RequestParam(required = false) String name,
-	        @RequestParam(required = false) String trainerId){
-		
+			@RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "10") int limit,
+			@RequestParam(required = false) String stack, @RequestParam(required = false) String name,
+			@RequestParam(required = false) String trainerId) {
+
 		Pageable pageable = PageRequest.of(page - 1, limit, Sort.by("createdAt").descending());
-		
+
 		Page<Trainer> trainers = managerService.viewAllTrainers(stack, name, trainerId, pageable);
-		
+
 		Page<TrainerDTO> TrainerDTOPage = trainers.map(trainer -> {
-            TrainerDTO dto = new TrainerDTO();
-            dto.setId(trainer.getId());
-            dto.setTrainerId(trainer.getTrainerId());
-            dto.setName(trainer.getName());
-            dto.setEmail(trainer.getEmail());
-            dto.setMobile(trainer.getMobile());
-            dto.setTrainerStack(trainer.getTrainerStack());
-            dto.setQualification(trainer.getQualification());
-            dto.setYearOfExperiences(trainer.getYearOfExperiences());
-            dto.setTechnologies(trainer.getTechnologies());
-            dto.setActive(trainer.isAcitve());
-            dto.setCreatedAt(trainer.getCreatedAt());
-            dto.setUpdatedAt(trainer.getUpdatedAt());
-            return dto;
-        });		
-		
-		return ResponseEntity.ok(
-	            new ApiResponse<>("success", "Trainers fetched successfully", TrainerDTOPage)
-	        );
-	}	
+			TrainerDTO dto = new TrainerDTO();
+			dto.setId(trainer.getId());
+			dto.setTrainerId(trainer.getTrainerId());
+			dto.setName(trainer.getName());
+			dto.setEmail(trainer.getEmail());
+			dto.setMobile(trainer.getMobile());
+			dto.setTrainerStack(trainer.getTrainerStack());
+			dto.setQualification(trainer.getQualification());
+			dto.setYearOfExperiences(trainer.getYearOfExperiences());
+			dto.setTechnologies(trainer.getTechnologies());
+			dto.setActive(trainer.isAcitve());
+			dto.setCreatedAt(trainer.getCreatedAt());
+			dto.setUpdatedAt(trainer.getUpdatedAt());
+			return dto;
+		});
+
+		return ResponseEntity.ok(new ApiResponse<>("success", "Trainers fetched successfully", TrainerDTOPage));
+	}
 }
