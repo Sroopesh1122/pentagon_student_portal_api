@@ -2,6 +2,7 @@ package com.pentagon.app.serviceImpl;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -59,56 +60,16 @@ public class AdminServiceImpl implements AdminService {
 	@Autowired
 	private PasswordEncoder passwordEncoder;
 
-	@Autowired
-	private PasswordGenration passwordGenration;
-
-	@Autowired
-	private MailService mailService;
-
-	@Autowired
-	private IdGeneration idGeneration;
-
-	@Autowired
-	private ActivityLogService activityLogService;
-
 	@Transactional
 	@Override
-	public void addManager(CustomUserDetails adminDetails,AddManagerRequest newManager) {
-		
-		Manager findManager  = managerRepository.findByEmail(newManager.getEmail()).orElse(null);
-		
-		if(findManager!=null)
-		{
-			throw new AdminException("Email is already exists", HttpStatus.CONFLICT);
-		}
+	public Manager addManager(Manager newManager) {
 		
 		try {
-			Manager manager = new Manager();
-			manager.setManagerId(idGeneration.generateId("MANAGER"));
-			manager.setName(newManager.getName());
-			manager.setEmail(newManager.getEmail());
-			manager.setMobile(newManager.getMobile());
-			manager.setActive(true);
-			String password = passwordGenration.generateRandomPassword();
-			manager.setPassword(passwordEncoder.encode(password));
-			manager.setCreatedAt(LocalDateTime.now());
-			managerRepository.save(manager);
+			newManager.setCreatedAt(LocalDateTime.now());
+			Manager manager=managerRepository.save(newManager);
+			return manager;
 
-			String htmlContent = "<!DOCTYPE html>" + "<html>" + "<body style='font-family: Arial, sans-serif;'>"
-					+ "<h2 style='color: #2e6c80;'>Welcome to Pentagon Portal</h2>" + "<p>Hi <strong>"
-					+ manager.getName() + "</strong>,</p>"
-					+ "<p>Your account has been created by the Admin. Please find your login details below:</p>"
-					+ "<ul>" + "<li><strong>Email:</strong> " + manager.getEmail() + "</li>"
-					+ "<li><strong>Temporary Password:</strong> " + password + "</li>" + "</ul>"
-					+ "<p>Please log in and change your password immediately for security purposes.</p>"
-					+ "<br><p>Regards,<br/>Pentagon Team</p>" + "</body>" + "</html>";
-
-			mailService.sendPasswordEmail(manager.getEmail(), "Welcome to Pentagon – Login Credentials Enclosed",
-					htmlContent);
-			
-			activityLogService.log(adminDetails.getAdmin().getEmail(), adminDetails.getAdmin().getAdminId(), "ADMIN",
-					"Manager with Unique Id " + manager.getManagerId() + " Added Successfully");
-		} catch (Exception e) {
+			} catch (Exception e) {
 			throw new AdminException("Failed to add Manager: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -126,11 +87,11 @@ public class AdminServiceImpl implements AdminService {
 	}
 
 	@Override
-	public boolean addExecutive(Executive newExecutive) {
+	public Executive addExecutive(Executive newExecutive) {
 		try {
 			
-			executiveRepository.save(newExecutive);
-			return true;
+			return executiveRepository.save(newExecutive);
+			
 		} catch (Exception e) {
 			throw new ExecutiveException("Failed to Add Executive: " + e.getMessage(),
 					HttpStatus.INTERNAL_SERVER_ERROR);
@@ -228,6 +189,22 @@ public class AdminServiceImpl implements AdminService {
 		result.setEmail(admin.getEmail());
 		result.setMobile(admin.getMobile());
 		return result;
+	}
+
+	@Override
+	public boolean getManagerByEmail(String email) {
+		Optional<Manager> manager=managerRepository.findByEmail(email);
+		if(manager.isPresent())
+			return false;
+		return true;
+	}
+
+	@Override
+	public boolean getExecutiveByEmail(String email) {
+		Optional<Executive> executive=executiveRepository.findByEmail(email);
+		if(executive.isPresent())
+			throw new ExecutiveException("Email is already exists", HttpStatus.CONFLICT);
+		return true;
 	}
 
 }
