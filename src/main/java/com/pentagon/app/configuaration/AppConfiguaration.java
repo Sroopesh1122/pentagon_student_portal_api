@@ -49,7 +49,7 @@ public class AppConfiguaration {
 				.csrf(csrf -> csrf.disable())
 				.cors(cors->cors.configurationSource(corsConfigurationSource()))
 				.authorizeHttpRequests(request -> request
-						.requestMatchers("/pentagon/auth/**").permitAll()
+						.requestMatchers("/api/auth/public/**").permitAll()
 						.requestMatchers(
 			                    "/v3/api-docs/**",
 			                    "/swagger-ui/**",

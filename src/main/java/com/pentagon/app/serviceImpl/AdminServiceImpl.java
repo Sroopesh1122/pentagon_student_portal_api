@@ -2,7 +2,6 @@ package com.pentagon.app.serviceImpl;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -26,8 +25,6 @@ import com.pentagon.app.repository.ManagerRepository;
 import com.pentagon.app.repository.StudentRepository;
 import com.pentagon.app.request.AddManagerRequest;
 import com.pentagon.app.request.AdminLoginRequest;
-import com.pentagon.app.request.OtpVerificationRequest;
-import com.pentagon.app.request.TrainerLoginRequest;
 import com.pentagon.app.response.ProfileResponceDto;
 import com.pentagon.app.service.ActivityLogService;
 import com.pentagon.app.service.AdminService;
@@ -37,7 +34,6 @@ import com.pentagon.app.utils.IdGeneration;
 import com.pentagon.app.utils.PasswordGenration;
 
 import jakarta.transaction.Transactional;
-import jakarta.validation.Valid;
 
 @Service
 public class AdminServiceImpl implements AdminService {
@@ -77,7 +73,15 @@ public class AdminServiceImpl implements AdminService {
 
 	@Transactional
 	@Override
-	public void addManager(CustomUserDetails adminDetails, @Valid AddManagerRequest newManager) {
+	public void addManager(CustomUserDetails adminDetails,AddManagerRequest newManager) {
+		
+		Manager findManager  = managerRepository.findByEmail(newManager.getEmail()).orElse(null);
+		
+		if(findManager!=null)
+		{
+			throw new AdminException("Email is already exists", HttpStatus.CONFLICT);
+		}
+		
 		try {
 			Manager manager = new Manager();
 			manager.setManagerId(idGeneration.generateId("MANAGER"));
@@ -105,7 +109,7 @@ public class AdminServiceImpl implements AdminService {
 			activityLogService.log(adminDetails.getAdmin().getEmail(), adminDetails.getAdmin().getAdminId(), "ADMIN",
 					"Manager with Unique Id " + manager.getManagerId() + " Added Successfully");
 		} catch (Exception e) {
-			throw new ManagerException("Failed to add Manager: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+			throw new AdminException("Failed to add Manager: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
@@ -122,12 +126,10 @@ public class AdminServiceImpl implements AdminService {
 	}
 
 	@Override
-	public boolean addExecutive(Executive executive) {
-		// TODO Auto-generated method stub
+	public boolean addExecutive(Executive newExecutive) {
 		try {
-
-			executive.setCreatedAt(LocalDateTime.now());
-			executiveRepository.save(executive);
+			
+			executiveRepository.save(newExecutive);
 			return true;
 		} catch (Exception e) {
 			throw new ExecutiveException("Failed to Add Executive: " + e.getMessage(),

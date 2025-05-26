@@ -37,7 +37,8 @@ public class ExecutiveController {
 		
 	@PostMapping("/secure/addJobDescription")
 	@PreAuthorize("hasRole('EXECUTIVE')")
-	public ResponseEntity<?> addJobDescription(@AuthenticationPrincipal CustomUserDetails executiveDetails,
+	public ResponseEntity<?> addJobDescription(
+			@AuthenticationPrincipal CustomUserDetails executiveDetails,
 			@Valid @RequestBody AddJobDescriptionRequest newJd,
 			BindingResult bindingResult)
 	{

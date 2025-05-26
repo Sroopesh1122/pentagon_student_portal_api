@@ -12,12 +12,13 @@ import com.pentagon.app.exception.*;
 import com.pentagon.app.request.*;
 import com.pentagon.app.response.ApiResponse;
 import com.pentagon.app.service.*;
+import com.pentagon.app.serviceImpl.MailService;
 import com.pentagon.app.utils.JwtUtil;
 
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/pentagon/auth")
+@RequestMapping("/api/auth")
 public class AuthController {
 
     private final AdminService adminService;
@@ -28,9 +29,10 @@ public class AuthController {
     private final OtpService otpService;
     private final JwtUtil jwtUtil;
     private final ActivityLogService activityLogService;
+    private final MailService mailService;
 
     public AuthController(AdminService adminService, ManagerService managerService, ExecutiveService executiveService,
-                          TrainerService trainerService, StudentService studentService,OtpService otpService, JwtUtil jwtUtil, ActivityLogService activityLogService) {
+                          TrainerService trainerService, StudentService studentService,OtpService otpService, JwtUtil jwtUtil, ActivityLogService activityLogService ,MailService mailService) {
         this.adminService = adminService;
         this.managerService = managerService;
         this.executiveService = executiveService;
@@ -39,13 +41,16 @@ public class AuthController {
         this.otpService =otpService;
         this.jwtUtil = jwtUtil;
         this.activityLogService=activityLogService;
+        this.mailService = mailService;
     }
 
     private ResponseEntity<?> handleLogin(String role, String result) {
         return ResponseEntity.ok(new ApiResponse<>("success", result, null));
     }
+    
+    
 
-    @PostMapping("/secure/verify-OTP")
+    @PostMapping("/public/signin/verify-otp")
     public ResponseEntity<?> handleOtpVerification(
             @Valid @RequestBody OtpVerificationRequest request,
             BindingResult bindingResult) {
@@ -100,13 +105,18 @@ public class AuthController {
 	    if (isValid) {
 	        return ResponseEntity.ok(new ApiResponse<>("success", "Email Otp Verified", null));
 	    } else {
-	        throw new OtpException("Ivalid/Expired Otp", HttpStatus.UNAUTHORIZED);
+	        throw new OtpException("Invalid/Expired Otp", HttpStatus.UNAUTHORIZED);
 	    } 
 	}
+    
+    
+    
 	@PostMapping("/public/send-otp")
 	public ResponseEntity<?> sendOtp(@RequestParam String email) {
 		otpService.sendOtpToEmail(email, otpService.generateOtpAndStore(email));
-	    return ResponseEntity.ok(new ApiResponse<>("success", "Email Verification Otp Sent Successfully", null));
+		Map<String, Object> response = new HashMap<>();
+    	response.put("email", email);
+	    return ResponseEntity.ok(new ApiResponse<>("success", "Email Verification Otp Sent Successfully", response));
 	}
 	
 	

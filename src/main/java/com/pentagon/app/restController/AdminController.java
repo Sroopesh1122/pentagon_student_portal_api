@@ -1,5 +1,6 @@
 package com.pentagon.app.restController;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +43,7 @@ import com.pentagon.app.utils.PasswordGenration;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/admin")
+@RequestMapping("/api/admin")
 public class AdminController {
 	
 	
@@ -61,6 +62,9 @@ public class AdminController {
 	@Autowired
 	private OtpService otpService;
 	
+	@Autowired
+	private PasswordGenration passwordGenration;
+	
 	@PostMapping("/secure/addManager")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<?> addManagerByAdmin(
@@ -72,7 +76,7 @@ public class AdminController {
 	        throw new AdminException("Invalid data", HttpStatus.BAD_REQUEST);
 	    }
 
-	    adminservice.addManager(adminDetails, newManager);  // wrapped in @Transactional  for rollback action
+	    adminservice.addManager(adminDetails, newManager); 
 	    return ResponseEntity.ok(new ApiResponse<>("success", "Manager added successfully", null));
 	}
 	
@@ -84,26 +88,19 @@ public class AdminController {
 			BindingResult bindingResult)
 	{
 		if(bindingResult.hasErrors())
-			throw new AdminException("Invalid data ", HttpStatus.BAD_REQUEST);
-		if(adminDetails.getAdmin()==null)
-		{
-			throw new AdminException("Unauthorized",HttpStatus.UNAUTHORIZED);
-		}
+		  throw new AdminException("Invalid data ", HttpStatus.BAD_REQUEST);
+		
+		
 		Executive executive=new Executive();
 		executive.setExecutiveId(idGeneration.generateId("EXECUTIVE"));
 		executive.setName(newExecutive.getName());
 		executive.setEmail(newExecutive.getEmail());
 		executive.setActive(true);
 		executive.setMobile(newExecutive.getMobile());
-		executive.setPassword(passwordEncoder.encode(newExecutive.getPassword()));
-		
-		Map<String, Object> claims = new HashMap<>();
-		claims.put("email", executive.getEmail());
-	    claims.put("role","MANAGER");
-		jwtUtil.generateToken(executive.getEmail(), claims );
-		
-		
+		executive.setPassword(passwordEncoder.encode(passwordGenration.generateRandomPassword()));
+		executive.setCreatedAt(LocalDateTime.now());
 		adminservice.addExecutive(executive);
+		
 		activityLogService.log(adminDetails.getAdmin().getEmail(), 
 				adminDetails.getAdmin().getAdminId(), 
 				"ADMIN", 
@@ -112,12 +109,9 @@ public class AdminController {
 	}
 	
 
-	@GetMapping("secure/profile")
+	@GetMapping("/secure/profile")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<?> getAdminProfile(@AuthenticationPrincipal CustomUserDetails adminDetails) {
-		if(adminDetails.getAdmin() == null) {
-			throw new AdminException("UNAUTHORIZED", HttpStatus.UNAUTHORIZED);
-		}
 	    Admin admin= adminDetails.getAdmin();
 	    ProfileResponceDto details = adminservice.getProfile(admin);
 	    return ResponseEntity.ok(new ApiResponse<>("success", "Admin Profile", details));

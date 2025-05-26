@@ -38,4 +38,6 @@ public class Otp {
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
+    
+    private LocalDateTime expiredAt;
 }

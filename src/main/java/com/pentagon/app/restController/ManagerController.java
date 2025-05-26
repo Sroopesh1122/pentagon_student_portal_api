@@ -37,6 +37,8 @@ import com.pentagon.app.service.CustomUserDetails;
 import com.pentagon.app.service.ManagerService;
 import com.pentagon.app.utils.IdGeneration;
 import com.pentagon.app.utils.JwtUtil;
+import com.pentagon.app.utils.PasswordGenration;
+
 import jakarta.validation.Valid;
 
 @RestController
@@ -57,6 +59,10 @@ public class ManagerController {
 	
 	@Autowired
 	private ActivityLogService activityLogService;
+	
+	
+	@Autowired
+	private PasswordGenration passwordGenration;
 	
 	@PostMapping("/secure/updateManager")
 	@PreAuthorize("hasRole('MANAGER')")
@@ -111,12 +117,7 @@ public class ManagerController {
 		executive.setName(request.getName());
 		executive.setEmail(request.getEmail());
 		executive.setMobile(request.getMobile());
-		
-        if(request.getPassword() != null && !request.getPassword().isBlank()) {
-			
-			String hashedPassword = passwordEncoder.encode(request.getPassword());
-			executive.setPassword(hashedPassword);
-		}
+		executive.setPassword(passwordGenration.generateRandomPassword());
         
         Map<String, Object> claims = new HashMap<>();
 		claims.put("email", executive.getEmail());

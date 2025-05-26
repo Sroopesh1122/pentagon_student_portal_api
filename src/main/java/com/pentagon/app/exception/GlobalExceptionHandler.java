@@ -105,4 +105,16 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, userException.getHttpStatus());
     }
     
+    @ExceptionHandler(SessionExpiredException.class)
+    public ResponseEntity<Map<String, Object>> sesstionExpiredException(UserException userException){
+    	Map<String,Object> errorResponse = new HashMap<>();
+        errorResponse.put("status", "failure");
+        errorResponse.put("type","Session Expired");
+        errorResponse.put("error", userException.getMessage());
+        errorResponse.put("localTime", LocalDateTime.now());
+        errorResponse.put("relogin", true);
+        errorResponse.put("status", userException.getHttpStatus().toString());
+        return new ResponseEntity<>(errorResponse, userException.getHttpStatus());
+    }
+    
 }

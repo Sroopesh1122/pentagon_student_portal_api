@@ -17,7 +17,5 @@ public class AddExecutiveRequest {
 	@Size(min=10,max=10)
 	@NotBlank
 	private String mobile;
-	@NotBlank
-	private String password;
 	
 }

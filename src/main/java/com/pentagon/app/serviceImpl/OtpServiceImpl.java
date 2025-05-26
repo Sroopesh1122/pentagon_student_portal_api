@@ -43,6 +43,8 @@ public class OtpServiceImpl implements OtpService {
 
 			otp.setOtpCount(otp.getOtpCount() + 1);
 			otp.setOtp(otpValue);
+			otp.setCreatedAt(LocalDateTime.now());
+			otp.setExpiredAt(LocalDateTime.now().plusMinutes(5));
 			otpRepository.save(otp);
 
 		} else {
@@ -50,6 +52,7 @@ public class OtpServiceImpl implements OtpService {
 			otp.setEmail(email);
 			otp.setOtp(otpValue);
 			otp.setOtpCount(1);
+			otp.setExpiredAt(LocalDateTime.now().plusMinutes(5));
 			otpRepository.save(otp);
 		}
 
@@ -81,8 +84,6 @@ public class OtpServiceImpl implements OtpService {
 	        "</div>" +
 	        "</body>" +
 	        "</html>";
-
-	    // Send HTML email
 	    try {
 			mailService.sendOtpToEmail(email, subject, htmlContent);
 		} catch (Exception e) {
@@ -104,6 +105,11 @@ public class OtpServiceImpl implements OtpService {
         // Check if blocked due to too many wrong attempts
         if (otp.getBlockUntil() != null && otp.getBlockUntil().isAfter(LocalDateTime.now())) {
             throw new OtpException("Too many wrong attempts. Try again after " + otp.getBlockUntil(),HttpStatus.FORBIDDEN);
+        }
+        
+        if(LocalDateTime.now().isAfter(otp.getExpiredAt()))
+        {
+        	throw new OtpException("OTP expired, Please Try Again", HttpStatus.BAD_REQUEST);
         }
 
         if (otp.getOtp().equals(request.getOtp())) {
