@@ -34,24 +34,44 @@ public class CustomUserDetailsService implements UserDetailsService{
 	
 	@Override
 	public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-		Optional<Admin> admin=adminRepository.findByEmail(email);
-		Optional<Manager> manager=managerRepository.findByEmail(email);
-		Optional<Executive> executive=executiveRepository.findByEmail(email);
-		Optional<Trainer> trainer=trainerRepository.findByEmail(email);
 		
-		if (admin.isPresent()) {
-			return new CustomUserDetails(admin.get());
+	  return null;
+	}
+	
+	
+	public UserDetails loadAdmin(String email) {
+		Optional<Admin> admin=adminRepository.findByEmail(email);
+		
+		if(admin.isEmpty())
+		{
+			throw new UsernameNotFoundException("User not found");
 		}
-		if (manager.isPresent()) {
-			return new CustomUserDetails(manager.get());
+		
+		return new CustomUserDetails(admin.get());
+	}
+	
+	
+	public UserDetails loadManager(String email) {
+		Optional<Manager> manager=managerRepository.findByEmail(email);
+		
+		if(manager.isEmpty())
+		{
+			throw new UsernameNotFoundException("User not found");
 		}
-		if (executive.isPresent()) {
-			return new CustomUserDetails(executive.get());
+		
+		return new CustomUserDetails(manager.get());
+	}
+	
+	
+	public UserDetails loadExecutive(String email) {
+		Optional<Executive> executive=executiveRepository.findByEmail(email);
+		
+		if(executive.isEmpty())
+		{
+			throw new UsernameNotFoundException("User not found");
 		}
-		if (trainer.isPresent()) {
-			return new CustomUserDetails(trainer.get());
-		}
-		throw new RuntimeException("USER NOT FOUND");
+		
+		return new CustomUserDetails(executive.get());
 	}
 
 }

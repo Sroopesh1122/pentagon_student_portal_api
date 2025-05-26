@@ -41,11 +41,23 @@ public class JwtFilter extends OncePerRequestFilter {
 			if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
 				jwt = authorizationHeader.substring(7);
 				email = jwtUtil.extractSubject(jwt);
-				role = jwtUtil.extractClaims(jwt).get("role").toString();
+				role = jwtUtil.extractClaims(jwt).get("role").toString().toUpperCase();
 			}
 			if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 				
-	            CustomUserDetails userDetails = (CustomUserDetails) customUserDetailsService.loadUserByUsername(email);
+				CustomUserDetails userDetails =null;
+				if(role.equals("ADMIN"))
+				{
+					userDetails= (CustomUserDetails) customUserDetailsService.loadAdmin(email);
+				}
+				else if(role.equals("EXECUTIVE"))
+				{
+					userDetails =  (CustomUserDetails) customUserDetailsService.loadExecutive(email);
+				}
+				else if(role.equals("MANAGER"))
+				{
+					userDetails =  (CustomUserDetails) customUserDetailsService.loadManager(email);
+				}
 	            System.out.println(userDetails);
 	            
 	            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
