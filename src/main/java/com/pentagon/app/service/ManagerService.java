@@ -9,7 +9,7 @@ import com.pentagon.app.entity.Manager;
 import com.pentagon.app.entity.Trainer;
 import com.pentagon.app.request.ManagerLoginRequest;
 import com.pentagon.app.request.OtpVerificationRequest;
-import com.pentagon.app.response.ProfileResponceDto;
+import com.pentagon.app.response.ProfileResponse;
 
 public interface ManagerService {
 
@@ -27,7 +27,7 @@ public interface ManagerService {
 	
 	Page<Trainer> viewAllTrainers(String stack, String name, String trainerId, Pageable pageable);
 
-	public ProfileResponceDto getProfile(Manager manager);
+	public ProfileResponse getProfile(Manager manager);
 
 
 

@@ -5,6 +5,7 @@ import com.pentagon.app.entity.Executive;
 import com.pentagon.app.entity.JobDescription;
 import com.pentagon.app.request.ExecutiveLoginRequest;
 import com.pentagon.app.request.OtpVerificationRequest;
+import com.pentagon.app.response.ProfileResponse;
 
 
 public interface ExecutiveService {
@@ -18,6 +19,8 @@ public interface ExecutiveService {
 	public JobDescription updateJobDescription(JobDescription jobDescription);
 
 	String loginWithPassword(ExecutiveLoginRequest executiveLoginRequest);
+
+	public ProfileResponse getProfile(Executive executive);
 
 	
 	

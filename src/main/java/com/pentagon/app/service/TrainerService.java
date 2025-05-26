@@ -6,7 +6,7 @@ import com.pentagon.app.entity.Student;
 import com.pentagon.app.entity.Trainer;
 import com.pentagon.app.request.OtpVerificationRequest;
 import com.pentagon.app.request.TrainerLoginRequest;
-import com.pentagon.app.response.ProfileResponceDto;
+import com.pentagon.app.response.ProfileResponse;
 
 import jakarta.validation.Valid;
 
@@ -24,5 +24,5 @@ public interface TrainerService {
 
 	String loginWithPassword(TrainerLoginRequest trainerLoginRequest);
 
-	public ProfileResponceDto getProfile(Trainer trainer);
+	public ProfileResponse getProfile(Trainer trainer);
 }

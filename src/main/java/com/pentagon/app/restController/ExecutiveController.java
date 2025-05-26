@@ -6,10 +6,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.pentagon.app.entity.Admin;
+import com.pentagon.app.entity.Executive;
 import com.pentagon.app.entity.JobDescription;
 import com.pentagon.app.exception.ExecutiveException;
 import com.pentagon.app.exception.JobDescriptionException;
@@ -18,6 +22,7 @@ import com.pentagon.app.request.AddJobDescriptionRequest;
 import com.pentagon.app.request.UpdateClosuresRequest;
 import com.pentagon.app.request.UpdateJobDescriptionRequest;
 import com.pentagon.app.response.ApiResponse;
+import com.pentagon.app.response.ProfileResponse;
 import com.pentagon.app.service.ActivityLogService;
 import com.pentagon.app.service.CustomUserDetails;
 import com.pentagon.app.service.ExecutiveService;
@@ -129,11 +134,19 @@ public class ExecutiveController {
 
 	    // Update closure data
 	    jobDescription.setNumberOfClosures(request.getNumberOfClosures());
-	    jobDescription.setJdStatus(request.getNumberOfClosures() > 0); // true if any closures
+	    jobDescription.setJdStatus(request.getNumberOfClosures() >= 0); // true if any closures
 
 	    executiveService.updateJobDescription(jobDescription);
 
 	    return ResponseEntity.ok(new ApiResponse<>("success", "Closures updated successfully", null));
+	}
+	
+	@GetMapping("/secure/profile")
+	@PreAuthorize("hasRole('EXECUTIVE')")
+	public ResponseEntity<?> getExecutiveProfile(@AuthenticationPrincipal CustomUserDetails executiveDetails) {
+	    Executive executive= executiveDetails.getExecutive();
+	    ProfileResponse details = executiveService.getProfile(executive);
+	    return ResponseEntity.ok(new ApiResponse<>("success", "Executive Profile", details));
 	}
 	
 	

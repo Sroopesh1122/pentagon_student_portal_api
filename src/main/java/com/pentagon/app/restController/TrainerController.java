@@ -24,7 +24,7 @@ import com.pentagon.app.exception.TrainerException;
 import com.pentagon.app.request.AddStudentRequest;
 import com.pentagon.app.request.TrainerUpdateRequest;
 import com.pentagon.app.response.ApiResponse;
-import com.pentagon.app.response.ProfileResponceDto;
+import com.pentagon.app.response.ProfileResponse;
 import com.pentagon.app.service.ActivityLogService;
 import com.pentagon.app.service.CustomUserDetails;
 import com.pentagon.app.service.TrainerService;
@@ -144,7 +144,7 @@ public class TrainerController {
 			throw new TrainerException("UNAUTHORIZED", HttpStatus.UNAUTHORIZED);
 		}
 	    Trainer trainer = trainerDetails.getTrainer();
-	    ProfileResponceDto details = trainerService.getProfile(trainer);
+	    ProfileResponse details = trainerService.getProfile(trainer);
 	    return ResponseEntity.ok(new ApiResponse<>("success", "Trainer Profile", details));
 	}
 	
