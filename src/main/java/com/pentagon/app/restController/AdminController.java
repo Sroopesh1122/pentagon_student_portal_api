@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.pentagon.app.Dto.ExecutiveDTO;
+import com.pentagon.app.Dto.ManagerDTO;
 import com.pentagon.app.Dto.TrainerDTO;
 import com.pentagon.app.entity.Admin;
 import com.pentagon.app.entity.Executive;
@@ -171,22 +173,88 @@ public class AdminController {
 		Page<Trainer> trainers = managerService.viewAllTrainers(stack, name, trainerId, pageable);
 
 		Page<TrainerDTO> TrainerDTOPage = trainers.map(trainer -> {
-			TrainerDTO dto = new TrainerDTO();
-			dto.setId(trainer.getId());
-			dto.setTrainerId(trainer.getTrainerId());
-			dto.setName(trainer.getName());
-			dto.setEmail(trainer.getEmail());
-			dto.setMobile(trainer.getMobile());
-			dto.setTrainerStack(trainer.getTrainerStack());
-			dto.setQualification(trainer.getQualification());
-			dto.setYearOfExperiences(trainer.getYearOfExperiences());
-			dto.setTechnologies(trainer.getTechnologies());
-			dto.setActive(trainer.isAcitve());
-			dto.setCreatedAt(trainer.getCreatedAt());
-			dto.setUpdatedAt(trainer.getUpdatedAt());
-			return dto;
-		});
-
-		return ResponseEntity.ok(new ApiResponse<>("success", "Trainers fetched successfully", TrainerDTOPage));
+            TrainerDTO dto = new TrainerDTO();
+            dto.setId(trainer.getId());
+            dto.setTrainerId(trainer.getTrainerId());
+            dto.setName(trainer.getName());
+            dto.setEmail(trainer.getEmail());
+            dto.setMobile(trainer.getMobile());
+            dto.setTrainerStack(trainer.getTrainerStack());
+            dto.setQualification(trainer.getQualification());
+            dto.setYearOfExperiences(trainer.getYearOfExperiences());
+            dto.setTechnologies(trainer.getTechnologies());
+            dto.setActive(trainer.isAcitve());
+            dto.setCreatedAt(trainer.getCreatedAt());
+            dto.setUpdatedAt(trainer.getUpdatedAt());
+            return dto;
+        });		
+		
+		return ResponseEntity.ok(
+	            new ApiResponse<>("success", "Trainers fetched successfully", TrainerDTOPage)
+	        );
+	}	
+	
+	@GetMapping("/secure/viewAllManagers")
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<?> viewAllManagers(@AuthenticationPrincipal CustomUserDetails adminDetails,
+			@RequestParam(defaultValue = "1") int page,
+	        @RequestParam(defaultValue = "10") int limit,
+	        @RequestParam(required = false) String email,
+	        @RequestParam(required = false) String name,
+	        @RequestParam(required = false) String managerId,
+	        @RequestParam(required = false) String number){
+		
+		Pageable pageable = PageRequest.of(page - 1, limit, Sort.by("createdAt").descending());
+		
+		Page<Manager> managers = adminservice.viewAllManagers(name,number,email,managerId,pageable);
+		
+		Page<ManagerDTO> managerDTOPage = managers.map(manager -> {
+            ManagerDTO dto=new ManagerDTO();
+            dto.setId(manager.getId());
+            dto.setManagerId(manager.getManagerId());
+            dto.setName(manager.getName());
+            dto.setEmail(manager.getEmail());
+            dto.setMobile(manager.getMobile());
+            dto.setActive(manager.isActive());
+            dto.setCreatedAt(manager.getCreatedAt());
+            dto.setUpdatedAt(manager.getUpdatedAt());
+            return dto;
+        });		
+		
+		return ResponseEntity.ok(
+	            new ApiResponse<>("success", "Managers fetched successfully", managerDTOPage)
+	        );
+	}
+	
+	@GetMapping("/secure/viewAllExecutive")
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<?> viewAllExecutives(@AuthenticationPrincipal CustomUserDetails adminDetails,
+			@RequestParam(defaultValue = "1") int page,
+	        @RequestParam(defaultValue = "10") int limit,
+	        @RequestParam(required = false) String email,
+	        @RequestParam(required = false) String name,
+	        @RequestParam(required = false) String managerId,
+	        @RequestParam(required = false) String number){
+		
+		Pageable pageable = PageRequest.of(page - 1, limit, Sort.by("createdAt").descending());
+		
+		Page<Executive> executives = adminservice.viewAllExecutives(name,number,email,managerId,pageable);
+		
+		Page<ExecutiveDTO> executiveDTOPage = executives.map(executive -> {
+            ExecutiveDTO dto=new ExecutiveDTO();
+            dto.setId(executive.getId());
+            dto.setExecutiveId(executive.getExecutiveId());
+            dto.setName(executive.getName());
+            dto.setEmail(executive.getEmail());
+            dto.setMobile(executive.getMobile());
+            dto.setActive(executive.isActive());
+            dto.setCreatedAt(executive.getCreatedAt());
+            dto.setUpdatedAt(executive.getUpdatedAt());
+            return dto;
+        });		
+		
+		return ResponseEntity.ok(
+	            new ApiResponse<>("success", "Executives fetched successfully", executiveDTOPage)
+	        );
 	}
 }
