@@ -20,7 +20,7 @@ public class DataInitializer {
                 Admin admin = new Admin();
                 admin.setAdminId("ADM001");
                 admin.setName("Default Admin");
-                admin.setEmail("admin@example.com");
+                admin.setEmail("sahana30gowda@gmail.com");
                 admin.setMobile("9876543210");
                 admin.setPassword(passwordEncoder.encode("admin123")); // Raw password
                 admin.setCreatedAt(LocalDateTime.now());

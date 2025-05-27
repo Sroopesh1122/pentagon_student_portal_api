@@ -37,6 +37,9 @@ public class JobDescription {
     private String Description;
     
     @Column(nullable = false)
+    private String role;
+    
+    @Column(nullable = false)
 	private String qualification;
 	
     @Column(nullable = false)

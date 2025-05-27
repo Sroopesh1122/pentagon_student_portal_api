@@ -1,0 +1,30 @@
+package com.pentagon.app.Dto;
+
+import java.time.LocalDateTime;
+
+import lombok.Data;
+
+@Data
+public class JobDescriptionDTO {
+    private Integer id;
+    private String jobDescriptionId;
+    private String companyName;
+    private String website;
+    private String role;
+    private String stack;
+    private String qualification;
+    private String stream;
+    private Double percentage;
+    private Integer minYearOfPassing;
+    private Integer maxYearOfPassing;
+    private String salaryPackage;
+    private Integer numberOfRegistrations;
+    private Integer currentRegistrations;
+    private Double mockRating;
+    private boolean jdStatus;
+    private boolean managerApproval;
+    private Integer numberOfClosures;
+    private boolean isClosed;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+}

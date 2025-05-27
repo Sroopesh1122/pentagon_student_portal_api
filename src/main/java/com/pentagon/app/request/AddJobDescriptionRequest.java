@@ -18,6 +18,8 @@ public class AddJobDescriptionRequest {
 	@Size(max = 50000)
 	@NotBlank
 	private String description;
+	@NotBlank
+	private String role;
 	@NotNull
 	private Double percentage;
 	@NotNull
