@@ -17,17 +17,10 @@ public interface ExecutiveService {
 	
 	public boolean updateExecutive(Executive executive);
 	
-	public boolean addJobDescription(JobDescription jobDescription);
-	
-	public JobDescription updateJobDescription(JobDescription jobDescription);
-
 	String loginWithPassword(ExecutiveLoginRequest executiveLoginRequest);
 
 	public ProfileResponse getProfile(Executive executive);
 
-	public Page<JobDescription> findAllJobDescriptions(String companyName, String stack, String role, Boolean isClosed,
-			Integer minYearOfPassing, Integer maxYearOfPassing, String qualification, String stream, Double percentage,
-			Pageable pageable);
 
 	
 	

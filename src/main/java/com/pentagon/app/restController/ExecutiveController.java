@@ -53,6 +53,8 @@ public class ExecutiveController {
 	
 	@Autowired
 	private ExecutiveService executiveService;
+	@Autowired
+	private JobDescriptionService jobDescriptionService ;
 	
 	@Autowired
 	private ActivityLogService activityLogService;
@@ -102,7 +104,7 @@ public class ExecutiveController {
         jd.setMockRating(newJd.getMockRating());
         jd.setManagerApproval(false);
         jd.setCurrentRegistrations(0);
-        executiveService.addJobDescription(jd);
+        jobDescriptionService  .addJobDescription(jd);
 		activityLogService.log(executiveDetails.getExecutive().getEmail(), 
 				executiveDetails.getExecutive().getExecutiveId(), 
 				"EXECUTIVE", 
@@ -129,7 +131,7 @@ public class ExecutiveController {
 	    //both update and auto-closing
 	    jobDescription.updateCurrentRegistrations(request.getCurrentRegistrations());
 
-	    executiveService.updateJobDescription(jobDescription);
+	    jobDescriptionService.updateJobDescription(jobDescription);
 
 	    String message = jobDescription.isClosed() 
 	            ? "Registrations updated and JD auto-closed" 
@@ -167,7 +169,7 @@ public class ExecutiveController {
 	    jobDescription.setNumberOfClosures(request.getNumberOfClosures());
 	    jobDescription.setJdStatus(request.getNumberOfClosures() >= 0); // true if any closures
 
-	    executiveService.updateJobDescription(jobDescription);
+	    jobDescriptionService.updateJobDescription(jobDescription);
 
 	    return ResponseEntity.ok(new ApiResponse<>("success", "Closures updated successfully", null));
 	}
@@ -209,7 +211,7 @@ public class ExecutiveController {
 		
 		System.out.println(stream);
 		
-		Page<JobDescription> jobDescriptions = executiveService.findAllJobDescriptions( companyName, stack, role, isClosed,
+		Page<JobDescription> jobDescriptions =jobDescriptionService.findAllJobDescriptions( companyName, stack, role, isClosed,
 									minYearOfPassing, maxYearOfPassing,qualification, stream, percentage, pageable );
 		
 		
