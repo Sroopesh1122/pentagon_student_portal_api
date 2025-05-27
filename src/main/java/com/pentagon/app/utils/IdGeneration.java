@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import com.pentagon.app.exception.IdGenerationException;
 import com.pentagon.app.repository.AdminRepository;
 import com.pentagon.app.repository.ExecutiveRepository;
+import com.pentagon.app.repository.JobDescriptionRepository;
 import com.pentagon.app.repository.ManagerRepository;
 import com.pentagon.app.repository.StudentRepository;
 import com.pentagon.app.repository.TrainerRepository;
@@ -19,10 +20,17 @@ public class IdGeneration {
 	@Autowired
 	private StudentRepository studentRepository;
 	
-	@Autowired private AdminRepository adminRepository;
-	@Autowired private ExecutiveRepository executiveRepository;
-	@Autowired private TrainerRepository trainerRepository;
-	@Autowired private ManagerRepository managerRepository;
+	@Autowired 
+	private AdminRepository adminRepository;
+	@Autowired 
+	private ExecutiveRepository executiveRepository;
+	@Autowired 
+	private TrainerRepository trainerRepository;
+	@Autowired 
+	private ManagerRepository managerRepository;
+	
+	@Autowired 
+	private JobDescriptionRepository jdRepository;
 	
 	// PS19MAY25OFJFS0001 paid-offline
 	// PS19MAY25ONJFS0001 paid-online
@@ -66,36 +74,37 @@ public class IdGeneration {
 	    }
 	}
 	
-	public String generateId(String userType) {
+	public String generateId(String type) {
 	    String prefix;
 	    int count = 0;
 
-	    switch (userType.toUpperCase()) {
+	    switch (type.toUpperCase()) {
 	        case "ADMIN" -> {
 	            prefix = "ADM";
-	            count = adminRepository.getAdminCount(); //ADM0001
+	            count = adminRepository.getAdminCount();
 	        }
 	        case "MANAGER" -> {
 	            prefix = "MGR";
-	            count = managerRepository.getManagerCount(); //MGR0001
+	            count = managerRepository.getManagerCount(); 
 	        }
 	        case "EXECUTIVE" -> {
 	            prefix = "EXE";
-	            count = executiveRepository.getExecutiveCount(); //EXE0001
+	            count = executiveRepository.getExecutiveCount(); 
 	        }
 	        case "TRAINER" -> {
 	        	prefix = "TRN";
-	        	count = trainerRepository.getTrainerCount(); //TRN0001
+	        	count = trainerRepository.getTrainerCount(); 
 	        }
-	        default -> throw new IdGenerationException("Invalid user type: " + userType, HttpStatus.BAD_REQUEST);
+	        case "JD" -> {
+	        	prefix = "JD";
+	        	count = (int) jdRepository.count();
+	        }
+	        default -> throw new IdGenerationException("Invalid user type: " + type, HttpStatus.BAD_REQUEST);
 	    }
 
 	    String padded = String.format("%04d", count + 1);
 	    return prefix + padded;
 	}
 	
-	
-	
-
 
 }

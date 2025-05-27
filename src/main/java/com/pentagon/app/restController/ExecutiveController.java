@@ -205,7 +205,7 @@ public class ExecutiveController {
 			throw new ExecutiveException("UNAUTORIZED", HttpStatus.UNAUTHORIZED);
 		}
 		
-		Pageable pageable = PageRequest.of(page - 1, limit, Sort.by("created_at").descending());
+		Pageable pageable = PageRequest.of(page, limit, Sort.by("created_at").descending());
 		
 		System.out.println(stream);
 		
