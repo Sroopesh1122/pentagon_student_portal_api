@@ -34,7 +34,7 @@ public class AddJobDescriptionRequest {
 	private String salaryPackage;
 	@NotNull
 	@Min(value=1)
-	private Integer noOfRegistraions;
+	private Integer noOfRegistrations;
 	@NotNull
 	private Double mockRating;
 	
