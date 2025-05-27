@@ -1,6 +1,10 @@
 package com.pentagon.app.service;
 
+
 import java.util.List;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import com.pentagon.app.entity.Admin;
 import com.pentagon.app.entity.Executive;
@@ -22,22 +26,22 @@ public interface AdminService {
 	//Excutive
 	public Executive addExecutive(Executive executive);
 	
-	public List<Executive> viewAllExecutives();
+	public Page<Executive> viewAllExecutives(String name,String number,String email,String executiveId,Pageable pageable);//
 	
-	public void disableExecutiveByUniqueId(String executiveId);
+	public void disableExecutiveByUniqueId(String executiveId);//
 	
 	//Manager
 	public Manager addManager( Manager manager);
 	
-	public List<Manager> viewAllManagers();
+	public Page<Manager> viewAllManagers(String name,String number,String email,String managerId,Pageable pageable);
 	
-	public void disableManagerByUniqueId(String managerId);
+	public void disableManagerByUniqueId(String managerId);//
 	
 	//Student
-	public List<Student> viewAllStudents();
+	public List<Student> viewAllStudents();//
 	
 	//JD
-	public List<JobDescription> viewAllJobDescriptions();
+	public List<JobDescription> viewAllJobDescriptions();//
 
 	public String loginWithPassword(AdminLoginRequest request);
 

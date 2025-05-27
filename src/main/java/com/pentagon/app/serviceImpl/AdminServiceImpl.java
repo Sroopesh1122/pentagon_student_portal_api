@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -24,15 +26,14 @@ import com.pentagon.app.repository.ExecutiveRepository;
 import com.pentagon.app.repository.JobDescriptionRepository;
 import com.pentagon.app.repository.ManagerRepository;
 import com.pentagon.app.repository.StudentRepository;
-import com.pentagon.app.request.AddManagerRequest;
 import com.pentagon.app.request.AdminLoginRequest;
+
+
 import com.pentagon.app.response.ProfileResponse;
 import com.pentagon.app.service.ActivityLogService;
+
 import com.pentagon.app.service.AdminService;
-import com.pentagon.app.service.CustomUserDetails;
 import com.pentagon.app.service.OtpService;
-import com.pentagon.app.utils.IdGeneration;
-import com.pentagon.app.utils.PasswordGenration;
 
 import jakarta.transaction.Transactional;
 
@@ -99,9 +100,9 @@ public class AdminServiceImpl implements AdminService {
 	}
 
 	@Override
-	public List<Executive> viewAllExecutives() {
+	public Page<Executive> viewAllExecutives(String name,String number,String email,String managerId,Pageable pageable) {
 		try {
-			List<Executive> executives = executiveRepository.findAll();
+			Page<Executive> executives = executiveRepository.findByFilters(name,number,email,managerId,pageable);
 			return executives;
 		} catch (Exception e) {
 			throw new ExecutiveException("Failed to Fetch Executives : " + e.getMessage(),
@@ -121,9 +122,9 @@ public class AdminServiceImpl implements AdminService {
 	}
 
 	@Override
-	public List<Manager> viewAllManagers() {
+	public Page<Manager> viewAllManagers(String name,String number,String email,String managerId,Pageable pageable) {
 		// TODO Auto-generated method stub
-		List<Manager> managers = managerRepository.findAll();
+		Page<Manager> managers = managerRepository.findByFilters(name,number,email,managerId,pageable);
 		if (managers.isEmpty()) {
 			throw new ManagerException("No Managers Found", HttpStatus.NOT_FOUND);
 		}

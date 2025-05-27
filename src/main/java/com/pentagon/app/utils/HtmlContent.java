@@ -1,10 +1,14 @@
 package com.pentagon.app.utils;
 
+
+import org.springframework.context.annotation.Bean;
+
 import org.springframework.stereotype.Component;
 
 @Component
 public class HtmlContent {
 
+	
 	public String getHtmlContent(String name, String email,String password)
 	{
 		String htmlContent = "<!DOCTYPE html>" + "<html>" + "<body style='font-family: Arial, sans-serif;'>"
