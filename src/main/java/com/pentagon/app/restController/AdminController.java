@@ -33,7 +33,7 @@ import com.pentagon.app.exception.OtpException;
 import com.pentagon.app.request.AddExecutiveRequest;
 import com.pentagon.app.request.AddManagerRequest;
 import com.pentagon.app.response.ApiResponse;
-import com.pentagon.app.response.ProfileResponceDto;
+import com.pentagon.app.response.ProfileResponse;
 import com.pentagon.app.service.ActivityLogService;
 import com.pentagon.app.service.AdminService;
 import com.pentagon.app.service.CustomUserDetails;
@@ -172,7 +172,7 @@ public class AdminController {
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<?> getAdminProfile(@AuthenticationPrincipal CustomUserDetails adminDetails) {
 	    Admin admin= adminDetails.getAdmin();
-	    ProfileResponceDto details = adminservice.getProfile(admin);
+	    ProfileResponse details = adminservice.getProfile(admin);
 	    return ResponseEntity.ok(new ApiResponse<>("success", "Admin Profile", details));
 	}
 

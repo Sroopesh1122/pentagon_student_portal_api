@@ -27,7 +27,11 @@ import com.pentagon.app.repository.JobDescriptionRepository;
 import com.pentagon.app.repository.ManagerRepository;
 import com.pentagon.app.repository.StudentRepository;
 import com.pentagon.app.request.AdminLoginRequest;
-import com.pentagon.app.response.ProfileResponceDto;
+
+
+import com.pentagon.app.response.ProfileResponse;
+import com.pentagon.app.service.ActivityLogService;
+
 import com.pentagon.app.service.AdminService;
 import com.pentagon.app.service.OtpService;
 
@@ -179,8 +183,8 @@ public class AdminServiceImpl implements AdminService {
 	}
 
 	@Override
-	public ProfileResponceDto getProfile(Admin admin) {
-		ProfileResponceDto result = new ProfileResponceDto();
+	public ProfileResponse getProfile(Admin admin) {
+		ProfileResponse result = new ProfileResponse();
 		result.setUniqueId(admin.getAdminId());
 		result.setName(admin.getName());
 		result.setEmail(admin.getEmail());

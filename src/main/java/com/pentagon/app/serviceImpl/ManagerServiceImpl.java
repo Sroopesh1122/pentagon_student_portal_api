@@ -23,9 +23,11 @@ import com.pentagon.app.repository.ManagerRepository;
 import com.pentagon.app.repository.TrainerRepository;
 import com.pentagon.app.request.ManagerLoginRequest;
 import com.pentagon.app.request.OtpVerificationRequest;
-import com.pentagon.app.response.ProfileResponceDto;
+import com.pentagon.app.response.ProfileResponse;
 import com.pentagon.app.service.ManagerService;
 import com.pentagon.app.service.OtpService;
+
+import jakarta.transaction.Transactional;
 
 @Service
 public class ManagerServiceImpl implements ManagerService {
@@ -67,7 +69,9 @@ public class ManagerServiceImpl implements ManagerService {
 	    }
 	}
 
+	
 	@Override
+	@Transactional
 	public Executive addExecutive(Executive executive) {
 		// TODO Auto-generated method stub
 		try {
@@ -98,6 +102,7 @@ public class ManagerServiceImpl implements ManagerService {
 	}
 
 	@Override
+	@Transactional
 	public Trainer addTrainer(Trainer trainer) {
 		// TODO Auto-generated method stub
 		try {
@@ -136,8 +141,8 @@ public class ManagerServiceImpl implements ManagerService {
 
 
 	@Override
-	public ProfileResponceDto getProfile(Manager manager) {
-		ProfileResponceDto result= new ProfileResponceDto();
+	public ProfileResponse getProfile(Manager manager) {
+		ProfileResponse result= new ProfileResponse();
 		result.setUniqueId(manager.getManagerId());
 		result.setName(manager.getName());
 		result.setEmail(manager.getEmail());

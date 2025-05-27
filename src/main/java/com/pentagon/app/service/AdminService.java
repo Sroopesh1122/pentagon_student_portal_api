@@ -15,7 +15,7 @@ import com.pentagon.app.request.AddManagerRequest;
 import com.pentagon.app.request.AdminLoginRequest;
 import com.pentagon.app.request.OtpVerificationRequest;
 import com.pentagon.app.request.TrainerLoginRequest;
-import com.pentagon.app.response.ProfileResponceDto;
+import com.pentagon.app.response.ProfileResponse;
 
 import jakarta.validation.Valid;
 
@@ -45,7 +45,7 @@ public interface AdminService {
 
 	public String loginWithPassword(AdminLoginRequest request);
 
-	public ProfileResponceDto getProfile(Admin admin);
+	public ProfileResponse getProfile(Admin admin);
 	
 	public boolean getManagerByEmail(String email);
 	

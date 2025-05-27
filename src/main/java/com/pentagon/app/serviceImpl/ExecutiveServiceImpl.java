@@ -15,6 +15,7 @@ import com.pentagon.app.repository.ExecutiveRepository;
 import com.pentagon.app.repository.JobDescriptionRepository;
 import com.pentagon.app.request.ExecutiveLoginRequest;
 import com.pentagon.app.request.OtpVerificationRequest;
+import com.pentagon.app.response.ProfileResponse;
 import com.pentagon.app.service.ExecutiveService;
 import com.pentagon.app.service.OtpService;
 
@@ -88,6 +89,17 @@ public class ExecutiveServiceImpl implements ExecutiveService {
 		otpService.sendOtpToEmail(executive.getEmail(), otp);
 		
 		return "OTP sent to registered email";
+	}
+
+	@Override
+	public ProfileResponse getProfile(Executive executive) {
+		// TODO Auto-generated method stub
+		ProfileResponse result = new ProfileResponse();
+		result.setUniqueId(executive.getExecutiveId());
+		result.setName(executive.getName());
+		result.setEmail(executive.getEmail());
+		result.setMobile(executive.getMobile());
+		return result;
 	}
 
 	

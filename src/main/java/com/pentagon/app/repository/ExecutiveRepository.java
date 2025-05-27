@@ -30,4 +30,6 @@ public interface ExecutiveRepository extends JpaRepository<Executive, Integer>{
 		                          @Param("executiveId") String executiveId,
 		                          Pageable pageable);
 
+	boolean existsByEmail(String email);
+
 }

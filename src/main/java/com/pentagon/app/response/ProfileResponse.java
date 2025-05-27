@@ -4,7 +4,7 @@ import jakarta.persistence.Column;
 import lombok.Data;
 
 @Data
-public class ProfileResponceDto {
+public class ProfileResponse {
 	
 	private String uniqueId;
 	private String name;
