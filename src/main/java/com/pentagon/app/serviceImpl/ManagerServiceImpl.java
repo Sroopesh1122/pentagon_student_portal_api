@@ -14,7 +14,6 @@ import com.pentagon.app.entity.JobDescription;
 import com.pentagon.app.entity.Manager;
 import com.pentagon.app.entity.Trainer;
 import com.pentagon.app.exception.ExecutiveException;
-import com.pentagon.app.exception.JobDescriptionException;
 import com.pentagon.app.exception.ManagerException;
 import com.pentagon.app.exception.TrainerException;
 import com.pentagon.app.repository.ExecutiveRepository;
@@ -22,7 +21,6 @@ import com.pentagon.app.repository.JobDescriptionRepository;
 import com.pentagon.app.repository.ManagerRepository;
 import com.pentagon.app.repository.TrainerRepository;
 import com.pentagon.app.request.ManagerLoginRequest;
-import com.pentagon.app.request.OtpVerificationRequest;
 import com.pentagon.app.response.ProfileResponse;
 import com.pentagon.app.service.ManagerService;
 import com.pentagon.app.service.OtpService;
@@ -86,22 +84,6 @@ public class ManagerServiceImpl implements ManagerService {
 
 
 	@Override
-	public JobDescription acceptJobDescription(String jobDescriptionId) {
-		// TODO Auto-generated method stub
-		JobDescription jobDescription = jobDescriptionRepository.findByJobDescriptionId(jobDescriptionId)
-				.orElseThrow(() -> new JobDescriptionException("Job Description not found with id: " + jobDescriptionId, HttpStatus.NOT_FOUND));
-		
-		if (jobDescription.isManagerApproval()) {
-            throw new JobDescriptionException("Job Description is already approved", HttpStatus.CONFLICT);
-        }
-		
-		jobDescription.setManagerApproval(true);
-		jobDescriptionRepository.save(jobDescription);
-		
-		return jobDescription;
-	}
-
-	@Override
 	@Transactional
 	public Trainer addTrainer(Trainer trainer) {
 		// TODO Auto-generated method stub
@@ -148,6 +130,16 @@ public class ManagerServiceImpl implements ManagerService {
 		result.setEmail(manager.getEmail());
 		result.setMobile(manager.getMobile());
 		return result;
+	}
+	
+	@Override
+	public JobDescription updateJobDescription(JobDescription updatedjobDescription) {
+		return jobDescriptionRepository.save(updatedjobDescription);
+	}
+	
+	@Override
+	public Page<Manager> findAll(String q , Pageable pageable) {
+		return managerRepository.findByFilters(q, pageable);
 	}
 
 

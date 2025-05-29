@@ -26,14 +26,12 @@ public interface AdminService {
 	//Excutive
 	public Executive addExecutive(Executive executive);
 	
-	public Page<Executive> viewAllExecutives(String name,String number,String email,String executiveId,Pageable pageable);//
 	
 	public void disableExecutiveByUniqueId(String executiveId);//
 	
 	//Manager
 	public Manager addManager( Manager manager);
 	
-	public Page<Manager> viewAllManagers(String name,String number,String email,String managerId,Pageable pageable);
 	
 	public void disableManagerByUniqueId(String managerId);//
 	

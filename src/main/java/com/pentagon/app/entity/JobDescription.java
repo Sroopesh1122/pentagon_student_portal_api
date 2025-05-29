@@ -72,18 +72,15 @@ public class JobDescription {
 	@Column(name = "mock_rating")
 	private Double mockRating;
 	
-	//to show closures
 	@Column(name = "JD_status", nullable = false)
-	private boolean jdStatus = false;
+	private String jdStatus;
 	
-	//change to accept/reject/hold - enum
 	@Column(name = "manager_approval", nullable = false)
 	private boolean managerApproval;
 	
 	@Column(name = "number_of_closures")
 	private Integer numberOfClosures=0;
 	
-	//to close the complete jd after total number of resgitrations reached
 	@Column(name="jd_closed")
 	private boolean isClosed = false;
 	
@@ -98,6 +95,8 @@ public class JobDescription {
 	@JsonIgnore
 	@ManyToOne
 	private Executive executive;
+	
+	private String postedBy;
 	
 	private String location;
 	
@@ -119,11 +118,7 @@ public class JobDescription {
         }
     }
 
-    // close JD once the resgistration count limit is closed
     public void closeJobDescription() {
         this.isClosed = true;
-    }
-    
-    
-    
+    }    
 }

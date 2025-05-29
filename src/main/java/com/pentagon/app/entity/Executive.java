@@ -57,4 +57,6 @@ public class Executive {
 	@OneToMany(mappedBy = "executive", cascade = CascadeType.ALL)
 	@JsonIgnore
     private List<JobDescription> jobDescription;
+	
+	
 }

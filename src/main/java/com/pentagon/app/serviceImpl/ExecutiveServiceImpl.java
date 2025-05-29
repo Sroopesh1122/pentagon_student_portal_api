@@ -61,9 +61,6 @@ public class ExecutiveServiceImpl implements ExecutiveService {
 	}
     
 	
-    
-	
-	
 	@Override
 	public String loginWithPassword(ExecutiveLoginRequest executiveLoginRequest) {
 		Executive executive = executiveRepository.findByEmail(executiveLoginRequest.getEmail())
@@ -86,6 +83,12 @@ public class ExecutiveServiceImpl implements ExecutiveService {
 		result.setEmail(executive.getEmail());
 		result.setMobile(executive.getMobile());
 		return result;
+	}
+	
+	
+	@Override
+	public Page<Executive> getAllExecutives(String q, Pageable pageable) {
+		return executiveRepository.findExecutivesByFilters(q, pageable);
 	}
 
 	

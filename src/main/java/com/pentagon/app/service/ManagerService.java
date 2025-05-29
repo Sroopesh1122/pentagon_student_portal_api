@@ -21,13 +21,15 @@ public interface ManagerService {
 	
 	public Trainer addTrainer(Trainer trainer);
 	
-	public JobDescription acceptJobDescription(String jobDescriptionId);
+	public JobDescription updateJobDescription(JobDescription jobDescription);
 
 	String loginWithPassword(ManagerLoginRequest managerLoginRequest);
 	
 	Page<Trainer> viewAllTrainers(String stack, String name, String trainerId, Pageable pageable);
 
 	public ProfileResponse getProfile(Manager manager);
+	
+	public Page<Manager> findAll(String q ,Pageable pageable);
 
 
 

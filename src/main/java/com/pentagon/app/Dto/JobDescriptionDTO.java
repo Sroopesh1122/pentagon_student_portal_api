@@ -2,6 +2,8 @@ package com.pentagon.app.Dto;
 
 import java.time.LocalDateTime;
 
+import com.pentagon.app.entity.Executive;
+
 import lombok.Data;
 
 @Data
@@ -21,10 +23,14 @@ public class JobDescriptionDTO {
     private Integer numberOfRegistrations;
     private Integer currentRegistrations;
     private Double mockRating;
-    private boolean jdStatus;
+    private String jdStatus;
     private boolean managerApproval;
     private Integer numberOfClosures;
     private boolean isClosed;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private String location;
+    private Executive executive;
+    private String postedBy;
+    private String description;
 }

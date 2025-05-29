@@ -20,15 +20,12 @@ public interface ExecutiveRepository extends JpaRepository<Executive, Integer>{
 	int getExecutiveCount();
 	
 	@Query("SELECT e FROM Executive e WHERE "
-		     + "(:email IS NULL OR LOWER(e.email) LIKE LOWER(CONCAT('%', :email, '%'))) AND "
-		     + "(:name IS NULL OR LOWER(e.name) LIKE LOWER(CONCAT('%', :name, '%'))) AND "
-		     + "(:executiveId IS NULL OR e.executiveId = :executiveId) AND "
-		     + "(:mobile IS NULL OR e.mobile = :mobile)")
-	Page<Executive> findByFilters(@Param("name") String name,
-		                          @Param("mobile") String mobile,
-		                          @Param("email") String email,
-		                          @Param("executiveId") String executiveId,
-		                          Pageable pageable);
+		     + "(:q IS NULL OR LOWER(e.email) LIKE LOWER(CONCAT('%', :q, '%')) "
+		     + "OR LOWER(e.name) LIKE LOWER(CONCAT('%', :q, '%')) "
+		     + "OR CAST(e.executiveId AS string) LIKE CONCAT('%', :q, '%') "
+		     + "OR e.mobile LIKE CONCAT('%', :q, '%'))")
+		Page<Executive> findExecutivesByFilters(@Param("q") String q, Pageable pageable);
+
 
 	boolean existsByEmail(String email);
 

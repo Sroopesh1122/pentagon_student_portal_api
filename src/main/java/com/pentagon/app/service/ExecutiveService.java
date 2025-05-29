@@ -20,6 +20,9 @@ public interface ExecutiveService {
 	String loginWithPassword(ExecutiveLoginRequest executiveLoginRequest);
 
 	public ProfileResponse getProfile(Executive executive);
+	
+	
+	public Page<Executive> getAllExecutives(String q , Pageable pageable);
 
 
 	

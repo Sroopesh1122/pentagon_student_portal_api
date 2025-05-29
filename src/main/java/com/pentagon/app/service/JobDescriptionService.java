@@ -9,10 +9,12 @@ import com.pentagon.app.entity.JobDescription;
 
 public interface JobDescriptionService {
 
-	// Optional<JobDescription> findByJobDescriptionId(String jobDescriptionId);
+	public JobDescription findByJobDescriptionId(String jobDescriptionId);
 
 	Page<JobDescription> findAllJobDescriptions(String companyName, String stack, String role, Boolean isClosed,
 			Integer minYearOfPassing, Integer maxYearOfPassing, String qualification, String stream, Double percentage,
+			String executiveId,
+			String status,
 			Pageable pageable);
 
 	public boolean addJobDescription(JobDescription jobDescription);

@@ -100,17 +100,6 @@ public class AdminServiceImpl implements AdminService {
 	}
 
 	@Override
-	public Page<Executive> viewAllExecutives(String name,String number,String email,String managerId,Pageable pageable) {
-		try {
-			Page<Executive> executives = executiveRepository.findByFilters(name,number,email,managerId,pageable);
-			return executives;
-		} catch (Exception e) {
-			throw new ExecutiveException("Failed to Fetch Executives : " + e.getMessage(),
-					HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-	}
-
-	@Override
 	public void disableExecutiveByUniqueId(String executiveId) {
 		// TODO Auto-generated method stub
 		Executive executive = executiveRepository.findByExecutiveId(executiveId).orElseThrow(
@@ -119,16 +108,6 @@ public class AdminServiceImpl implements AdminService {
 		executive.setActive(!executive.isActive());
 		executive.setUpdatedAt(LocalDateTime.now());
 		executiveRepository.save(executive);
-	}
-
-	@Override
-	public Page<Manager> viewAllManagers(String name,String number,String email,String managerId,Pageable pageable) {
-		// TODO Auto-generated method stub
-		Page<Manager> managers = managerRepository.findByFilters(name,number,email,managerId,pageable);
-		if (managers.isEmpty()) {
-			throw new ManagerException("No Managers Found", HttpStatus.NOT_FOUND);
-		}
-		return managers;
 	}
 
 	@Override

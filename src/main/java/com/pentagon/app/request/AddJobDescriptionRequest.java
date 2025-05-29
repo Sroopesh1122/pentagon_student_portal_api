@@ -39,5 +39,7 @@ public class AddJobDescriptionRequest {
 	private Integer noOfRegistrations;
 	@NotNull
 	private Double mockRating;
+	@NotNull
+	private String location;
 	
 }
