@@ -22,5 +22,7 @@ public interface ManagerRepository extends JpaRepository<Manager, Integer> {
 	
 	@Query("SELECT m FROM Manager m WHERE ( :q IS NULL OR :q = '' OR m.name LIKE CONCAT(:q,'%') OR  m.email LIKE CONCAT(:q,'%')  OR  m.managerId LIKE CONCAT(:q,'%'))")
 	Page<Manager> findAll(@Param("q") String q, Pageable pageable);
+	
+	
 
 }

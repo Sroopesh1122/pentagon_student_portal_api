@@ -46,6 +46,7 @@ import com.pentagon.app.service.CustomUserDetails;
 import com.pentagon.app.service.ExecutiveService;
 import com.pentagon.app.service.JobDescriptionService;
 import com.pentagon.app.service.ManagerService;
+import com.pentagon.app.service.TrainerService;
 import com.pentagon.app.serviceImpl.MailService;
 import com.pentagon.app.utils.HtmlContent;
 import com.pentagon.app.utils.IdGeneration;
@@ -73,8 +74,6 @@ public class ManagerController {
 	@Autowired
 	private ActivityLogService activityLogService;
 
-	@Autowired
-	private ExecutiveRepository executiveRepository;
 
 	@Autowired
 	private ExecutiveService executiveService;
@@ -89,13 +88,11 @@ public class ManagerController {
 	private MailService mailService;
 
 	@Autowired
-	private TrainerRepository trainerRepository;
-
-	@Autowired
 	private JobDescriptionService jobDescriptionService;
-
+	
 	@Autowired
-	private JobDescriptionRepository jobDescriptionRepository;
+	private TrainerService trainerService;
+
 
 	@PostMapping("/secure/updateManager")
 	@PreAuthorize("hasRole('MANAGER')")
@@ -127,16 +124,17 @@ public class ManagerController {
 		return ResponseEntity.ok(new ApiResponse<>("success", "Manager Updated Successfully", null));
 	}
 
+	//not working
 	@PostMapping("secure/addExecutive")
 	@PreAuthorize("hasRole('MANAGER')")
 	public ResponseEntity<?> addExecutive(@AuthenticationPrincipal CustomUserDetails managerDetails,
 			@Valid @RequestBody AddExecutiveRequest request, BindingResult bindingResult) {
 
 		if (bindingResult.hasErrors()) {
-			throw new ManagerException("Invalid Input Data", HttpStatus.BAD_REQUEST);
+			throw new ExecutiveException("Invalid Input Data", HttpStatus.BAD_REQUEST);
 		}
 
-		if (executiveRepository.existsByEmail(request.getEmail())) {
+		if (executiveService.getExecutiveByEmail(request.getEmail())) {
 			throw new ExecutiveException("Email already in use by another executive", HttpStatus.CONFLICT);
 		}
 
@@ -150,7 +148,7 @@ public class ManagerController {
 		String password = passwordGenration.generateRandomPassword();
 		executive.setPassword(passwordEncoder.encode(password));
 
-		Executive newExecutive = managerService.addExecutive(executive);
+		Executive newExecutive = executiveService.addExecutive(executive);
 
 		String htmlContent = htmlContentService.getHtmlContent(executive.getName(), executive.getEmail(), password);
 
@@ -177,7 +175,7 @@ public class ManagerController {
 			throw new ManagerException("Invalid Input Data", HttpStatus.BAD_REQUEST);
 		}
 
-		if (trainerRepository.existsByEmail(request.getEmail())) {
+		if (trainerService.checkExistsByEmail(request.getEmail())) {
 			throw new ExecutiveException("Email already in use by another trainer", HttpStatus.CONFLICT);
 		}
 
@@ -195,7 +193,7 @@ public class ManagerController {
 		String password = passwordGenration.generateRandomPassword();
 		trainer.setPassword(passwordEncoder.encode(password));
 
-		Trainer newTrainer = managerService.addTrainer(trainer);
+		Trainer newTrainer = trainerService.addTrainer(trainer);
 
 		String htmlContent = htmlContentService.getHtmlContent(trainer.getName(), trainer.getEmail(), password);
 
@@ -225,7 +223,7 @@ public class ManagerController {
 
 		Pageable pageable = PageRequest.of(page - 1, limit, Sort.by("createdAt").descending());
 
-		Page<Trainer> trainers = managerService.viewAllTrainers(stack, name, trainerId, pageable);
+		Page<Trainer> trainers = trainerService.viewAllTrainers(stack, name, trainerId, pageable);
 
 		Page<TrainerDTO> TrainerDTOResponse = trainers.map(trainer -> {
 			TrainerDTO Trainerdto = new TrainerDTO();
@@ -247,15 +245,18 @@ public class ManagerController {
 		return ResponseEntity.ok(new ApiResponse<>("success", "Trainers fetched successfully", TrainerDTOResponse));
 	}
 
+	
 	@PostMapping("/secure/jd/status")
 	@PreAuthorize("hasRole('MANAGER')")
 	public ResponseEntity<?> updateJdStatus(@AuthenticationPrincipal CustomUserDetails managerDetails,
 			@RequestBody MangerJdStatusUpdateRequest request) {
 
-		JobDescription findJobDescription = jobDescriptionService.findByJobDescriptionId(request.getJdId());
-		if (findJobDescription == null) {
-			throw new ManagerException("JD not found", HttpStatus.NOT_FOUND);
-		}
+		JobDescription findJobDescription = jobDescriptionService.findByJobDescriptionId(request.getJdId())
+				.orElseThrow(() -> new JobDescriptionException("Job Description not found", HttpStatus.NOT_FOUND));
+		
+//		if (findJobDescription == null) {
+//			throw new ManagerException("JD not found", HttpStatus.NOT_FOUND);
+//		}
 		findJobDescription.setJdStatus(request.getStatus());
 		findJobDescription.setManagerApproval(request.getStatus().toLowerCase().equals("approved") ? true : false);
 		String jdActionReason;
@@ -287,7 +288,7 @@ public class ManagerController {
 	@PreAuthorize("hasRole('MANAGER')")
 	public ResponseEntity<?> getJobDescriptionById(@PathVariable String jobDescriptionId) {
 
-		Optional<JobDescription> jobDescriptionOtp = jobDescriptionRepository.findByJobDescriptionId(jobDescriptionId);
+		Optional<JobDescription> jobDescriptionOtp = jobDescriptionService.findByJobDescriptionId(jobDescriptionId);
 
 		if (jobDescriptionOtp.isEmpty()) {
 			throw new JobDescriptionException("Job Description Not Found", HttpStatus.NOT_FOUND);
@@ -324,6 +325,7 @@ public class ManagerController {
 
 	}
 
+//	not working
 	@GetMapping("/secure/jd")
 	@PreAuthorize("hasRole('MANAGER')")
 	public ResponseEntity<?> getAllJds(@AuthenticationPrincipal CustomUserDetails managerDetails,

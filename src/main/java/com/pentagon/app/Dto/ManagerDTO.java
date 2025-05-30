@@ -10,6 +10,7 @@ public class ManagerDTO {
 	private String name;
 	private String email;
 	private String mobile;
+	private String password;
 	private boolean active;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

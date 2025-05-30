@@ -1,28 +1,25 @@
 package com.pentagon.app.service;
 
-import java.util.List;
 
-import com.pentagon.app.entity.Student;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import com.pentagon.app.entity.Trainer;
-import com.pentagon.app.request.OtpVerificationRequest;
 import com.pentagon.app.request.TrainerLoginRequest;
 import com.pentagon.app.response.ProfileResponse;
 
-import jakarta.validation.Valid;
 
 public interface TrainerService {
+	
+	public Trainer addTrainer(Trainer trainer);
 
 	public Trainer updateTrainer(Trainer trainer);
 	
-	public Student addStudent(Student student);
-	
-	public List<Student> viewStudentsBasedOnStack(String stack);
-	
-	public boolean addMockRating(String studentId, Double mockRating);
-	
-	public void disableStudentByUniqueId(String studentId);
+	Page<Trainer> viewAllTrainers(String stack, String name, String trainerId, Pageable pageable);
 
 	String loginWithPassword(TrainerLoginRequest trainerLoginRequest);
 
 	public ProfileResponse getProfile(Trainer trainer);
+
+	boolean checkExistsByEmail(String email);
 }

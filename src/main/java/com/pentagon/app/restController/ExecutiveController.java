@@ -56,12 +56,11 @@ public class ExecutiveController {
 	@Autowired
 	private ActivityLogService activityLogService;
 
-	@Autowired
-	private JobDescriptionRepository jobDescriptionRepository;
 
 	@Autowired
 	private IdGeneration idGenerator;
 
+	//not working
 	@PostMapping("/secure/addJobDescription")
 	@PreAuthorize("hasRole('EXECUTIVE')")
 	public ResponseEntity<?> addJobDescription(@AuthenticationPrincipal CustomUserDetails executiveDetails,
@@ -115,10 +114,10 @@ public class ExecutiveController {
 			throw new ExecutiveException("UNAUTORIZED", HttpStatus.UNAUTHORIZED);
 		}
 
-		JobDescription jobDescription = jobDescriptionRepository.findByJobDescriptionId(request.getJobDescriptionId())
+		JobDescription jobDescription = jobDescriptionService.findByJobDescriptionId(request.getJobDescriptionId())
 				.orElseThrow(() -> new JobDescriptionException("Job Description not found", HttpStatus.NOT_FOUND));
 
-		// both update and auto-closing
+		// both update and auto-closing - not working
 		jobDescription.updateCurrentRegistrations(request.getCurrentRegistrations());
 
 		jobDescriptionService.updateJobDescription(jobDescription);
@@ -142,7 +141,7 @@ public class ExecutiveController {
 			throw new ExecutiveException("UNAUTORIZED", HttpStatus.UNAUTHORIZED);
 		}
 
-		JobDescription jobDescription = jobDescriptionRepository.findByJobDescriptionId(request.getJobDescriptionId())
+		JobDescription jobDescription = jobDescriptionService.findByJobDescriptionId(request.getJobDescriptionId())
 				.orElseThrow(() -> new JobDescriptionException("Job Description not found", HttpStatus.NOT_FOUND));
 
 		if (!jobDescription.isClosed()) {
@@ -167,7 +166,7 @@ public class ExecutiveController {
 	@PreAuthorize("hasRole('EXECUTIVE')")
 	public ResponseEntity<?> getJobDescriptionById(@PathVariable String jobDescriptionId) {
 
-		Optional<JobDescription> jobDescriptionOtp = jobDescriptionRepository.findByJobDescriptionId(jobDescriptionId);
+		Optional<JobDescription> jobDescriptionOtp = jobDescriptionService.findByJobDescriptionId(jobDescriptionId);
 
 		if (jobDescriptionOtp.isEmpty()) {
 			throw new JobDescriptionException("Job Description Not Found", HttpStatus.NOT_FOUND);
