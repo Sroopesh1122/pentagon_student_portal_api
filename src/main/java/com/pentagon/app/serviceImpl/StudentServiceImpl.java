@@ -58,16 +58,16 @@ public class StudentServiceImpl implements StudentService {
 	    }
 	}
 
-	@Override
-	public List<JobDescription> viewJobDescriptionBasedOnStack(String stack) {
-		// TODO Auto-generated method stub
-		try {
-		  return jobDescriptionRepository.findByStack(stack);
-	    }
-		catch(Exception e) {
-			 throw new JobDescriptionException("Failed to Fetch Job Descriptions : " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-	}
+//	@Override
+//	public List<JobDescription> viewJobDescriptionBasedOnStack(String stack) {
+//		// TODO Auto-generated method stub
+//		try {
+//		  return jobDescriptionRepository.findByStack(stack);
+//	    }
+//		catch(Exception e) {
+//			 throw new JobDescriptionException("Failed to Fetch Job Descriptions : " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+//		}
+//	}
 
 	@Override
 	public String loginWithPassword(StudentLoginRequest studentLoginRequest) {

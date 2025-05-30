@@ -2,6 +2,7 @@ package com.pentagon.app.serviceImpl;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -28,7 +29,8 @@ public class JobDescriptionServiceImp implements JobDescriptionService {
 	@Autowired
 	private JobDescriptionRepository jobDescriptionRepository;
 	
-	
+	@Autowired
+	private JobDescriptionService jobDescriptionService;
 	
 	@Override
 	public JobDescription findByJobDescriptionId(String jobDescriptionId) {
@@ -93,4 +95,19 @@ public class JobDescriptionServiceImp implements JobDescriptionService {
 	        throw new JobDescriptionException("Failed to fetch Job Descriptions", HttpStatus.INTERNAL_SERVER_ERROR);
 	    }
 	}
+
+
+	@Override
+     public List<JobDescription> viewJobDescriptionBasedOnStack(String stack) {
+		// TODO Auto-generated method stub
+		try {
+		  return jobDescriptionService.viewJobDescriptionBasedOnStack(stack);
+	    }
+		catch(Exception e) {
+			 throw new JobDescriptionException("Failed to Fetch Job Descriptions : " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+
+	
 }

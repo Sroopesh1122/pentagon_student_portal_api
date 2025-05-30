@@ -1,5 +1,6 @@
 package com.pentagon.app.service;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -20,5 +21,8 @@ public interface JobDescriptionService {
 	public boolean addJobDescription(JobDescription jobDescription);
 
 	public JobDescription updateJobDescription(JobDescription jobDescription);
+	public List<JobDescription> findByStack(String stack);
+
+	
 
 }

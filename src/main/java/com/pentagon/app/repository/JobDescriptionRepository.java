@@ -15,7 +15,7 @@ public interface JobDescriptionRepository extends JpaRepository<JobDescription, 
 
 	Optional<JobDescription> findByJobDescriptionId(String jobDescriptionId);
 
-	List<JobDescription> findByStack(String stack);
+	public List<JobDescription> findByStack(String stack);
 
 	@Query(value = """
 			SELECT * FROM job_description jd
