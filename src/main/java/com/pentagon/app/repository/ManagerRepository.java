@@ -20,11 +20,7 @@ public interface ManagerRepository extends JpaRepository<Manager, Integer> {
 	@Query("SELECT COUNT(M) FROM Manager M")
 	int getManagerCount();
 	
-	@Query("SELECT m FROM Manager m WHERE "
-		     + "(:q IS NULL OR LOWER(m.email) LIKE LOWER(CONCAT('%', :q, '%')) "
-		     + "OR LOWER(m.name) LIKE LOWER(CONCAT('%', :q, '%')) "
-		     + "OR CAST(m.managerId AS string) LIKE CONCAT('%', :q, '%') "
-		     + "OR m.mobile LIKE CONCAT('%', :q, '%'))")
-	Page<Manager> findByFilters(@Param("q") String q, Pageable pageable);
+	@Query("SELECT m FROM Manager m WHERE ( :q IS NULL OR :q = '' OR m.name LIKE CONCAT(:q,'%') OR  m.email LIKE CONCAT(:q,'%')  OR  m.managerId LIKE CONCAT(:q,'%'))")
+	Page<Manager> findAll(@Param("q") String q, Pageable pageable);
 
 }

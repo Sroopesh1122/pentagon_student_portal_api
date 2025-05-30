@@ -10,5 +10,7 @@ public class MangerJdStatusUpdateRequest
 	private String jdId;
 	@NotNull
 	private String status;
+	
+	private String actionReason;
 
 }

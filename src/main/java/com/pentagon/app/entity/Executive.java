@@ -50,6 +50,9 @@ public class Executive {
 	@CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
+	
+	
+	private String managerId;
 	 
 	@UpdateTimestamp
     @Column(name = "updated_at")

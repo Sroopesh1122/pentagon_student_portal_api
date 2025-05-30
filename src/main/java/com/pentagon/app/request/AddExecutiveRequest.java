@@ -18,4 +18,7 @@ public class AddExecutiveRequest {
 	@NotBlank
 	private String mobile;
 	
+	@NotBlank
+	private String managerId;
+	
 }

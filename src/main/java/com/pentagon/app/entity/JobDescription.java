@@ -100,6 +100,10 @@ public class JobDescription {
 	
 	private String location;
 	
+	private String jdActionReason;
+	
+	private String managerId;
+	
 	//update current registration count
 	public void updateCurrentRegistrations(int newCount) {
         if (newCount < 0) {
