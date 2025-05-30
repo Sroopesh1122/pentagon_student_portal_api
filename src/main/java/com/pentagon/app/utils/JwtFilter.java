@@ -1,6 +1,9 @@
 package com.pentagon.app.utils;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -8,6 +11,8 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pentagon.app.exception.SessionExpiredException;
 import com.pentagon.app.service.CustomUserDetails;
 import com.pentagon.app.service.CustomUserDetailsService;
 
@@ -40,8 +45,9 @@ public class JwtFilter extends OncePerRequestFilter {
 			//Extracting subject, role and token from authorizationHeader
 			if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
 				jwt = authorizationHeader.substring(7);
-				email = jwtUtil.extractSubject(jwt);
-				role = jwtUtil.extractClaims(jwt).get("role").toString().toUpperCase();
+					email = jwtUtil.extractSubject(jwt);
+					role = jwtUtil.extractClaims(jwt).get("role").toString().toUpperCase();
+				
 			}
 			if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 				
@@ -58,8 +64,6 @@ public class JwtFilter extends OncePerRequestFilter {
 				{
 					userDetails =  (CustomUserDetails) customUserDetailsService.loadManager(email);
 				}
-	            System.out.println(userDetails);
-	            
 	            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
 	                    userDetails,
 	                    null,
@@ -74,4 +78,19 @@ public class JwtFilter extends OncePerRequestFilter {
 
 		chain.doFilter(request, response);
 	}
+	
+	
+	private void handleCustomException(HttpServletResponse response, String message) throws IOException {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType("application/json");
+
+        Map<String, Object> errorDetails = new HashMap<>();
+        errorDetails.put("status", "failure");
+        errorDetails.put("type", "Session Expired");
+        errorDetails.put("error", message);
+        errorDetails.put("localTime", LocalDateTime.now());
+        errorDetails.put("relogin", true);
+
+        new ObjectMapper().writeValue(response.getOutputStream(), errorDetails);
+    }
 }

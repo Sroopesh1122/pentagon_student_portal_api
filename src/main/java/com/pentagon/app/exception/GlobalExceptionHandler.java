@@ -4,9 +4,12 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import io.jsonwebtoken.ExpiredJwtException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -105,16 +108,16 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, userException.getHttpStatus());
     }
     
-    @ExceptionHandler(SessionExpiredException.class)
-    public ResponseEntity<Map<String, Object>> sesstionExpiredException(UserException userException){
+    @ExceptionHandler(ExpiredJwtException.class)
+    public ResponseEntity<Map<String, Object>> sesstionExpiredException(ExpiredJwtException sessionException){
     	Map<String,Object> errorResponse = new HashMap<>();
         errorResponse.put("status", "failure");
         errorResponse.put("type","Session Expired");
-        errorResponse.put("error", userException.getMessage());
+        errorResponse.put("error", sessionException.getMessage());
         errorResponse.put("localTime", LocalDateTime.now());
         errorResponse.put("relogin", true);
-        errorResponse.put("status", userException.getHttpStatus().toString());
-        return new ResponseEntity<>(errorResponse, userException.getHttpStatus());
+        errorResponse.put("status", "457");
+        return new ResponseEntity<>(errorResponse,HttpStatus.FORBIDDEN);
     }
     
 }

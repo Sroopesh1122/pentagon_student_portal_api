@@ -1,7 +1,6 @@
 package com.pentagon.app.restController;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -152,8 +151,8 @@ public class AdminController {
 			String password = passwordGenration.generateRandomPassword();
 			executive.setPassword(passwordEncoder.encode(password));
 			executive.setCreatedAt(LocalDateTime.now());
+			executive.setManagerId(newExecutive.getManagerId());
 			executive = adminservice.addExecutive(executive);
-
 			String htmlContent = htmlContentService.getHtmlContent(executive.getName(), executive.getEmail(), password);
 
 			try {
@@ -215,9 +214,9 @@ public class AdminController {
 	@GetMapping("/secure/managers")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<?> viewAllManagers(@AuthenticationPrincipal CustomUserDetails adminDetails,
-			@RequestParam(defaultValue = "1") int page,
+			@RequestParam(defaultValue = "0") int page,
 	        @RequestParam(defaultValue = "10") int limit,
-	        @RequestParam(required = false) String q){
+	        @RequestParam(required = false ) String q){
 		
 		Pageable pageable = PageRequest.of(page, limit, Sort.by("createdAt").descending());
 		
@@ -326,10 +325,11 @@ public class AdminController {
 			@RequestParam(required = false) String qualification,
 			@RequestParam(required = false) String stream,
 			@RequestParam(required = false) Double percentage,
-			@RequestParam(required = false) String status)
+			@RequestParam(required = false) String status,
+			@RequestParam(required = false) String inputRange)
 	{
 		
-		
+		System.out.println(stack);
 		Pageable pageable = PageRequest.of(page, limit, Sort.by("created_at").descending());
 		Page<JobDescription> jobDescriptions = jobDescriptionService.findAllJobDescriptions(
 				companyName, 
@@ -373,6 +373,5 @@ public class AdminController {
 //		});
 		return ResponseEntity.ok(new ApiResponse<>("success", "Jd results", jobDescriptions));
 	}
-
 
 }

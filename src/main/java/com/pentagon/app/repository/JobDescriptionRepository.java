@@ -20,9 +20,8 @@ public interface JobDescriptionRepository extends JpaRepository<JobDescription, 
 	@Query(value = """
 			SELECT * FROM job_description jd
 			WHERE (
-			    (:companyName IS NULL OR :companyName = '' OR jd.company_name LIKE CONCAT('%', :companyName, '%'))
+			    (:companyName IS NULL OR :companyName = '' OR jd.role LIKE CONCAT( :role, '%') OR  jd.company_name LIKE CONCAT('%', :companyName, '%'))
 			    AND (:stackRegex IS NULL OR :stackRegex = '' OR jd.stack REGEXP :stackRegex)
-			    AND (:role IS NULL OR :role = '' OR jd.role LIKE CONCAT( :role, '%'))
 			    AND (:isClosed IS NULL OR jd.jd_closed = :isClosed)
 			    AND (:minYearOfPassing IS NULL OR jd.min_year_of_passing = :minYearOfPassing)
 			    AND (:maxYearOfPassing IS NULL OR jd.max_year_of_passing = :maxYearOfPassing)
@@ -35,7 +34,7 @@ public interface JobDescriptionRepository extends JpaRepository<JobDescription, 
 			""", countQuery = """
 			SELECT COUNT(*) FROM job_description jd
 			WHERE (
-			    (:companyName IS NULL OR :companyName = '' OR jd.company_name LIKE CONCAT('%', :companyName, '%'))
+			    (:companyName IS NULL OR :companyName = '' OR jd.role LIKE CONCAT( :role, '%') OR  jd.company_name LIKE CONCAT('%', :companyName, '%'))
 			    AND (:stackRegex IS NULL OR :stackRegex = '' OR jd.stack REGEXP :stackRegex)
 			    AND (:role IS NULL OR :role = '' OR jd.role LIKE CONCAT( :role, '%'))
 			    AND (:isClosed IS NULL OR jd.jd_closed = :isClosed)

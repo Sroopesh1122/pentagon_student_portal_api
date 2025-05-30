@@ -9,8 +9,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import com.pentagon.app.exception.SessionExpiredException;
+import com.pentagon.app.exception.UserException;
 
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -33,18 +35,13 @@ public class JwtUtil {
                 .compact();
     }
     public String extractSubject(String token) {
-        try {
             return Jwts.parserBuilder()
                     .setSigningKey(SECRET_KEY)
                     .build()
                     .parseClaimsJws(token)
                     .getBody()
                     .getSubject();
-        } catch (ExpiredJwtException e) {
-            throw new SessionExpiredException("Session Expired Please login", HttpStatus.UNAUTHORIZED);
-        } catch (Exception e) {
-            throw new RuntimeException("Invalid Token");
-        }
+        
     }
 
     

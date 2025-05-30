@@ -67,13 +67,6 @@ public class ExecutiveController {
 	public ResponseEntity<?> addJobDescription(@AuthenticationPrincipal CustomUserDetails executiveDetails,
 			@Valid @RequestBody AddJobDescriptionRequest newJd, BindingResult bindingResult) {
 		if (bindingResult.hasErrors()) {
-			Map<String, String> errors = bindingResult.getFieldErrors().stream().collect(Collectors
-					.toMap(FieldError::getField, FieldError::getDefaultMessage, (existing, replacement) -> existing // handle
-																													// duplicate
-																													// keys
-					));
-
-			System.out.println("Validation Errors: " + errors);
 			throw new ExecutiveException("Invalid input data", HttpStatus.BAD_REQUEST);
 		}
 		if (executiveDetails.getExecutive() == null) {
@@ -100,6 +93,7 @@ public class ExecutiveController {
 		jd.setExecutive(executiveDetails.getExecutive());
 		jd.setPostedBy(executiveDetails.getExecutive().getExecutiveId());
 		jd.setJdStatus("pending");
+		jd.setManagerId(executiveDetails.getExecutive().getManagerId());
 		jobDescriptionService.addJobDescription(jd);
 		activityLogService.log(executiveDetails.getExecutive().getEmail(),
 				executiveDetails.getExecutive().getExecutiveId(), "EXECUTIVE", "Executive with ID "

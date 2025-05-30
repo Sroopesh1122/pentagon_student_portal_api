@@ -139,7 +139,7 @@ public class ManagerServiceImpl implements ManagerService {
 	
 	@Override
 	public Page<Manager> findAll(String q , Pageable pageable) {
-		return managerRepository.findByFilters(q, pageable);
+		return managerRepository.findAll(q, pageable);
 	}
 
 
