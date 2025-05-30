@@ -82,5 +82,11 @@ public class StudentServiceImpl implements StudentService {
 		return "OTP sent to registered email";
 	}
 
+	@Override
+	public List<JobDescription> viewJobDescriptionBasedOnStack(String stack) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 
 }

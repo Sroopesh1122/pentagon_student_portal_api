@@ -21,7 +21,7 @@ public interface JobDescriptionService {
 	public boolean addJobDescription(JobDescription jobDescription);
 
 	public JobDescription updateJobDescription(JobDescription jobDescription);
-	public List<JobDescription> findByStack(String stack);
+	
 
 	
 
