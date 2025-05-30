@@ -27,6 +27,7 @@ import com.pentagon.app.response.ApiResponse;
 import com.pentagon.app.response.ProfileResponse;
 import com.pentagon.app.service.ActivityLogService;
 import com.pentagon.app.service.CustomUserDetails;
+import com.pentagon.app.service.StudentService;
 import com.pentagon.app.service.TrainerService;
 import com.pentagon.app.utils.IdGeneration;
 import com.pentagon.app.utils.JwtUtil;
@@ -52,6 +53,9 @@ public class TrainerController {
 	
 	@Autowired
 	private IdGeneration idGeneration;
+	
+	@Autowired
+	private StudentService studentService;
 	
 	
 	@PostMapping("/secure/updateTrainer")
@@ -128,7 +132,7 @@ public class TrainerController {
 		
 		jwtUtil.generateToken(student.getEmail(), claims);
 		
-		Student newStudent = trainerService.addStudent(student);
+		Student newStudent = studentService.addStudent(student);
 		
 		activityLogService.log(trainerDetails.getTrainer().getEmail(), 
 				trainerDetails.getTrainer().getTrainerId(), 

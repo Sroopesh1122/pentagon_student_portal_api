@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -21,14 +23,13 @@ import com.pentagon.app.response.ProfileResponse;
 import com.pentagon.app.service.OtpService;
 import com.pentagon.app.service.TrainerService;
 
+import jakarta.transaction.Transactional;
+
 @Service
 public class TrainerServiceImpl implements TrainerService {
 
 	@Autowired
 	private TrainerRepository trainerRepository;
-	
-	@Autowired
-	private StudentRepository studentRepository;
 	
 	@Autowired
 	private OtpService otpService;
@@ -49,57 +50,7 @@ public class TrainerServiceImpl implements TrainerService {
 	    }
 	}
 
-	@Override
-	public Student addStudent(Student student) {
-		try {
-			student.setCreatedAt(LocalDateTime.now());
-			return studentRepository.save(student);
-			 
-		}
-		catch (Exception e) {
-	        throw new StudentException("Failed to add Student: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-	    }
-	}
-
-	@Override
-	public List<Student> viewStudentsBasedOnStack(String stack) {
-		try {
-			return studentRepository.findByStack(stack);
-		}
-		catch(Exception e) {
-			throw new StudentException("Failed to Fetch Students from " + stack + e.getMessage() , HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-	}
-
-	@Override
-	public boolean addMockRating(String studentId, Double mockRating) {
-		Student student = studentRepository.findByStudentId(studentId)
-           .orElseThrow(()-> new StudentException("Student not found with id: " + studentId, HttpStatus.NOT_FOUND));	
-		
-		student.setMockRating(mockRating);
-		student.setUpdatedAt(LocalDateTime.now());
-		
-		try {
-	        studentRepository.save(student);
-	        return true;
-	    } catch (Exception e) {
-	        throw new StudentException("Failed to update mock rating: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-	    }
-	}
-
-	@Override
-	public void disableStudentByUniqueId(String studentId) {
-		Student student = studentRepository.findByStudentId(studentId)
-				.orElseThrow(()->new StudentException("Student not found with id: " + studentId, HttpStatus.NOT_FOUND));
-		
-		if (student.getStatus() == EnrollmentStatus.DISABLED) {
-	        throw new StudentException("Student is already disabled", HttpStatus.CONFLICT);
-	    }
-		
-		student.setStatus(EnrollmentStatus.DISABLED);
-		student.setUpdatedAt(LocalDateTime.now());
-		studentRepository.save(student);
-	}
+	
 	@Override
 	public String loginWithPassword(TrainerLoginRequest trainerLoginRequest) {
 		Trainer trainer = trainerRepository.findByEmail(trainerLoginRequest.getEmail())
@@ -124,8 +75,35 @@ public class TrainerServiceImpl implements TrainerService {
 		return result;
 	}
 
-	
+	@Override
+	@Transactional
+	public Trainer addTrainer(Trainer trainer) {
+		// TODO Auto-generated method stub
+		try {
+			trainer.setCreatedAt(LocalDateTime.now());
+			return trainerRepository.save(trainer);
+			 
+		}
+		catch(Exception e) {
+			throw new TrainerException("Failed to Add Trainer: "+ e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
 
+	@Override
+	public Page<Trainer> viewAllTrainers(String stack, String name, String trainerId, Pageable pageable) {
+	    try {
+	        return trainerRepository.findByFilters(stack, name, trainerId, pageable);
+	    } catch (Exception e) {
+	        throw new TrainerException("Failed to fetch trainers", HttpStatus.INTERNAL_SERVER_ERROR);
+	    }
+	}
+
+
+	@Override
+	public boolean checkExistsByEmail(String email) {
+		// TODO Auto-generated method stub
+		return  trainerRepository.existsByEmail(email);
+	}
 	
 
 }

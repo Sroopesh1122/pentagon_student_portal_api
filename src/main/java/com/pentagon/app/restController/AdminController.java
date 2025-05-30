@@ -47,6 +47,7 @@ import com.pentagon.app.utils.HtmlContent;
 import com.pentagon.app.utils.IdGeneration;
 import com.pentagon.app.service.ManagerService;
 import com.pentagon.app.service.OtpService;
+import com.pentagon.app.service.TrainerService;
 import com.pentagon.app.serviceImpl.MailService;
 import com.pentagon.app.utils.PasswordGenration;
 
@@ -81,9 +82,9 @@ public class AdminController {
 	@Autowired
 	private JobDescriptionService jobDescriptionService;
 	
-	
 	@Autowired
-	private JobDescriptionRepository jobDescriptionRepository;
+	private TrainerService trainerService;
+
 
 	@PostMapping("/secure/addManager")
 	@PreAuthorize("hasRole('ADMIN')")
@@ -96,7 +97,7 @@ public class AdminController {
 		if (adminDetails == null) {
 			throw new AdminException("Admin details not found", HttpStatus.UNAUTHORIZED);
 		}
-		boolean checkManagerEmail = adminservice.getManagerByEmail(newManager.getEmail());
+		boolean checkManagerEmail = managerService.getManagerByEmail(newManager.getEmail());
 
 		if (checkManagerEmail) {
 			Manager manager = new Manager();
@@ -108,7 +109,7 @@ public class AdminController {
 			String password = passwordGenration.generateRandomPassword();
 			manager.setPassword(passwordEncoder.encode(password));
 
-			manager = adminservice.addManager(manager);
+			manager = managerService.addManager(manager);
 
 			String htmlContent = htmlContentService.getHtmlContent(manager.getName(), manager.getEmail(), password);
 
@@ -139,7 +140,7 @@ public class AdminController {
 			throw new AdminException("Admin details not found", HttpStatus.UNAUTHORIZED);
 		}
 
-		boolean checkExecutiveEmail = adminservice.getExecutiveByEmail(newExecutive.getEmail());
+		boolean checkExecutiveEmail = executiveService.getExecutiveByEmail(newExecutive.getEmail());
 		if (checkExecutiveEmail) {
 
 			Executive executive = new Executive();
@@ -152,7 +153,7 @@ public class AdminController {
 			executive.setPassword(passwordEncoder.encode(password));
 			executive.setCreatedAt(LocalDateTime.now());
 			executive.setManagerId(newExecutive.getManagerId());
-			executive = adminservice.addExecutive(executive);
+			executive = executiveService.addExecutive(executive);
 			String htmlContent = htmlContentService.getHtmlContent(executive.getName(), executive.getEmail(), password);
 
 			try {
@@ -187,7 +188,7 @@ public class AdminController {
 
 		Pageable pageable = PageRequest.of(page - 1, limit, Sort.by("createdAt").descending());
 
-		Page<Trainer> trainers = managerService.viewAllTrainers(stack, name, trainerId, pageable);
+		Page<Trainer> trainers = trainerService.viewAllTrainers(stack, name, trainerId, pageable);
 
 		Page<TrainerDTO> TrainerDTOPage = trainers.map(trainer -> {
             TrainerDTO dto = new TrainerDTO();
@@ -240,6 +241,7 @@ public class AdminController {
 	        );
 	}
 	
+	//not working
 	@GetMapping("/secure/executives")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<?> viewAllExecutives(@AuthenticationPrincipal CustomUserDetails adminDetails,
@@ -274,11 +276,12 @@ public class AdminController {
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<?> getJobDescriptionById(@PathVariable String jobDescriptionId) {
 
-		JobDescription jobDescription = jobDescriptionService.findByJobDescriptionId(jobDescriptionId);
+		JobDescription jobDescription = jobDescriptionService.findByJobDescriptionId(jobDescriptionId)
+				.orElseThrow(() -> new JobDescriptionException("Job Description not found", HttpStatus.NOT_FOUND));
 
-		if (jobDescription == null) {
-			throw new JobDescriptionException("Job Description Not Found", HttpStatus.NOT_FOUND);
-		}
+//		if (jobDescription == null) {
+//			throw new JobDescriptionException("Job Description Not Found", HttpStatus.NOT_FOUND);
+//		}
 
 		JobDescriptionDTO jobDescriptionDTO = new JobDescriptionDTO();
 		jobDescriptionDTO.setId(jobDescription.getId());

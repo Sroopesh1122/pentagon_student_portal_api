@@ -1,3 +1,4 @@
+
 package com.pentagon.app.service;
 
 import java.util.List;
@@ -10,7 +11,7 @@ import com.pentagon.app.entity.JobDescription;
 
 public interface JobDescriptionService {
 
-	public JobDescription findByJobDescriptionId(String jobDescriptionId);
+	Optional<JobDescription> findByJobDescriptionId(String jobDescriptionId);
 
 	Page<JobDescription> findAllJobDescriptions(String companyName, String stack, String role, Boolean isClosed,
 			Integer minYearOfPassing, Integer maxYearOfPassing, String qualification, String stream, Double percentage,
@@ -21,6 +22,13 @@ public interface JobDescriptionService {
 	public boolean addJobDescription(JobDescription jobDescription);
 
 	public JobDescription updateJobDescription(JobDescription jobDescription);
+	
+
+
+
+	public List<JobDescription> viewAllJobDescriptions();
+	
+	public List<JobDescription> viewJobDescriptionBasedOnStack(String stack);
 	
 
 	

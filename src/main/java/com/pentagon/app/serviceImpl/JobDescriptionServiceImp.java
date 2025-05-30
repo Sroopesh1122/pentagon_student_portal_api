@@ -11,32 +11,30 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.pentagon.app.entity.JobDescription;
 import com.pentagon.app.exception.JobDescriptionException;
-import com.pentagon.app.repository.ExecutiveRepository;
 import com.pentagon.app.repository.JobDescriptionRepository;
 import com.pentagon.app.service.JobDescriptionService;
-import com.pentagon.app.service.OtpService;
+
 
 @Service
 public class JobDescriptionServiceImp implements JobDescriptionService {
 	
 	
-	
 	@Autowired
 	private JobDescriptionRepository jobDescriptionRepository;
 	
+
 	@Autowired
 	private JobDescriptionService jobDescriptionService;
+
 	
 	@Override
-	public JobDescription findByJobDescriptionId(String jobDescriptionId) {
-		return jobDescriptionRepository.findByJobDescriptionId(jobDescriptionId).orElse(null);
+	public Optional<JobDescription> findByJobDescriptionId(String jobDescriptionId) {
+	    return jobDescriptionRepository.findByJobDescriptionId(jobDescriptionId);
 	}
-	
 	
 	public boolean addJobDescription(JobDescription jobDescription) {
 		// TODO Auto-generated method stub
@@ -51,7 +49,6 @@ public class JobDescriptionServiceImp implements JobDescriptionService {
 	}
 
 	
-	
 	@Override
 	public JobDescription updateJobDescription(JobDescription jobDescription) {
 		try {
@@ -63,7 +60,7 @@ public class JobDescriptionServiceImp implements JobDescriptionService {
 		}
 	}
 	
-	
+	@Override
 	public Page<JobDescription> findAllJobDescriptions(
 			String companyName, 
 			String stack, 
@@ -97,8 +94,30 @@ public class JobDescriptionServiceImp implements JobDescriptionService {
 	}
 
 
-	
+
+	@Override
+	public List<JobDescription> viewAllJobDescriptions() {
+		// TODO Auto-generated method
+		try {
+			List<JobDescription> jobDescriptions = jobDescriptionRepository.findAll();
+			return jobDescriptions;
+		} catch (Exception e) {
+			throw new JobDescriptionException("Failed to Job Descriptions", HttpStatus.NOT_FOUND);
+		}
+
+	}
 
 
-	
+	@Override
+	public List<JobDescription> viewJobDescriptionBasedOnStack(String stack) {
+		// TODO Auto-generated method stub
+		try {
+		  return jobDescriptionRepository.findByStack(stack);
+	    }
+		catch(Exception e) {
+			 throw new JobDescriptionException("Failed to Fetch Job Descriptions : " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
 }
+

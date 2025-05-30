@@ -1,10 +1,8 @@
 package com.pentagon.app.serviceImpl;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
+
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -14,17 +12,17 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.pentagon.app.entity.Executive;
-import com.pentagon.app.entity.JobDescription;
 import com.pentagon.app.exception.ExecutiveException;
-import com.pentagon.app.exception.JobDescriptionException;
-import com.pentagon.app.exception.ManagerException;
+
 import com.pentagon.app.repository.ExecutiveRepository;
-import com.pentagon.app.repository.JobDescriptionRepository;
+
 import com.pentagon.app.request.ExecutiveLoginRequest;
-import com.pentagon.app.request.OtpVerificationRequest;
+
 import com.pentagon.app.response.ProfileResponse;
 import com.pentagon.app.service.ExecutiveService;
 import com.pentagon.app.service.OtpService;
+
+import jakarta.transaction.Transactional;
 
 @Service
 public class ExecutiveServiceImpl implements ExecutiveService {
@@ -33,20 +31,11 @@ public class ExecutiveServiceImpl implements ExecutiveService {
 	private ExecutiveRepository executiveRepository;
 	
 	@Autowired
-	private JobDescriptionRepository jobDescriptionRepository;
-	
-	@Autowired
 	private OtpService otpService;
 	
 	@Autowired
 	private PasswordEncoder passwordEncoder;
 	
-	@Override
-	public Executive login(String email, String otp) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 	@Override
 	public boolean updateExecutive(Executive executive) {
 		// TODO Auto-generated method stub
@@ -92,10 +81,37 @@ public class ExecutiveServiceImpl implements ExecutiveService {
 	}
 
 	
+	@Override
+	@Transactional
+	public Executive addExecutive(Executive newExecutive) {
+		try {
+			newExecutive.setCreatedAt(LocalDateTime.now());
+			return executiveRepository.save(newExecutive);
+			
+		} catch (Exception e) {
+			throw new ExecutiveException("Failed to Add Executive: " + e.getMessage(),
+					HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@Override
+	public void disableExecutiveByUniqueId(String executiveId) {
+		// TODO Auto-generated method stub
+		Executive executive = executiveRepository.findByExecutiveId(executiveId).orElseThrow(
+				() -> new ExecutiveException("Executive not found with ID: " + executiveId, HttpStatus.NOT_FOUND));
+
+		executive.setActive(!executive.isActive());
+		executive.setUpdatedAt(LocalDateTime.now());
+		executiveRepository.save(executive);
+	}
+
+	@Override
+	public boolean getExecutiveByEmail(String email) {
+		Optional<Executive> executive=executiveRepository.findByEmail(email);
+		if(executive.isPresent())
+			throw new ExecutiveException("Email is already exists", HttpStatus.CONFLICT);
+		return true;
+	}
 	
 }
-
-	
-
-	
 
