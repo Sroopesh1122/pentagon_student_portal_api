@@ -2,7 +2,6 @@ package com.pentagon.app.restController;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Page;
@@ -21,16 +20,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
 import com.pentagon.app.Dto.JobDescriptionDTO;
 import com.pentagon.app.Dto.TrainerDTO;
 import com.pentagon.app.entity.Executive;
 import com.pentagon.app.entity.JobDescription;
 import com.pentagon.app.entity.Manager;
 import com.pentagon.app.entity.Trainer;
-import com.pentagon.app.exception.ExecutiveException;
-import com.pentagon.app.exception.JobDescriptionException;
+import com.pentagon.app.exception.AdminException;
 import com.pentagon.app.exception.ManagerException;
+import com.pentagon.app.exception.JobDescriptionException;
+import com.pentagon.app.exception.ExecutiveException;
 import com.pentagon.app.exception.OtpException;
 import com.pentagon.app.repository.ExecutiveRepository;
 import com.pentagon.app.repository.JobDescriptionRepository;
@@ -41,12 +40,12 @@ import com.pentagon.app.request.MangerJdStatusUpdateRequest;
 import com.pentagon.app.request.UpdateManagerRequest;
 import com.pentagon.app.response.ApiResponse;
 import com.pentagon.app.response.ProfileResponse;
-import com.pentagon.app.service.ActivityLogService;
 import com.pentagon.app.service.CustomUserDetails;
 import com.pentagon.app.service.ExecutiveService;
 import com.pentagon.app.service.JobDescriptionService;
 import com.pentagon.app.service.ManagerService;
 import com.pentagon.app.service.TrainerService;
+import com.pentagon.app.service.ActivityLogService;
 import com.pentagon.app.serviceImpl.MailService;
 import com.pentagon.app.utils.HtmlContent;
 import com.pentagon.app.utils.IdGeneration;
@@ -60,39 +59,16 @@ import jakarta.validation.Valid;
 public class ManagerController {
 
 	@Autowired
-	private PasswordEncoder passwordEncoder;
-
-	@Autowired
 	private ManagerService managerService;
-
-	@Autowired
-	private IdGeneration idGeneration;
-
-	@Autowired
-	private JwtUtil jwtUtil;
-
-	@Autowired
-	private ActivityLogService activityLogService;
-
 
 	@Autowired
 	private ExecutiveService executiveService;
 
 	@Autowired
-	private PasswordGenration passwordGenration;
-
-	@Autowired
-	private HtmlContent htmlContentService;
-
-	@Autowired
-	private MailService mailService;
-
-	@Autowired
 	private JobDescriptionService jobDescriptionService;
-	
+
 	@Autowired
 	private TrainerService trainerService;
-
 
 	@PostMapping("/secure/updateManager")
 	@PreAuthorize("hasRole('MANAGER')")
@@ -100,116 +76,163 @@ public class ManagerController {
 			@Valid @RequestBody UpdateManagerRequest request, BindingResult bindingResult) {
 
 		if (bindingResult.hasErrors()) {
-			throw new ManagerException("Ivalid Input Data", HttpStatus.BAD_REQUEST);
+			throw new ManagerException("Invalid Input Data", HttpStatus.BAD_REQUEST);
 		}
-
-		Manager manager = managerDetails.getManager();
-		manager.setName(request.getName());
-		manager.setEmail(request.getEmail());
-		manager.setMobile(request.getMobile());
-
-		if (request.getPassword() != null && !request.getPassword().isBlank()) {
-
-			String hashedPassword = passwordEncoder.encode(request.getPassword());
-			manager.setPassword(hashedPassword);
-
-		}
-
-		Manager updatedManager = managerService.updateManager(manager);
-
-		activityLogService.log(managerDetails.getManager().getEmail(), managerDetails.getManager().getManagerId(),
-				"MANAGER",
-				"Manager with ID " + managerDetails.getManager().getManagerId() + " updated their own profile details");
+		managerService.updateManagerDetails(managerDetails, request);
 
 		return ResponseEntity.ok(new ApiResponse<>("success", "Manager Updated Successfully", null));
 	}
 
-	//not working
+//	@PostMapping("/secure/updateManager")
+//	@PreAuthorize("hasRole('MANAGER')")
+//	public ResponseEntity<?> updateManager(@AuthenticationPrincipal CustomUserDetails managerDetails,
+//			@Valid @RequestBody UpdateManagerRequest request, BindingResult bindingResult) {
+//
+//		if (bindingResult.hasErrors()) {
+//			throw new ManagerException("Ivalid Input Data", HttpStatus.BAD_REQUEST);
+//		}
+//
+//		Manager manager = managerDetails.getManager();
+//		manager.setName(request.getName());
+//		manager.setEmail(request.getEmail());
+//		manager.setMobile(request.getMobile());
+//
+//		if (request.getPassword() != null && !request.getPassword().isBlank()) {
+//
+//			String hashedPassword = passwordEncoder.encode(request.getPassword());
+//			manager.setPassword(hashedPassword);
+//
+//		}
+//
+//		Manager updatedManager = managerService.updateManager(manager);
+//
+//		activityLogService.log(managerDetails.getManager().getEmail(), managerDetails.getManager().getManagerId(),
+//				"MANAGER",
+//				"Manager with ID " + managerDetails.getManager().getManagerId() + " updated their own profile details");
+//
+//		return ResponseEntity.ok(new ApiResponse<>("success", "Manager Updated Successfully", null));
+//	}
+
+	// not working
+//	@PostMapping("secure/addExecutive")
+//	@PreAuthorize("hasRole('MANAGER')")
+//	public ResponseEntity<?> addExecutive(@AuthenticationPrincipal CustomUserDetails managerDetails,
+//			@Valid @RequestBody AddExecutiveRequest request, BindingResult bindingResult) {
+//
+//		if (bindingResult.hasErrors()) {
+//			throw new ExecutiveException("Invalid Input Data", HttpStatus.BAD_REQUEST);
+//		}
+//
+//		if (executiveService.getExecutiveByEmail(request.getEmail())) {
+//			throw new ExecutiveException("Email already in use by another executive", HttpStatus.CONFLICT);
+//		}
+//
+//		Executive executive = new Executive();
+//		executive.setExecutiveId(idGeneration.generateId("EXECUTIVE"));
+//		executive.setName(request.getName());
+//		executive.setEmail(request.getEmail()); 
+//		executive.setMobile(request.getMobile());
+//		executive.setActive(true);
+//		executive.setManagerId(managerDetails.getManager().getManagerId());
+//		String password = passwordGenration.generateRandomPassword();
+//		executive.setPassword(passwordEncoder.encode(password));
+//
+//		Executive newExecutive = executiveService.addExecutive(executive);
+//
+//		String htmlContent = htmlContentService.getHtmlContent(executive.getName(), executive.getEmail(), password);
+//
+//		try {
+//			mailService.sendPasswordEmail(executive.getEmail(), "Welcome to Pentagon – Login Credentials Enclosed",
+//					htmlContent);
+//		} catch (Exception e) {
+//			throw new OtpException("Mail couldn't be sent", HttpStatus.INTERNAL_SERVER_ERROR);
+//		}
+//
+//		activityLogService.log(managerDetails.getManager().getEmail(), managerDetails.getManager().getManagerId(),
+//				"MANAGER", "Manager with ID " + managerDetails.getManager().getManagerId()
+//						+ " added a new Executive with ID " + newExecutive.getExecutiveId());
+//
+//		return ResponseEntity.ok(new ApiResponse<>("success", "Executive Added Successfully", null));
+//	}
+
 	@PostMapping("secure/addExecutive")
 	@PreAuthorize("hasRole('MANAGER')")
 	public ResponseEntity<?> addExecutive(@AuthenticationPrincipal CustomUserDetails managerDetails,
-			@Valid @RequestBody AddExecutiveRequest request, BindingResult bindingResult) {
-
-		if (bindingResult.hasErrors()) {
-			throw new ExecutiveException("Invalid Input Data", HttpStatus.BAD_REQUEST);
+			@Valid @RequestBody AddExecutiveRequest newExecutiveRequest, BindingResult bindingResult) {
+		if (bindingResult.hasErrors())
+			throw new AdminException("Invalid data ", HttpStatus.BAD_REQUEST);
+		if (managerDetails.getManager() == null) {
+			throw new ManagerException("Manager details not found", HttpStatus.UNAUTHORIZED);
 		}
-
-		if (executiveService.getExecutiveByEmail(request.getEmail())) {
-			throw new ExecutiveException("Email already in use by another executive", HttpStatus.CONFLICT);
-		}
-
-		Executive executive = new Executive();
-		executive.setExecutiveId(idGeneration.generateId("EXECUTIVE"));
-		executive.setName(request.getName());
-		executive.setEmail(request.getEmail()); 
-		executive.setMobile(request.getMobile());
-		executive.setActive(true);
-		executive.setManagerId(managerDetails.getManager().getManagerId());
-		String password = passwordGenration.generateRandomPassword();
-		executive.setPassword(passwordEncoder.encode(password));
-
-		Executive newExecutive = executiveService.addExecutive(executive);
-
-		String htmlContent = htmlContentService.getHtmlContent(executive.getName(), executive.getEmail(), password);
-
-		try {
-			mailService.sendPasswordEmail(executive.getEmail(), "Welcome to Pentagon – Login Credentials Enclosed",
-					htmlContent);
-		} catch (Exception e) {
-			throw new OtpException("Mail couldn't be sent", HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-
-		activityLogService.log(managerDetails.getManager().getEmail(), managerDetails.getManager().getManagerId(),
-				"MANAGER", "Manager with ID " + managerDetails.getManager().getManagerId()
-						+ " added a new Executive with ID " + newExecutive.getExecutiveId());
-
+		managerService.addExecutive(managerDetails, newExecutiveRequest);
 		return ResponseEntity.ok(new ApiResponse<>("success", "Executive Added Successfully", null));
 	}
 
 	@PostMapping("secure/addTrainer")
 	@PreAuthorize("hasRole('MANAGER')")
 	public ResponseEntity<?> addTrainer(@AuthenticationPrincipal CustomUserDetails managerDetails,
-			@Valid @RequestBody AddTrainerRequest request, BindingResult bindingResult) {
+			@Valid @RequestBody AddTrainerRequest newTrainerRequest, BindingResult bindingResult) {
 
 		if (bindingResult.hasErrors()) {
 			throw new ManagerException("Invalid Input Data", HttpStatus.BAD_REQUEST);
 		}
-
-		if (trainerService.checkExistsByEmail(request.getEmail())) {
-			throw new ExecutiveException("Email already in use by another trainer", HttpStatus.CONFLICT);
+		if (managerDetails.getManager() == null) {
+			throw new ManagerException("Manager details not found", HttpStatus.UNAUTHORIZED);
 		}
 
-		Trainer trainer = new Trainer();
-		trainer.setTrainerId(idGeneration.generateId("TRAINER"));
-		trainer.setName(request.getName());
-		trainer.setEmail(request.getEmail());
-		trainer.setMobile(request.getMobile());
-		trainer.setTrainerStack(request.getTrainerStack());
-		trainer.setTechnologies(request.getTechnologies());
-		trainer.setYearOfExperiences(request.getYearOfExperiences());
-		trainer.setQualification(request.getQualification());
-		trainer.setAcitve(true);
-
-		String password = passwordGenration.generateRandomPassword();
-		trainer.setPassword(passwordEncoder.encode(password));
-
-		Trainer newTrainer = trainerService.addTrainer(trainer);
-
-		String htmlContent = htmlContentService.getHtmlContent(trainer.getName(), trainer.getEmail(), password);
-
-		try {
-			mailService.sendPasswordEmail(trainer.getEmail(), "Welcome to Pentagon – Login Credentials Enclosed",
-					htmlContent);
-		} catch (Exception e) {
-			throw new OtpException("Mail couldn't be sent", HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-
-		activityLogService.log(managerDetails.getManager().getEmail(), managerDetails.getManager().getManagerId(),
-				"MANAGER", "Manager with ID " + managerDetails.getManager().getManagerId()
-						+ " added a new Trainer with ID " + newTrainer.getTrainerId());
-
+		managerService.addTrainer(managerDetails, newTrainerRequest);
+		
 		return ResponseEntity.ok(new ApiResponse<>("success", "Trainer Added Successfully", null));
 	}
+	
+//	@PostMapping("secure/addTrainer")
+//	@PreAuthorize("hasRole('MANAGER')")
+//	public ResponseEntity<?> addTrainer(@AuthenticationPrincipal CustomUserDetails managerDetails,
+//			@Valid @RequestBody AddTrainerRequest request, BindingResult bindingResult) {
+//
+//		if (bindingResult.hasErrors()) {
+//			throw new ManagerException("Invalid Input Data", HttpStatus.BAD_REQUEST);
+//		}
+//		if (managerDetails.getManager() == null) {
+//			throw new ManagerException("Manager details not found", HttpStatus.UNAUTHORIZED);
+//		}
+//		
+//
+//		if (trainerService.checkExistsByEmail(request.getEmail())) {
+//			throw new ExecutiveException("Email already in use by another trainer", HttpStatus.CONFLICT);
+//		}
+//
+//		Trainer trainer = new Trainer();
+//		trainer.setTrainerId(idGeneration.generateId("TRAINER"));
+//		trainer.setName(request.getName());
+//		trainer.setEmail(request.getEmail());
+//		trainer.setMobile(request.getMobile());
+//		trainer.setTrainerStack(request.getTrainerStack());
+//		trainer.setTechnologies(request.getTechnologies());
+//		trainer.setYearOfExperiences(request.getYearOfExperiences());
+//		trainer.setQualification(request.getQualification());
+//		trainer.setAcitve(true);
+//
+//		String password = passwordGenration.generateRandomPassword();
+//		trainer.setPassword(passwordEncoder.encode(password));
+//
+//		Trainer newTrainer = trainerService.addTrainer(trainer);
+//
+//		String htmlContent = htmlContentService.getHtmlContent(trainer.getName(), trainer.getEmail(), password);
+//
+//		try {
+//			mailService.sendPasswordEmail(trainer.getEmail(), "Welcome to Pentagon – Login Credentials Enclosed",
+//					htmlContent);
+//		} catch (Exception e) {
+//			throw new OtpException("Mail couldn't be sent", HttpStatus.INTERNAL_SERVER_ERROR);
+//		}
+//
+//		activityLogService.log(managerDetails.getManager().getEmail(), managerDetails.getManager().getManagerId(),
+//				"MANAGER", "Manager with ID " + managerDetails.getManager().getManagerId()
+//						+ " added a new Trainer with ID " + newTrainer.getTrainerId());
+//
+//		return ResponseEntity.ok(new ApiResponse<>("success", "Trainer Added Successfully", null));
+//	}
 
 	@GetMapping("/secure/viewAllTrainers")
 	@PreAuthorize("hasRole('MANAGER')")
@@ -245,7 +268,6 @@ public class ManagerController {
 		return ResponseEntity.ok(new ApiResponse<>("success", "Trainers fetched successfully", TrainerDTOResponse));
 	}
 
-	
 	@PostMapping("/secure/jd/status")
 	@PreAuthorize("hasRole('MANAGER')")
 	public ResponseEntity<?> updateJdStatus(@AuthenticationPrincipal CustomUserDetails managerDetails,
@@ -253,7 +275,7 @@ public class ManagerController {
 
 		JobDescription findJobDescription = jobDescriptionService.findByJobDescriptionId(request.getJdId())
 				.orElseThrow(() -> new JobDescriptionException("Job Description not found", HttpStatus.NOT_FOUND));
-		
+
 //		if (findJobDescription == null) {
 //			throw new ManagerException("JD not found", HttpStatus.NOT_FOUND);
 //		}
@@ -262,11 +284,11 @@ public class ManagerController {
 		String jdActionReason;
 
 		if ("approved".equalsIgnoreCase(request.getStatus())) {
-		    jdActionReason = "JD approved by " + managerDetails.getManager().getName() + ", on " + LocalDateTime.now();
+			jdActionReason = "JD approved by " + managerDetails.getManager().getName() + ", on " + LocalDateTime.now();
 		} else {
-		    jdActionReason = request.getActionReason();
+			jdActionReason = request.getActionReason();
 		}
-		
+
 		findJobDescription.setJdActionReason(jdActionReason);
 		findJobDescription = jobDescriptionService.updateJobDescription(findJobDescription);
 		return ResponseEntity.ok(new ApiResponse<>("success", "JD stauts updated", null));
@@ -338,8 +360,8 @@ public class ManagerController {
 			@RequestParam(required = false, defaultValue = "") String qualification,
 			@RequestParam(required = false, defaultValue = "") String stream,
 			@RequestParam(required = false) Double percentage, @RequestParam(required = false) String status) {
-		Pageable pageable = PageRequest.of(page, limit, Sort.by("created_at").descending());
 
+		Pageable pageable = PageRequest.of(page, limit, Sort.by("created_at").descending());
 		Page<JobDescription> jobDescriptions = jobDescriptionService.findAllJobDescriptions(companyName, stack, role,
 				isClosed, minYearOfPassing, maxYearOfPassing, qualification, stream, percentage, null, status,
 				pageable);
@@ -370,7 +392,6 @@ public class ManagerController {
 			jobDescriptionDTO.setLocation(jobDescription.getLocation());
 			return jobDescriptionDTO;
 		});
-
 		return ResponseEntity.ok(new ApiResponse<>("success", "Manager Profile", JobDescriptionDTOResponse));
 	}
 

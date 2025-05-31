@@ -57,6 +57,7 @@ public class Executive {
 	@UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+	
 	@OneToMany(mappedBy = "executive", cascade = CascadeType.ALL)
 	@JsonIgnore
     private List<JobDescription> jobDescription;

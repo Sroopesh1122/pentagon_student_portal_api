@@ -13,16 +13,22 @@ import org.springframework.stereotype.Service;
 
 import com.pentagon.app.entity.Executive;
 import com.pentagon.app.exception.ExecutiveException;
-
+import com.pentagon.app.exception.OtpException;
 import com.pentagon.app.repository.ExecutiveRepository;
-
+import com.pentagon.app.request.AddExecutiveRequest;
 import com.pentagon.app.request.ExecutiveLoginRequest;
 
 import com.pentagon.app.response.ProfileResponse;
+import com.pentagon.app.service.ActivityLogService;
+import com.pentagon.app.service.CustomUserDetails;
 import com.pentagon.app.service.ExecutiveService;
 import com.pentagon.app.service.OtpService;
+import com.pentagon.app.utils.HtmlContent;
+import com.pentagon.app.utils.IdGeneration;
+import com.pentagon.app.utils.PasswordGenration;
 
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 
 @Service
 public class ExecutiveServiceImpl implements ExecutiveService {
@@ -35,6 +41,21 @@ public class ExecutiveServiceImpl implements ExecutiveService {
 	
 	@Autowired
 	private PasswordEncoder passwordEncoder;
+	
+	@Autowired
+	private MailService mailService;
+	@Autowired
+	private IdGeneration idGeneration;
+	
+	@Autowired
+	private ActivityLogService activityLogService;
+	
+	@Autowired
+	private PasswordGenration passwordGenration;
+
+	@Autowired
+	private HtmlContent htmlContentService;
+	
 	
 	@Override
 	public boolean updateExecutive(Executive executive) {
@@ -81,6 +102,62 @@ public class ExecutiveServiceImpl implements ExecutiveService {
 	}
 
 	
+	@Transactional
+	@Override
+	public void addExecutive(CustomUserDetails customUserDetails, @Valid AddExecutiveRequest newExecutive) {
+	    if (!isEmailAvailable(newExecutive.getEmail())) {
+	        throw new ExecutiveException("Email already exists", HttpStatus.CONFLICT);
+	    }
+	    try {
+	        Executive executive = new Executive();
+	        executive.setExecutiveId(idGeneration.generateId("EXECUTIVE"));
+	        executive.setName(newExecutive.getName());
+	        executive.setEmail(newExecutive.getEmail());
+	        executive.setActive(true);
+	        executive.setMobile(newExecutive.getMobile());
+
+	        String password = passwordGenration.generateRandomPassword();
+	        try {
+	            executive.setPassword(passwordEncoder.encode(password));
+	        } catch (Exception e) {
+	            throw new ExecutiveException("Password encoding failed", HttpStatus.INTERNAL_SERVER_ERROR);
+	        }
+	        
+	        executive.setCreatedAt(LocalDateTime.now());
+	        executive.setManagerId(newExecutive.getManagerId());
+	        executive = executiveRepository.save(executive);
+	        
+	        String htmlContent = htmlContentService.getHtmlContent(
+	            executive.getName(), executive.getEmail(), password
+	        );
+
+	        try {
+	            activityLogService.log(
+	                customUserDetails.getManager().getEmail(),
+	                customUserDetails.getManager().getManagerId(),
+	                "MANAGER",
+	                "Executive with ID " + executive.getExecutiveId() + " added successfully."
+	            );
+	        } catch (Exception e) {
+	            throw new ExecutiveException("Failed to log activity", HttpStatus.INTERNAL_SERVER_ERROR);
+	        }
+	        
+	        try {
+	            mailService.sendPasswordEmail(
+	                executive.getEmail(), 
+	                "Welcome to Pentagon – Login Credentials Enclosed",
+	                htmlContent
+	            );
+	        } catch (Exception e) {
+	            throw new OtpException("Failed to send password email", HttpStatus.INTERNAL_SERVER_ERROR);
+	        }
+
+	    } catch (Exception e) {
+	        throw new ExecutiveException("Failed to create executive: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+	    }
+	}
+
+	
 	@Override
 	@Transactional
 	public Executive addExecutive(Executive newExecutive) {
@@ -111,6 +188,10 @@ public class ExecutiveServiceImpl implements ExecutiveService {
 		if(executive.isPresent())
 			throw new ExecutiveException("Email is already exists", HttpStatus.CONFLICT);
 		return true;
+	}
+
+	public boolean isEmailAvailable(String email) {
+	    return executiveRepository.findByEmail(email).isEmpty();
 	}
 	
 }

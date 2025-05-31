@@ -14,8 +14,6 @@ public class AddTrainerRequest {
 	@NotBlank
 	private String mobile;
 	@NotBlank
-	private String password;
-	@NotBlank
 	private String trainerStack;
 	@NotBlank
 	private String qualification;

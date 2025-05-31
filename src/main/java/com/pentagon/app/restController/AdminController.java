@@ -142,7 +142,6 @@ public class AdminController {
 
 		boolean checkExecutiveEmail = executiveService.getExecutiveByEmail(newExecutive.getEmail());
 		if (checkExecutiveEmail) {
-
 			Executive executive = new Executive();
 			executive.setExecutiveId(idGeneration.generateId("EXECUTIVE"));
 			executive.setName(newExecutive.getName());

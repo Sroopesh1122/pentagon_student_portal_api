@@ -2,6 +2,7 @@ package com.pentagon.app.serviceImpl;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -15,12 +16,20 @@ import com.pentagon.app.exception.AdminException;
 import com.pentagon.app.exception.ExecutiveException;
 import com.pentagon.app.exception.ManagerException;
 import com.pentagon.app.repository.ManagerRepository;
+import com.pentagon.app.request.AddExecutiveRequest;
+import com.pentagon.app.request.AddTrainerRequest;
 import com.pentagon.app.request.ManagerLoginRequest;
+import com.pentagon.app.request.UpdateManagerRequest;
 import com.pentagon.app.response.ProfileResponse;
+import com.pentagon.app.service.ActivityLogService;
+import com.pentagon.app.service.CustomUserDetails;
+import com.pentagon.app.service.ExecutiveService;
 import com.pentagon.app.service.ManagerService;
 import com.pentagon.app.service.OtpService;
+import com.pentagon.app.service.TrainerService;
 
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 
 @Service
 public class ManagerServiceImpl implements ManagerService {
@@ -29,24 +38,95 @@ public class ManagerServiceImpl implements ManagerService {
 	private ManagerRepository managerRepository;
 	
 	@Autowired
+	private ExecutiveService executiveService;
+	
+	@Autowired
+	private TrainerService trainerService;
+	
+	@Autowired
 	private OtpService otpService;
 	
 	@Autowired
 	private PasswordEncoder passwordEncoder;
 	
+	@Autowired
+	private ActivityLogService activityLogService;
+	
+	
+	/* Performs the actual update of manager details in the database,
+	* manages timestamps, and handles exceptions during save operation.
+	* Rolls back if an error occurs.
+	*/
+	@Transactional
 	@Override
-	public Manager updateManager(Manager manager) {
-		// TODO Auto-generated method stub
-		try {
-			manager.setUpdatedAt(LocalDateTime.now());
-			return managerRepository.save(manager);
-			 
-		}
-		catch (Exception e) {
+	public void updateManagerDetails(CustomUserDetails managerDetails, UpdateManagerRequest request) {
+	    try {
+	        Manager manager = managerDetails.getManager();
+
+	        manager.setName(request.getName());
+	        manager.setEmail(request.getEmail());
+	        manager.setMobile(request.getMobile());
+
+	        if (request.getPassword() != null && !request.getPassword().isBlank()) {
+	            try {
+	                String hashedPassword = passwordEncoder.encode(request.getPassword());
+	                manager.setPassword(hashedPassword);
+	            } catch (Exception e) {
+	                throw new ManagerException("Password encoding failed: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+	            }
+	        }
+
+	        manager.setUpdatedAt(LocalDateTime.now());
+	        managerRepository.save(manager);
+
+	        activityLogService.log(
+	            manager.getEmail(),
+	            manager.getManagerId(),
+	            "MANAGER",
+	            "Manager with ID " + manager.getManagerId() + " updated their own profile details"
+	        );
+
+	    } catch (Exception e) {
 	        throw new ManagerException("Failed to update Manager: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 	    }
 	}
-	    
+
+//	@Override
+//	public Manager updateManager(Manager manager) {
+//		// TODO Auto-generated method stub
+//		try {
+//			manager.setUpdatedAt(LocalDateTime.now());
+//			return managerRepository.save(manager);
+//			 
+//		}
+//		catch (Exception e) {
+//	        throw new ManagerException("Failed to update Manager: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+//	    }
+//	}
+	
+	@Transactional
+	@Override
+	public void addExecutive(CustomUserDetails managerDetails, @Valid AddExecutiveRequest newExecutive) {
+		try {
+			executiveService.addExecutive(managerDetails, newExecutive);
+		}catch (Exception e) {
+			throw  new ManagerException("Failed to add executive: "+ e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		
+	}
+	
+	@Transactional
+	@Override
+	public void addTrainer(CustomUserDetails managerDetails, @Valid AddTrainerRequest newTrainerRequest) {
+		try {
+			trainerService.addTrainer(managerDetails, newTrainerRequest);
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		
+	}
+
+	
 	@Override
 	public String loginWithPassword(ManagerLoginRequest managerLoginRequest) 
 	{
@@ -113,5 +193,6 @@ public class ManagerServiceImpl implements ManagerService {
 			return false;
 		return true;
 	}
+
 
 }

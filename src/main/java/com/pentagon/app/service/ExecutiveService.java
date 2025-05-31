@@ -2,11 +2,12 @@ package com.pentagon.app.service;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-
 import com.pentagon.app.entity.Executive;
-
+import com.pentagon.app.request.AddExecutiveRequest;
 import com.pentagon.app.request.ExecutiveLoginRequest;
 import com.pentagon.app.response.ProfileResponse;
+
+import jakarta.validation.Valid;
 
 
 public interface ExecutiveService {
@@ -24,5 +25,7 @@ public interface ExecutiveService {
 	public void disableExecutiveByUniqueId(String executiveId);
 	
 	public boolean getExecutiveByEmail(String email);
+
+	public void addExecutive(CustomUserDetails managerDetails, @Valid AddExecutiveRequest newExecutive);
 
 }
