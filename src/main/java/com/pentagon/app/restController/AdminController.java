@@ -58,7 +58,7 @@ import jakarta.validation.Valid;
 public class AdminController {
 
 	@Autowired
-	AdminService adminservice;
+	private AdminService adminservice;
 	@Autowired
 	private PasswordEncoder passwordEncoder;
 	@Autowired

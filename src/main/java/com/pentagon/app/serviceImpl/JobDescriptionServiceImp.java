@@ -25,10 +25,6 @@ public class JobDescriptionServiceImp implements JobDescriptionService {
 	
 	@Autowired
 	private JobDescriptionRepository jobDescriptionRepository;
-	
-
-	@Autowired
-	private JobDescriptionService jobDescriptionService;
 
 	
 	@Override
