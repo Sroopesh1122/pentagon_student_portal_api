@@ -1,6 +1,7 @@
 package com.pentagon.app.restController;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
@@ -16,7 +17,6 @@ import com.pentagon.app.serviceImpl.MailService;
 import com.pentagon.app.utils.JwtUtil;
 
 import jakarta.validation.Valid;
-
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -55,8 +55,13 @@ public class AuthController {
             @Valid @RequestBody OtpVerificationRequest request,
             BindingResult bindingResult) {
 
-        if (bindingResult.hasErrors()) {
-        }
+    	if (bindingResult.hasErrors()) {
+    	    List<String> errorMessages = bindingResult.getFieldErrors().stream()
+    	        .map(error -> error.getField() + ": " + error.getDefaultMessage())
+    	        .toList();
+
+    	    throw new ValidationException("Validation failed", errorMessages, HttpStatus.BAD_REQUEST);
+    	}
 
         boolean isVerified = otpService.verifyOtp(request);
 
@@ -121,8 +126,8 @@ public class AuthController {
 	
 	
     @PostMapping("/public/admin/login")
-    public ResponseEntity<?> adminLogin(@RequestBody @Valid AdminLoginRequest request, BindingResult result) {
-        if (result.hasErrors()) throw new AdminException("Invalid details", HttpStatus.BAD_REQUEST);
+    public ResponseEntity<?> adminLogin(@RequestBody @Valid AdminLoginRequest request, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) throw new AdminException("Invalid details", HttpStatus.BAD_REQUEST);
         return handleLogin("ADMIN", adminService.loginWithPassword(request));
     }
     

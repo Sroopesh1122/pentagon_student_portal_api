@@ -120,4 +120,15 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse,HttpStatus.FORBIDDEN);
     }
     
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity<?> handleValidationException(ValidationException ex) {
+        Map<String, Object> errorResponse = new HashMap<>();
+        errorResponse.put("status", "failure");
+        errorResponse.put("type","Validation Exception");
+        errorResponse.put("error", ex.getMessage());
+        errorResponse.put("errors", ex.getErrors());
+        errorResponse.put("localTime", LocalDateTime.now());
+        errorResponse.put("status", ex.getHttpStatus().toString());
+        return new ResponseEntity<>(errorResponse, ex.getHttpStatus());
+    }
 }
