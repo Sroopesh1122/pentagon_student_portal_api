@@ -130,12 +130,12 @@ public class ExecutiveServiceImpl implements ExecutiveService {
 	        String htmlContent = htmlContentService.getHtmlContent(
 	            executive.getName(), executive.getEmail(), password
 	        );
-
+	        
 	        try {
 	            activityLogService.log(
-	                customUserDetails.getManager().getEmail(),
-	                customUserDetails.getManager().getManagerId(),
-	                "MANAGER",
+	                customUserDetails.getEmail(),
+	                customUserDetails.getId(),
+	                customUserDetails.getRole(),
 	                "Executive with ID " + executive.getExecutiveId() + " added successfully."
 	            );
 	        } catch (Exception e) {

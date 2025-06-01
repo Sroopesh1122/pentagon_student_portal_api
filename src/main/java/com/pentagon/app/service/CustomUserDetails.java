@@ -66,6 +66,38 @@ public class CustomUserDetails implements UserDetails{
 		return null;
 	}
 	
+    public String getEmail() {
+        if (admin != null) return admin.getEmail();
+        if (manager != null) return manager.getEmail();
+        if (executive != null) return executive.getEmail();
+        if (trainer != null) return trainer.getEmail();
+        return null;
+    }
+
+    public String getRole() {
+        if (admin != null) return "ADMIN";
+        if (manager != null) return "MANAGER";
+        if (executive != null) return "EXECUTIVE";
+        if (trainer != null) return "TRAINER";
+        return "UNKNOWN";
+    }
+
+    public String getId() {
+        if (admin != null) return admin.getAdminId();
+        if (manager != null) return manager.getManagerId();
+        if (executive != null) return executive.getExecutiveId();
+        if (trainer != null) return trainer.getTrainerId();
+        return null;
+    }
+    
+    public Object get() {
+    	if (admin != null) return admin;
+        if (manager != null) return manager;
+        if (executive != null) return executive;
+        if (trainer != null) return trainer;
+        return null;
+    }
+	
 	public Admin getAdmin() {
 	    return admin;
 	}
