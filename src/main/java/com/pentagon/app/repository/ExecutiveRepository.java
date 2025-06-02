@@ -17,16 +17,22 @@ public interface ExecutiveRepository extends JpaRepository<Executive, Integer>{
 	public Optional<Executive> findByExecutiveId(String executiveId);
 
 	@Query("SELECT COUNT(E) FROM Executive E")
-	int getExecutiveCount();
+	public int getExecutiveCount();
 	
 	@Query("SELECT e FROM Executive e WHERE "
-		     + "(:q IS NULL OR LOWER(e.email) LIKE LOWER(CONCAT('%', :q, '%')) "
+		     + "(:q IS NULL OR LOWER(e.email) LIKE LOWER(CONCAT('%', :q, '%'))"
 		     + "OR LOWER(e.name) LIKE LOWER(CONCAT('%', :q, '%')) "
 		     + "OR CAST(e.executiveId AS string) LIKE CONCAT('%', :q, '%') "
 		     + "OR e.mobile LIKE CONCAT('%', :q, '%'))")
-		Page<Executive> findExecutivesByFilters(@Param("q") String q, Pageable pageable);
+		Page<Executive> findAll(@Param("q") String q, Pageable pageable);
 
 
 	boolean existsByEmail(String email);
+	
+	@Query("SELECT COUNT(e) FROM Executive e WHERE e.managerId = :managerId")
+	public Long getTotalExecutiveCountByManagerId(@Param("managerId") String managerId);
+	
+	@Query("SELECT e FROM Executive e WHERE e.managerId = :managerId")
+	public Page<Executive> getAllExecutives(@Param("managerId") String managerId , Pageable pageable);
 
 }

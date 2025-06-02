@@ -1,6 +1,9 @@
 package com.pentagon.app.serviceImpl;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,10 +13,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.pentagon.app.entity.Executive;
 import com.pentagon.app.entity.Manager;
 import com.pentagon.app.exception.AdminException;
 import com.pentagon.app.exception.ExecutiveException;
 import com.pentagon.app.exception.ManagerException;
+import com.pentagon.app.repository.ExecutiveRepository;
+import com.pentagon.app.repository.JobDescriptionRepository;
 import com.pentagon.app.repository.ManagerRepository;
 import com.pentagon.app.request.ManagerLoginRequest;
 import com.pentagon.app.response.ProfileResponse;
@@ -33,6 +39,12 @@ public class ManagerServiceImpl implements ManagerService {
 	
 	@Autowired
 	private PasswordEncoder passwordEncoder;
+	
+	@Autowired
+	private JobDescriptionRepository jobDescriptionRepository;
+	
+	@Autowired
+	private ExecutiveRepository executiveRepository;
 	
 	@Override
 	public Manager updateManager(Manager manager) {
@@ -107,11 +119,55 @@ public class ManagerServiceImpl implements ManagerService {
 	}
 
 	@Override
-	public boolean getManagerByEmail(String email) {
+	public Manager getManagerByEmail(String email) {
 		Optional<Manager> manager=managerRepository.findByEmail(email);
 		if(manager.isPresent())
-			return false;
-		return true;
+			return manager.get();
+		return null;
+	}
+	
+	
+	@Override
+	public Manager getManagerById(String managerId) {
+		return managerRepository.findByManagerId(managerId).orElse(null);
+	}
+	
+	
+	@Override
+	public Object getManagersJdDetails(String managetId) {
+		
+		Map<String , Long> jdDetails = new HashMap<>();
+		jdDetails.put("totalJd", jobDescriptionRepository.managerTotalJdCount(managetId, null));
+		jdDetails.put("pendingJd", jobDescriptionRepository.managerTotalJdCount(managetId,"pending"));
+		jdDetails.put("holdJd", jobDescriptionRepository.managerTotalJdCount(managetId,"hold"));
+		jdDetails.put("approved", jobDescriptionRepository.managerTotalJdCount(managetId,"approved"));
+		jdDetails.put("rejectedJd", jobDescriptionRepository.managerTotalJdCount(managetId, "rejected"));
+		return jdDetails;
+	}
+	
+	@Override
+	public Long getAllExecutivesCount(String managerId) {
+		return executiveRepository.getTotalExecutiveCountByManagerId(managerId);
+	}
+	
+	@Override
+	public Map<String, Long> getManagerJdCountByDate(String managerId ,Integer days) {
+		// TODO Auto-generated method stub
+		Map<String,Long> jdCounts = new LinkedHashMap<>();
+		int i=0;
+		while( i <= days)
+		{
+			String dateStr = LocalDateTime.now().minusDays(i).toLocalDate().toString();
+			jdCounts.put(dateStr,jobDescriptionRepository.countJdsByManagerAndDate(managerId, dateStr));
+			i++;
+		}
+		
+		return jdCounts;
+	}
+	
+	@Override
+	public Page<Executive> getAllExecutives(String managerId, Pageable pageable) {
+		return executiveRepository.getAllExecutives(managerId, pageable);
 	}
 
 }

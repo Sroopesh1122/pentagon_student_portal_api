@@ -127,17 +127,22 @@ public class ManagerController {
 	//not working
 	@PostMapping("secure/addExecutive")
 	@PreAuthorize("hasRole('MANAGER')")
-	public ResponseEntity<?> addExecutive(@AuthenticationPrincipal CustomUserDetails managerDetails,
-			@Valid @RequestBody AddExecutiveRequest request, BindingResult bindingResult) {
+	public ResponseEntity<?> addExecutive(
+			@AuthenticationPrincipal CustomUserDetails managerDetails,
+			@Valid @RequestBody AddExecutiveRequest request, 
+			BindingResult bindingResult) {
 
 		if (bindingResult.hasErrors()) {
 			throw new ExecutiveException("Invalid Input Data", HttpStatus.BAD_REQUEST);
 		}
 
-		if (executiveService.getExecutiveByEmail(request.getEmail())) {
-			throw new ExecutiveException("Email already in use by another executive", HttpStatus.CONFLICT);
+		Executive  findExecutive = executiveService.getExecutiveByEmail(request.getEmail());
+		
+		if(findExecutive!=null)
+		{
+			throw new ManagerException("Email Already Exists", HttpStatus.CONFLICT);
 		}
-
+		
 		Executive executive = new Executive();
 		executive.setExecutiveId(idGeneration.generateId("EXECUTIVE"));
 		executive.setName(request.getName());
@@ -254,15 +259,13 @@ public class ManagerController {
 		JobDescription findJobDescription = jobDescriptionService.findByJobDescriptionId(request.getJdId())
 				.orElseThrow(() -> new JobDescriptionException("Job Description not found", HttpStatus.NOT_FOUND));
 		
-//		if (findJobDescription == null) {
-//			throw new ManagerException("JD not found", HttpStatus.NOT_FOUND);
-//		}
 		findJobDescription.setJdStatus(request.getStatus());
 		findJobDescription.setManagerApproval(request.getStatus().toLowerCase().equals("approved") ? true : false);
 		String jdActionReason;
 
 		if ("approved".equalsIgnoreCase(request.getStatus())) {
 		    jdActionReason = "JD approved by " + managerDetails.getManager().getName() + ", on " + LocalDateTime.now();
+		    findJobDescription.setApprovedDate(LocalDateTime.now());
 		} else {
 		    jdActionReason = request.getActionReason();
 		}
@@ -337,11 +340,18 @@ public class ManagerController {
 			@RequestParam(required = false) Integer maxYearOfPassing,
 			@RequestParam(required = false, defaultValue = "") String qualification,
 			@RequestParam(required = false, defaultValue = "") String stream,
-			@RequestParam(required = false) Double percentage, @RequestParam(required = false) String status) {
+			@RequestParam(required = false) Double percentage,
+			@RequestParam(required = false) String status,
+			@RequestParam(required = false) String startDate,
+			@RequestParam(required = false) String endDate) 
+	
+	{
 		Pageable pageable = PageRequest.of(page, limit, Sort.by("created_at").descending());
 
 		Page<JobDescription> jobDescriptions = jobDescriptionService.findAllJobDescriptions(companyName, stack, role,
 				isClosed, minYearOfPassing, maxYearOfPassing, qualification, stream, percentage, null, status,
+				startDate,
+				endDate,
 				pageable);
 
 		Page<JobDescriptionDTO> JobDescriptionDTOResponse = jobDescriptions.map(jobDescription -> {

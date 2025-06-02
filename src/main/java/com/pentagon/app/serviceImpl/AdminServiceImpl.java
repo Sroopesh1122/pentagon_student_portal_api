@@ -34,12 +34,11 @@ public class AdminServiceImpl implements AdminService {
 	private PasswordEncoder passwordEncoder;
 
 	@Override
-	public boolean updateAdmin(Admin admin) {
-		// TODO Auto-generated method stub
-		try {
+	public Admin updateAdmin(Admin admin) {
+	try {
 			admin.setUpdatedAt(LocalDateTime.now());
-			adminRepository.save(admin);
-			return true;
+			admin = adminRepository.save(admin);
+			return admin;
 		} catch (Exception e) {
 			throw new AdminException("Failed to update Admin: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}

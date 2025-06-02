@@ -17,6 +17,21 @@ public interface JobDescriptionRepository extends JpaRepository<JobDescription, 
 
 	public List<JobDescription> findByStack(String stack);
 
+	// If stauts is null return all Jds , if there is value then return the count of
+	// taht specific jd
+	@Query("SELECT COUNT(jd) FROM JobDescription jd WHERE jd.managerId = :managerId AND (:status IS NULL OR jd.jdStatus = :status)")
+	public Long managerTotalJdCount(@Param("managerId") String managerId, @Param("status") String status);
+	
+	
+	
+	@Query("SELECT COUNT(jd) FROM JobDescription jd WHERE jd.postedBy = :executiveId AND (:status IS NULL OR jd.jdStatus = :status)")
+	public Long executiveTotalJdCount(@Param("executiveId") String executiveId, @Param("status") String status);
+
+	
+	
+	@Query(value = "SELECT COUNT(*) FROM job_description jd WHERE jd.manager_id = :managerId AND DATE(jd.created_at) = :date", nativeQuery = true)
+	public Long countJdsByManagerAndDate(@Param("managerId") String managerId, @Param("date") String date);
+
 	@Query(value = """
 			SELECT * FROM job_description jd
 			WHERE (
@@ -30,6 +45,8 @@ public interface JobDescriptionRepository extends JpaRepository<JobDescription, 
 			    AND (:percentage IS NULL OR jd.percentage >= :percentage)
 			    AND (:executiveId IS NULL OR :executiveId = '' OR jd.posted_by = :executiveId)
 			    AND (:status IS NULL OR :status = '' OR jd.jd_status = :status)
+			    AND (:startDate IS NULL OR jd.created_at >= :startDate)
+			    AND (:endDate IS NULL OR jd.created_at <= :endDate)
 			)
 			""", countQuery = """
 			SELECT COUNT(*) FROM job_description jd
@@ -45,13 +62,23 @@ public interface JobDescriptionRepository extends JpaRepository<JobDescription, 
 			    AND (:percentage IS NULL OR jd.percentage >= :percentage)
 			    AND (:executiveId IS NULL OR :executiveId = '' OR jd.posted_by = :executiveId)
 			    AND (:status IS NULL OR :status = '' OR jd.jd_status = :status)
+			    AND (:startDate IS NULL OR jd.created_at >= :startDate)
+			    AND (:endDate IS NULL OR jd.created_at <= :endDate)
 			)
 			""", nativeQuery = true)
 	Page<JobDescription> findWithFiltersUsingRegex(@Param("companyName") String companyName,
-			@Param("stackRegex") String stackRegex, @Param("role") String role, @Param("isClosed") Boolean isClosed,
-			@Param("minYearOfPassing") Integer minYearOfPassing, @Param("maxYearOfPassing") Integer maxYearOfPassing,
-			@Param("qualificationRegex") String qualificationRegex, @Param("streamRegex") String streamRegex,
-			@Param("percentage") Double percentage, @Param("executiveId") String executiveId,
-			@Param("status") String status, Pageable pageable);
+			@Param("stackRegex") String stackRegex, 
+			@Param("role") String role,
+			@Param("isClosed") Boolean isClosed,
+			@Param("minYearOfPassing") Integer minYearOfPassing, 
+			@Param("maxYearOfPassing") Integer maxYearOfPassing,
+			@Param("qualificationRegex") String qualificationRegex, 
+			@Param("streamRegex") String streamRegex,
+			@Param("percentage") Double percentage, 
+			@Param("executiveId") String executiveId,
+			@Param("status") String status,
+			@Param("startDate") String startDate,
+			@Param("endDate") String endDate,
+			Pageable pageable);
 
 }

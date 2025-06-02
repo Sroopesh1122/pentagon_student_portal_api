@@ -1,6 +1,14 @@
 package com.pentagon.app.restController;
 
+import java.sql.Date;
+import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -37,6 +45,8 @@ import com.pentagon.app.repository.JobDescriptionRepository;
 import com.pentagon.app.request.AddExecutiveRequest;
 import com.pentagon.app.request.AddManagerRequest;
 import com.pentagon.app.response.ApiResponse;
+import com.pentagon.app.response.ExecutiveDetails;
+import com.pentagon.app.response.ManagerDetails;
 import com.pentagon.app.response.ProfileResponse;
 import com.pentagon.app.service.ActivityLogService;
 import com.pentagon.app.service.AdminService;
@@ -75,16 +85,15 @@ public class AdminController {
 	private HtmlContent htmlContentService;
 	@Autowired
 	private PasswordGenration passwordGenration;
-	
+
 	@Autowired
 	private ExecutiveService executiveService;
-	
+
 	@Autowired
 	private JobDescriptionService jobDescriptionService;
-	
+
 	@Autowired
 	private TrainerService trainerService;
-
 
 	@PostMapping("/secure/addManager")
 	@PreAuthorize("hasRole('ADMIN')")
@@ -97,35 +106,35 @@ public class AdminController {
 		if (adminDetails == null) {
 			throw new AdminException("Admin details not found", HttpStatus.UNAUTHORIZED);
 		}
-		boolean checkManagerEmail = managerService.getManagerByEmail(newManager.getEmail());
 
-		if (checkManagerEmail) {
-			Manager manager = new Manager();
-			manager.setManagerId(idGeneration.generateId("MANAGER"));
-			manager.setName(newManager.getName());
-			manager.setEmail(newManager.getEmail());
-			manager.setMobile(newManager.getMobile());
-			manager.setActive(true);
-			String password = passwordGenration.generateRandomPassword();
-			manager.setPassword(passwordEncoder.encode(password));
+		Manager finManager = managerService.getManagerByEmail(newManager.getEmail());
 
-			manager = managerService.addManager(manager);
-
-			String htmlContent = htmlContentService.getHtmlContent(manager.getName(), manager.getEmail(), password);
-
-			try {
-				mailService.sendPasswordEmail(manager.getEmail(), "Welcome to Pentagon – Login Credentials Enclosed",
-						htmlContent);
-			} catch (Exception e) {
-				throw new OtpException("Mail couldn't be sent", HttpStatus.INTERNAL_SERVER_ERROR);
-			}
-
-			activityLogService.log(adminDetails.getAdmin().getEmail(), adminDetails.getAdmin().getAdminId(), "ADMIN",
-					"Manager with Unique Id " + manager.getManagerId() + " Added Successfully");
-
-		} else {
-			throw new AdminException("Email is already exists", HttpStatus.CONFLICT);
+		if (finManager != null) {
+			throw new AdminException("Email Already exists", HttpStatus.CONFLICT);
 		}
+
+		Manager manager = new Manager();
+		manager.setManagerId(idGeneration.generateId("MANAGER"));
+		manager.setName(newManager.getName());
+		manager.setEmail(newManager.getEmail());
+		manager.setMobile(newManager.getMobile());
+		manager.setActive(true);
+		String password = passwordGenration.generateRandomPassword();
+		manager.setPassword(passwordEncoder.encode(password));
+
+		manager = managerService.addManager(manager);
+
+		String htmlContent = htmlContentService.getHtmlContent(manager.getName(), manager.getEmail(), password);
+
+		try {
+			mailService.sendPasswordEmail(manager.getEmail(), "Welcome to Pentagon – Login Credentials Enclosed",
+					htmlContent);
+		} catch (Exception e) {
+			throw new OtpException("Mail couldn't be sent", HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+
+		activityLogService.log(adminDetails.getAdmin().getEmail(), adminDetails.getAdmin().getAdminId(), "ADMIN",
+				"Manager with Unique Id " + manager.getManagerId() + " Added Successfully");
 
 		return ResponseEntity.ok(new ApiResponse<>("success", "Manager added successfully", null));
 	}
@@ -140,32 +149,34 @@ public class AdminController {
 			throw new AdminException("Admin details not found", HttpStatus.UNAUTHORIZED);
 		}
 
-		boolean checkExecutiveEmail = executiveService.getExecutiveByEmail(newExecutive.getEmail());
-		if (checkExecutiveEmail) {
+		Executive findExecutive = executiveService.getExecutiveByEmail(newExecutive.getEmail());
 
-			Executive executive = new Executive();
-			executive.setExecutiveId(idGeneration.generateId("EXECUTIVE"));
-			executive.setName(newExecutive.getName());
-			executive.setEmail(newExecutive.getEmail());
-			executive.setActive(true);
-			executive.setMobile(newExecutive.getMobile());
-			String password = passwordGenration.generateRandomPassword();
-			executive.setPassword(passwordEncoder.encode(password));
-			executive.setCreatedAt(LocalDateTime.now());
-			executive.setManagerId(newExecutive.getManagerId());
-			executive = executiveService.addExecutive(executive);
-			String htmlContent = htmlContentService.getHtmlContent(executive.getName(), executive.getEmail(), password);
-
-			try {
-				mailService.sendPasswordEmail(executive.getEmail(), "Welcome to Pentagon – Login Credentials Enclosed",
-						htmlContent);
-			} catch (Exception e) {
-				throw new OtpException("Mail couldn't be sent", HttpStatus.INTERNAL_SERVER_ERROR);
-			}
-
-			activityLogService.log(adminDetails.getAdmin().getEmail(), adminDetails.getAdmin().getAdminId(), "ADMIN",
-					"Executive with Unique Id " + executive.getExecutiveId() + " Added Successfully");
+		if (findExecutive != null) {
+			throw new AdminException("Email Already exists", HttpStatus.CONFLICT);
 		}
+
+		Executive executive = new Executive();
+		executive.setExecutiveId(idGeneration.generateId("EXECUTIVE"));
+		executive.setName(newExecutive.getName());
+		executive.setEmail(newExecutive.getEmail());
+		executive.setActive(true);
+		executive.setMobile(newExecutive.getMobile());
+		String password = passwordGenration.generateRandomPassword();
+		executive.setPassword(passwordEncoder.encode(password));
+		executive.setCreatedAt(LocalDateTime.now());
+		executive.setManagerId(newExecutive.getManagerId());
+		executive = executiveService.addExecutive(executive);
+		String htmlContent = htmlContentService.getHtmlContent(executive.getName(), executive.getEmail(), password);
+
+		try {
+			mailService.sendPasswordEmail(executive.getEmail(), "Welcome to Pentagon – Login Credentials Enclosed",
+					htmlContent);
+		} catch (Exception e) {
+			throw new OtpException("Mail couldn't be sent", HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+
+		activityLogService.log(adminDetails.getAdmin().getEmail(), adminDetails.getAdmin().getAdminId(), "ADMIN",
+				"Executive with Unique Id " + executive.getExecutiveId() + " Added Successfully");
 
 		return ResponseEntity.ok(new ApiResponse<>("success", "Executive added Successfully", null));
 	}
@@ -174,9 +185,9 @@ public class AdminController {
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<?> getAdminProfile(@AuthenticationPrincipal CustomUserDetails adminDetails) {
 
-	    Admin admin= adminDetails.getAdmin();
-	    ProfileResponse details = adminservice.getProfile(admin);
-	    return ResponseEntity.ok(new ApiResponse<>("success", "Admin Profile", details));
+		Admin admin = adminDetails.getAdmin();
+		ProfileResponse details = adminservice.getProfile(admin);
+		return ResponseEntity.ok(new ApiResponse<>("success", "Admin Profile", details));
 	}
 
 	@GetMapping("/secure/viewAllTrainers")
@@ -191,97 +202,83 @@ public class AdminController {
 		Page<Trainer> trainers = trainerService.viewAllTrainers(stack, name, trainerId, pageable);
 
 		Page<TrainerDTO> TrainerDTOPage = trainers.map(trainer -> {
-            TrainerDTO dto = new TrainerDTO();
-            dto.setId(trainer.getId());
-            dto.setTrainerId(trainer.getTrainerId());
-            dto.setName(trainer.getName());
-            dto.setEmail(trainer.getEmail());
-            dto.setMobile(trainer.getMobile());
-            dto.setTrainerStack(trainer.getTrainerStack());
-            dto.setQualification(trainer.getQualification());
-            dto.setYearOfExperiences(trainer.getYearOfExperiences());
-            dto.setTechnologies(trainer.getTechnologies());
-            dto.setActive(trainer.isAcitve());
-            dto.setCreatedAt(trainer.getCreatedAt());
-            dto.setUpdatedAt(trainer.getUpdatedAt());
-            return dto;
-        });		
-		
-		return ResponseEntity.ok(
-	            new ApiResponse<>("success", "Trainers fetched successfully", TrainerDTOPage)
-	        );
-	}	
-	
+			TrainerDTO dto = new TrainerDTO();
+			dto.setId(trainer.getId());
+			dto.setTrainerId(trainer.getTrainerId());
+			dto.setName(trainer.getName());
+			dto.setEmail(trainer.getEmail());
+			dto.setMobile(trainer.getMobile());
+			dto.setTrainerStack(trainer.getTrainerStack());
+			dto.setQualification(trainer.getQualification());
+			dto.setYearOfExperiences(trainer.getYearOfExperiences());
+			dto.setTechnologies(trainer.getTechnologies());
+			dto.setActive(trainer.isAcitve());
+			dto.setCreatedAt(trainer.getCreatedAt());
+			dto.setUpdatedAt(trainer.getUpdatedAt());
+			return dto;
+		});
+
+		return ResponseEntity.ok(new ApiResponse<>("success", "Trainers fetched successfully", TrainerDTOPage));
+	}
+
 	@GetMapping("/secure/managers")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<?> viewAllManagers(@AuthenticationPrincipal CustomUserDetails adminDetails,
-			@RequestParam(defaultValue = "0") int page,
-	        @RequestParam(defaultValue = "10") int limit,
-	        @RequestParam(required = false ) String q){
-		
+			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int limit,
+			@RequestParam(required = false) String q) {
+
 		Pageable pageable = PageRequest.of(page, limit, Sort.by("createdAt").descending());
-		
+
 		Page<Manager> managers = managerService.findAll(q, pageable);
-		
+
 		Page<ManagerDTO> managerDTOPage = managers.map(manager -> {
-            ManagerDTO dto=new ManagerDTO();
-            dto.setId(manager.getId());
-            dto.setManagerId(manager.getManagerId());
-            dto.setName(manager.getName());
-            dto.setEmail(manager.getEmail());
-            dto.setMobile(manager.getMobile());
-            dto.setActive(manager.isActive());
-            dto.setCreatedAt(manager.getCreatedAt());
-            dto.setUpdatedAt(manager.getUpdatedAt());
-            return dto;
-        });		
-		
-		return ResponseEntity.ok(
-	            new ApiResponse<>("success", "Managers fetched successfully", managerDTOPage)
-	        );
+			ManagerDTO dto = new ManagerDTO();
+			dto.setId(manager.getId());
+			dto.setManagerId(manager.getManagerId());
+			dto.setName(manager.getName());
+			dto.setEmail(manager.getEmail());
+			dto.setMobile(manager.getMobile());
+			dto.setActive(manager.isActive());
+			dto.setCreatedAt(manager.getCreatedAt());
+			dto.setUpdatedAt(manager.getUpdatedAt());
+			return dto;
+		});
+
+		return ResponseEntity.ok(new ApiResponse<>("success", "Managers fetched successfully", managerDTOPage));
 	}
-	
-	//not working
+
 	@GetMapping("/secure/executives")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<?> viewAllExecutives(@AuthenticationPrincipal CustomUserDetails adminDetails,
-			@RequestParam(defaultValue = "1") int page,
-	        @RequestParam(defaultValue = "10") int limit,
-	        @RequestParam(required = false) String q){
-		
+			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int limit,
+			@RequestParam(required = false) String q) {
+
 		Pageable pageable = PageRequest.of(page, limit, Sort.by("createdAt").descending());
-		
+
 		Page<Executive> executives = executiveService.getAllExecutives(q, pageable);
-		
+
 		Page<ExecutiveDTO> executiveDTOPage = executives.map(executive -> {
-            ExecutiveDTO dto=new ExecutiveDTO();
-            dto.setId(executive.getId());
-            dto.setExecutiveId(executive.getExecutiveId());
-            dto.setName(executive.getName());
-            dto.setEmail(executive.getEmail());
-            dto.setMobile(executive.getMobile());
-            dto.setActive(executive.isActive());
-            dto.setCreatedAt(executive.getCreatedAt());
-            dto.setUpdatedAt(executive.getUpdatedAt());
-            return dto;
-        });		
-		
-		return ResponseEntity.ok(
-	            new ApiResponse<>("success", "Executives fetched successfully", executiveDTOPage)
-	        );
+			ExecutiveDTO dto = new ExecutiveDTO();
+			dto.setId(executive.getId());
+			dto.setExecutiveId(executive.getExecutiveId());
+			dto.setName(executive.getName());
+			dto.setEmail(executive.getEmail());
+			dto.setMobile(executive.getMobile());
+			dto.setActive(executive.isActive());
+			dto.setCreatedAt(executive.getCreatedAt());
+			dto.setUpdatedAt(executive.getUpdatedAt());
+			return dto;
+		});
+
+		return ResponseEntity.ok(new ApiResponse<>("success", "Executives fetched successfully", executiveDTOPage));
 	}
-    
-	
+
 	@GetMapping("/secure/jd/{jobDescriptionId}")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<?> getJobDescriptionById(@PathVariable String jobDescriptionId) {
 
 		JobDescription jobDescription = jobDescriptionService.findByJobDescriptionId(jobDescriptionId)
 				.orElseThrow(() -> new JobDescriptionException("Job Description not found", HttpStatus.NOT_FOUND));
-
-//		if (jobDescription == null) {
-//			throw new JobDescriptionException("Job Description Not Found", HttpStatus.NOT_FOUND);
-//		}
 
 		JobDescriptionDTO jobDescriptionDTO = new JobDescriptionDTO();
 		jobDescriptionDTO.setId(jobDescription.getId());
@@ -312,69 +309,119 @@ public class AdminController {
 		return ResponseEntity.ok(new ApiResponse<>("success", "Job Description Fetched", jobDescriptionDTO));
 
 	}
-	
+
 	@GetMapping("/secure/jd")
 	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<?> getAllJds(
-			@AuthenticationPrincipal CustomUserDetails managerDetails ,
-			@RequestParam(defaultValue = "0") int page, 
-			@RequestParam(defaultValue = "10") int limit,
-			@RequestParam(required = false) String companyName,
-			@RequestParam(required = false) String stack,
-			@RequestParam(required = false) String role,
-			@RequestParam(required = false) Boolean isClosed,
+	public ResponseEntity<?> getAllJds(@AuthenticationPrincipal CustomUserDetails managerDetails,
+			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int limit,
+			@RequestParam(required = false) String companyName, @RequestParam(required = false) String stack,
+			@RequestParam(required = false) String role, @RequestParam(required = false) Boolean isClosed,
 			@RequestParam(required = false) Integer minYearOfPassing,
 			@RequestParam(required = false) Integer maxYearOfPassing,
-			@RequestParam(required = false) String qualification,
-			@RequestParam(required = false) String stream,
-			@RequestParam(required = false) Double percentage,
-			@RequestParam(required = false) String status,
-			@RequestParam(required = false) String inputRange)
-	{
-		
-		System.out.println(stack);
+			@RequestParam(required = false) String qualification, @RequestParam(required = false) String stream,
+			@RequestParam(required = false) Double percentage, @RequestParam(required = false) String status,
+			@RequestParam(required = false) String startDate, @RequestParam(required = false) String endDate) {
 		Pageable pageable = PageRequest.of(page, limit, Sort.by("created_at").descending());
-		Page<JobDescription> jobDescriptions = jobDescriptionService.findAllJobDescriptions(
-				companyName, 
-				stack, 
-				role,
-				isClosed, 
-				minYearOfPassing, 
-				maxYearOfPassing, 
-				qualification, 
-				stream, 
-				percentage,
-				null,
-				status, 
-				pageable);
-
-//		Page<JobDescriptionDTO> JobDescriptionDTOResponse = jobDescriptions.map(jobDescription -> {
-//			JobDescriptionDTO jobDescriptionDTO = new JobDescriptionDTO();
-//			jobDescriptionDTO.setId(jobDescription.getId());
-//			jobDescriptionDTO.setJobDescriptionId(jobDescription.getJobDescriptionId());
-//			jobDescriptionDTO.setCompanyName(jobDescription.getCompanyName());
-//			jobDescriptionDTO.setWebsite(jobDescription.getWebsite());
-//			jobDescriptionDTO.setRole(jobDescription.getRole());
-//			jobDescriptionDTO.setStack(jobDescription.getStack());
-//			jobDescriptionDTO.setQualification(jobDescription.getQualification());
-//			jobDescriptionDTO.setStream(jobDescription.getStream());
-//			jobDescriptionDTO.setPercentage(jobDescription.getPercentage());
-//			jobDescriptionDTO.setMinYearOfPassing(jobDescription.getMinYearOfPassing());
-//			jobDescriptionDTO.setMaxYearOfPassing(jobDescription.getMaxYearOfPassing());
-//			jobDescriptionDTO.setSalaryPackage(jobDescription.getSalaryPackage());
-//			jobDescriptionDTO.setNumberOfRegistrations(jobDescription.getNumberOfRegistrations());
-//			jobDescriptionDTO.setCurrentRegistrations(jobDescription.getCurrentRegistrations());
-//			jobDescriptionDTO.setMockRating(jobDescription.getMockRating());
-//			jobDescriptionDTO.setJdStatus(jobDescription.getJdStatus());
-//			jobDescriptionDTO.setManagerApproval(jobDescription.isManagerApproval());
-//			jobDescriptionDTO.setNumberOfClosures(jobDescription.getNumberOfClosures());
-//			jobDescriptionDTO.setClosed(jobDescription.isClosed());
-//			jobDescriptionDTO.setCreatedAt(jobDescription.getCreatedAt());
-//			jobDescriptionDTO.setUpdatedAt(jobDescription.getUpdatedAt());
-//			jobDescriptionDTO.setLocation(jobDescription.getLocation());
-//			return jobDescriptionDTO;
-//		});
+		Page<JobDescription> jobDescriptions = jobDescriptionService.findAllJobDescriptions(companyName, stack, role,
+				isClosed, minYearOfPassing, maxYearOfPassing, qualification, stream, percentage, null, status,
+				startDate, endDate, pageable);
 		return ResponseEntity.ok(new ApiResponse<>("success", "Jd results", jobDescriptions));
 	}
+
+	@GetMapping("/secure/manager/{id}")
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<?> getMangerById(@PathVariable String id) {
+		Manager findManager = managerService.getManagerById(id);
+		if (findManager == null) {
+			throw new AdminException("Manader Not Found", HttpStatus.NOT_FOUND);
+		}
+
+		ManagerDetails managerDetails = new ManagerDetails();
+		managerDetails.setActive(findManager.isActive());
+		managerDetails.setCreatedAt(findManager.getCreatedAt());
+		managerDetails.setEmail(findManager.getEmail());
+		managerDetails.setId(null);
+		managerDetails.setManagerId(findManager.getManagerId());
+		managerDetails.setMobile(findManager.getMobile());
+		managerDetails.setName(findManager.getName());
+		managerDetails.setPassword(null);
+		managerDetails.setTotalExecutives(managerService.getAllExecutivesCount(findManager.getManagerId()));
+		
+		
+		Map<String, Long> jdDetails = (Map) managerService.getManagersJdDetails(findManager.getManagerId());
+		managerDetails.setJdsCount(jdDetails);
+
+	    // Last 7 days jd counts
+		Map<String, Long> jdCounts = managerService.getManagerJdCountByDate(findManager.getManagerId(), 7);
+		
+        managerDetails.setLastWeekJdCount(jdCounts);
+
+		return ResponseEntity.ok(new ApiResponse<>("success", "Managers Data", managerDetails));
+	}
+	
+	
+	@GetMapping("/secure/manager/{id}/executives")
+	public ResponseEntity<?> getAllExecutivesByManager(@PathVariable("id") String managerId,
+			@RequestParam(required = false , defaultValue = "0") Integer page,
+			@RequestParam(required = false ,defaultValue = "10") Integer limit)
+	{
+		Pagable
+		
+		Page<Executive> executiveList =  managerService.getAllExecutives(managerId,)
+		
+	}
+	
+	@GetMapping("/secure/executive/{id}")
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<?> getExecutiveById(@PathVariable String id) {
+		
+		Executive findExecutive = executiveService.getExecutiveById(id);
+		if(findExecutive ==null)
+		{
+			throw new AdminException("Executive not found", HttpStatus.NOT_FOUND);
+		}
+		
+		ExecutiveDetails executiveDetails =  new ExecutiveDetails();
+		executiveDetails.setActive(findExecutive.isActive());
+		executiveDetails.setCreatedAt(findExecutive.getCreatedAt());
+		executiveDetails.setEmail(findExecutive.getEmail());
+		executiveDetails.setExecutiveId(findExecutive.getExecutiveId());
+		executiveDetails.setId(null);
+		executiveDetails.setManagerId(findExecutive.getManagerId());
+		executiveDetails.setMobile(findExecutive.getMobile());
+		executiveDetails.setName(findExecutive.getName());
+		Map<String, Long> jdDetails = (Map) executiveService.getExecutiveJdDetails(findExecutive.getExecutiveId());
+		executiveDetails.setJdsCount(jdDetails);
+		
+		Manager manager = managerService.getManagerById(findExecutive.getManagerId());
+		
+		executiveDetails.setManagerEmail(manager.getEmail());
+		executiveDetails.setManagerName(manager.getName());
+		
+		
+		return ResponseEntity.ok(new ApiResponse<>("success", "Executive Data", executiveDetails));
+	}
+	
+	
+	
+	@GetMapping("/secure/executive/{id}/recentJd")
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<?> getExecutiveRecentJd(@PathVariable String id) {
+		
+		Executive findExecutive = executiveService.getExecutiveById(id);
+		if(findExecutive ==null)
+		{
+			throw new AdminException("Executive not found", HttpStatus.NOT_FOUND);
+		}
+	
+		Integer RECENT_COUNT = 5;
+		
+		Page<JobDescription> jobDescriptions = executiveService.getRecentJobDescriptions(id, RECENT_COUNT);
+		
+		return ResponseEntity.ok(new ApiResponse<>("success", "Executive Data", jobDescriptions));
+	}
+	
+	
+	
 
 }

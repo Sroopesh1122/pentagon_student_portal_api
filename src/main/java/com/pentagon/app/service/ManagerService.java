@@ -1,8 +1,11 @@
 package com.pentagon.app.service;
 
+import java.util.Map;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import com.pentagon.app.entity.Executive;
 import com.pentagon.app.entity.Manager;
 import com.pentagon.app.request.ManagerLoginRequest;
 import com.pentagon.app.response.ProfileResponse;
@@ -15,14 +18,23 @@ public interface ManagerService {
 	
 	public void disableManagerByUniqueId(String managerId);
 	
-	public boolean getManagerByEmail(String email);
+	public Manager getManagerByEmail(String email);
 
 	String loginWithPassword(ManagerLoginRequest managerLoginRequest);
 
 	public ProfileResponse getProfile(Manager manager);
 	
 	public Page<Manager> findAll(String q ,Pageable pageable);
-
-
+	
+	public Manager getManagerById(String managerId);
+	
+    public Object getManagersJdDetails(String managetId);
+    
+    public Long  getAllExecutivesCount(String managerId);
+    
+    public Map<String, Long> getManagerJdCountByDate(String managerId ,Integer days);
+    
+    
+    public Page<Executive> getAllExecutives(String managerId , Pageable pageable);
 
 }

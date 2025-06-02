@@ -8,7 +8,7 @@ import com.pentagon.app.response.ProfileResponse;
 
 public interface AdminService {
 
-	public boolean updateAdmin(Admin admin);
+	public Admin updateAdmin(Admin admin);
 
 	public String loginWithPassword(AdminLoginRequest request);
 

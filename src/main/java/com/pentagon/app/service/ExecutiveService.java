@@ -4,14 +4,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import com.pentagon.app.entity.Executive;
-
+import com.pentagon.app.entity.JobDescription;
 import com.pentagon.app.request.ExecutiveLoginRequest;
 import com.pentagon.app.response.ProfileResponse;
 
 
 public interface ExecutiveService {
 	
-	public boolean updateExecutive(Executive executive);
+	public Executive updateExecutive(Executive executive);
 	
 	public Executive addExecutive(Executive executive);
 	
@@ -23,6 +23,11 @@ public interface ExecutiveService {
 	
 	public void disableExecutiveByUniqueId(String executiveId);
 	
-	public boolean getExecutiveByEmail(String email);
+	public Executive getExecutiveByEmail(String email);
 
+	public Executive getExecutiveById(String executiveId);
+	
+	public Object getExecutiveJdDetails(String executiveId);
+	
+	public Page<JobDescription> getRecentJobDescriptions(String executiveId , Integer count);
 }

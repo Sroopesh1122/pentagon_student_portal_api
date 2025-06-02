@@ -104,6 +104,8 @@ public class JobDescription {
 	
 	private String managerId;
 	
+	private LocalDateTime approvedDate;
+	
 	//update current registration count
 	public void updateCurrentRegistrations(int newCount) {
         if (newCount < 0) {

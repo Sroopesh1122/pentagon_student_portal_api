@@ -216,7 +216,9 @@ public class ExecutiveController {
 			@RequestParam(required = false, defaultValue = "") String qualification,
 			@RequestParam(required = false, defaultValue = "") String stream,
 			@RequestParam(required = false) Double percentage,
-			@RequestParam(required = false, defaultValue = "") String status
+			@RequestParam(required = false, defaultValue = "") String status,
+			@RequestParam(required = false) String startDate,
+			@RequestParam(required = false) String endDate
 			) {
 
 		if (executiveDetails == null) {
@@ -228,7 +230,7 @@ public class ExecutiveController {
 		Pageable pageable = PageRequest.of(page, limit, Sort.by("created_at").descending());
 		
 		Page<JobDescription> jobDescriptions = jobDescriptionService.findAllJobDescriptions(companyName, stack, role,
-				isClosed, minYearOfPassing, maxYearOfPassing, qualification, stream, percentage,executiveId,status, pageable);
+				isClosed, minYearOfPassing, maxYearOfPassing, qualification, stream, percentage,executiveId,status,startDate,endDate, pageable);
 
 		Page<JobDescriptionDTO> JobDescriptionDTOResponse = jobDescriptions.map(jobDescription -> {
 			JobDescriptionDTO jobDescriptionDTO = new JobDescriptionDTO();

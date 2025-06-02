@@ -17,14 +17,14 @@ public interface JobDescriptionService {
 			Integer minYearOfPassing, Integer maxYearOfPassing, String qualification, String stream, Double percentage,
 			String executiveId,
 			String status,
+			 String startDate,
+		        String endDate,
 			Pageable pageable);
 
-	public boolean addJobDescription(JobDescription jobDescription);
+	public JobDescription addJobDescription(JobDescription jobDescription);
 
 	public JobDescription updateJobDescription(JobDescription jobDescription);
 	
-
-
 
 	public List<JobDescription> viewAllJobDescriptions();
 	

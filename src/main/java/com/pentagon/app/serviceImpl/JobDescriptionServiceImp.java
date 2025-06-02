@@ -26,22 +26,18 @@ public class JobDescriptionServiceImp implements JobDescriptionService {
 	@Autowired
 	private JobDescriptionRepository jobDescriptionRepository;
 	
-
-	@Autowired
-	private JobDescriptionService jobDescriptionService;
-
 	
 	@Override
 	public Optional<JobDescription> findByJobDescriptionId(String jobDescriptionId) {
 	    return jobDescriptionRepository.findByJobDescriptionId(jobDescriptionId);
 	}
 	
-	public boolean addJobDescription(JobDescription jobDescription) {
+	public JobDescription addJobDescription(JobDescription jobDescription) {
 		// TODO Auto-generated method stub
 		try {
 			jobDescription.setCreatedAt(LocalDateTime.now());
-			jobDescriptionRepository.save(jobDescription);
-			return true;
+			jobDescription = jobDescriptionRepository.save(jobDescription);
+			return jobDescription;
 		}
 		catch(Exception e) {
 			throw new JobDescriptionException("Failed to Add Job Description: "+ e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -73,6 +69,8 @@ public class JobDescriptionServiceImp implements JobDescriptionService {
 	        Double percentage,
 	        String executiveId,
 	        String status,
+	        String startDate,
+	        String endDate,
 	        Pageable pageable) {
 	    
 	    try {
@@ -85,7 +83,7 @@ public class JobDescriptionServiceImp implements JobDescriptionService {
 	                companyName, stackRegex, role, isClosed,
 	                minYearOfPassing, maxYearOfPassing,
 	                qualificationRegex, streamRegex,
-	                percentage, executiveId,status, pageable);
+	                percentage, executiveId,status,startDate,endDate, pageable);
 	        
 	    } catch (Exception e) {
 	    	e.printStackTrace();
