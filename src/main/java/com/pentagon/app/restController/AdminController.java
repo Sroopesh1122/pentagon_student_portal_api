@@ -365,9 +365,11 @@ public class AdminController {
 			@RequestParam(required = false , defaultValue = "0") Integer page,
 			@RequestParam(required = false ,defaultValue = "10") Integer limit)
 	{
-		Pagable
 		
-		Page<Executive> executiveList =  managerService.getAllExecutives(managerId,)
+		Pageable pageable = PageRequest.of(page, limit, Sort.by("createdAt").descending());		
+		Page<Executive> executiveList =  managerService.getAllExecutives(managerId,pageable);
+		
+		return ResponseEntity.ok(new ApiResponse<>("success","Executives reporting to this manager",executiveList));
 		
 	}
 	
