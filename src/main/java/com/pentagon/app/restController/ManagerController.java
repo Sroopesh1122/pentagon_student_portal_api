@@ -324,6 +324,7 @@ public class ManagerController {
 		jobDescriptionDTO.setExecutive(jobDescription.getExecutive());
 		jobDescriptionDTO.setPostedBy(jobDescription.getPostedBy());
 		jobDescriptionDTO.setDescription(jobDescription.getDescription());
+		//jobDescriptionDTO.setManagerId(jobDescription.getManagerId());
 		return ResponseEntity.ok(new ApiResponse<>("success", "Job Description Fetched", jobDescriptionDTO));
 
 	}
@@ -384,6 +385,7 @@ public class ManagerController {
 		return ResponseEntity.ok(new ApiResponse<>("success", "Manager Profile", JobDescriptionDTOResponse));
 	}
 
+	
 	@GetMapping("/secure/executives")
 	@PreAuthorize("hasRole('MANAGER')")
 	public ResponseEntity<?> getAllExecutives(@AuthenticationPrincipal CustomUserDetails managerDetails,
@@ -396,4 +398,7 @@ public class ManagerController {
 		return ResponseEntity.ok(new ApiResponse<>("success", "Executives data", executives));
 	}
 
+	//view all executives based on manger id 
+	//based on ex id - number of jds posted , and number of openings and number of closures
+	
 }

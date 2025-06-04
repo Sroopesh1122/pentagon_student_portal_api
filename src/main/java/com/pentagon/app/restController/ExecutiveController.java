@@ -273,5 +273,9 @@ public class ExecutiveController {
 		ProfileResponse details = executiveService.getProfile(executive);
 		return ResponseEntity.ok(new ApiResponse<>("success", "Executive Profile", details));
 	}
+	
+	//vieW ALL JDS BY EXECU ID
+	//after jd closed, fetch count of clousers
+	//for particular executive fetch their total number of JDs,openings,closures completed based on 
 
 }

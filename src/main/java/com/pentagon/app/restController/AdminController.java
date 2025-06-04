@@ -415,15 +415,13 @@ public class AdminController {
 		{
 			throw new AdminException("Executive not found", HttpStatus.NOT_FOUND);
 		}
-	
+	 
 		Integer RECENT_COUNT = 5;
 		
 		Page<JobDescription> jobDescriptions = executiveService.getRecentJobDescriptions(id, RECENT_COUNT);
 		
 		return ResponseEntity.ok(new ApiResponse<>("success", "Executive Data", jobDescriptions));
 	}
-	
-	
 	
 
 }

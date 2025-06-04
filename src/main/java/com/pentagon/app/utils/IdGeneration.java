@@ -13,6 +13,7 @@ import com.pentagon.app.repository.JobDescriptionRepository;
 import com.pentagon.app.repository.ManagerRepository;
 import com.pentagon.app.repository.StudentRepository;
 import com.pentagon.app.repository.TrainerRepository;
+import java.security.SecureRandom;
 
 @Component
 public class IdGeneration {
@@ -74,37 +75,53 @@ public class IdGeneration {
 	    }
 	}
 	
-	public String generateId(String type) {
-	    String prefix;
-	    int count = 0;
-
-	    switch (type.toUpperCase()) {
-	        case "ADMIN" -> {
-	            prefix = "ADM";
-	            count = adminRepository.getAdminCount();
-	        }
-	        case "MANAGER" -> {
-	            prefix = "MGR";
-	            count = managerRepository.getManagerCount(); 
-	        }
-	        case "EXECUTIVE" -> {
-	            prefix = "EXE";
-	            count = executiveRepository.getExecutiveCount(); 
-	        }
-	        case "TRAINER" -> {
-	        	prefix = "TRN";
-	        	count = trainerRepository.getTrainerCount(); 
-	        }
-	        case "JD" -> {
-	        	prefix = "JD";
-	        	count = (int) jdRepository.count();
-	        }
-	        default -> throw new IdGenerationException("Invalid user type: " + type, HttpStatus.BAD_REQUEST);
-	    }
-
-	    String padded = String.format("%04d", count + 1);
-	    return prefix + padded;
-	}
+//	public String generateId(String type) {
+//	    String prefix;
+//	    int count = 0;
+//
+//	    switch (type.toUpperCase()) {
+//	        case "ADMIN" -> {
+//	            prefix = "ADM";
+//	            count = adminRepository.getAdminCount();
+//	        }
+//	        case "MANAGER" -> {
+//	            prefix = "MGR";
+//	            count = managerRepository.getManagerCount(); 
+//	        }
+//	        case "EXECUTIVE" -> {
+//	            prefix = "EXE";
+//	            count = executiveRepository.getExecutiveCount(); 
+//	        }
+//	        case "TRAINER" -> {
+//	        	prefix = "TRN";
+//	        	count = trainerRepository.getTrainerCount(); 
+//	        }
+//	        case "JD" -> {
+//	        	prefix = "JD";
+//	        	count = (int) jdRepository.count();
+//	        }
+//	        default -> throw new IdGenerationException("Invalid user type: " + type, HttpStatus.BAD_REQUEST);
+//	    }
+//
+//	    String padded = String.format("%04d", count + 1);
+//	    return prefix + padded;
+//	}
 	
+	public String generateId(String type) {
+	    String prefix = switch (type.toUpperCase()) {
+	        case "ADMIN" -> "ADM";
+	        case "MANAGER" -> "MGR";
+	        case "EXECUTIVE" -> "EXE";
+	        case "TRAINER" -> "TRN";
+	        case "JD" -> "JD";
+	        default -> throw new IdGenerationException("Invalid type: " + type, HttpStatus.BAD_REQUEST);
+	    };
+	    
+	    SecureRandom random = new SecureRandom();
+	    int randomNumber = random.nextInt(100_000_000); // 0-99,999,999
+	    String suffix = String.format("%08d", randomNumber); // Pad with leading zeros
 
+	    return prefix + suffix; // e.g., "ADM04192683"
+	
+	}
 }
