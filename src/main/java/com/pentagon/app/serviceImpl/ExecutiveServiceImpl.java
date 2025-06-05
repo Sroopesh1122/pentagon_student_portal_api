@@ -144,4 +144,10 @@ public class ExecutiveServiceImpl implements ExecutiveService {
 				null,null, null, null, executiveId, null, null,null, pageable);
 	}
 
+//	
+	
+	@Override
+	public Page<Executive> getExecutivesByManagerIdAndSearchQuery(String managerId, String q, Pageable pageable) {
+	    return executiveRepository.findByManagerIdWithSearchQuery(managerId, q, pageable);
+	}
 }

@@ -30,4 +30,6 @@ public interface ExecutiveService {
 	public Object getExecutiveJdDetails(String executiveId);
 	
 	public Page<JobDescription> getRecentJobDescriptions(String executiveId , Integer count);
+
+	public Page<Executive> getExecutivesByManagerIdAndSearchQuery(String managerId, String q, Pageable pageable);
 }
