@@ -13,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import com.pentagon.app.Dto.ExecutiveJDStatusDTO;
 import com.pentagon.app.entity.JobDescription;
 import com.pentagon.app.exception.JobDescriptionException;
 import com.pentagon.app.repository.JobDescriptionRepository;
@@ -115,6 +116,14 @@ public class JobDescriptionServiceImp implements JobDescriptionService {
 		catch(Exception e) {
 			 throw new JobDescriptionException("Failed to Fetch Job Descriptions : " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+	}
+	@Override
+	public ExecutiveJDStatusDTO getExecutiveJobDescriptionStats(String executiveId) {
+	    int totalJDs = jobDescriptionRepository.countTotalJDsByExecutive(executiveId);
+	    int openings = jobDescriptionRepository.countOpeningsByExecutive(executiveId);
+	    int closures = jobDescriptionRepository.countClosuresByExecutive(executiveId);
+
+	    return new ExecutiveJDStatusDTO(totalJDs, openings, closures);
 	}
 
 }

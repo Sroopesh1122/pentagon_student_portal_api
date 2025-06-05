@@ -80,5 +80,14 @@ public interface JobDescriptionRepository extends JpaRepository<JobDescription, 
 			@Param("startDate") String startDate,
 			@Param("endDate") String endDate,
 			Pageable pageable);
+	
+	@Query("SELECT COUNT(j) FROM JobDescription j WHERE j.executive.executiveId = :executiveId")
+	int countTotalJDsByExecutive(@Param("executiveId") String executiveId);
+
+	@Query("SELECT COUNT(j) FROM JobDescription j WHERE j.executive.executiveId = :executiveId AND j.isClosed = false")
+	int countOpeningsByExecutive(@Param("executiveId") String executiveId);
+
+	@Query("SELECT COUNT(j) FROM JobDescription j WHERE j.executive.executiveId = :executiveId AND j.isClosed = true")
+	int countClosuresByExecutive(@Param("executiveId") String executiveId);
 
 }
