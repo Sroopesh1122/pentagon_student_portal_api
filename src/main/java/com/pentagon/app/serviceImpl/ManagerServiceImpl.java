@@ -1,10 +1,15 @@
 package com.pentagon.app.serviceImpl;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -13,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.pentagon.app.Dto.JdStatsDTO;
 import com.pentagon.app.entity.Executive;
 import com.pentagon.app.entity.Manager;
 import com.pentagon.app.exception.AdminException;
@@ -151,23 +157,72 @@ public class ManagerServiceImpl implements ManagerService {
 	}
 	
 	@Override
-	public Map<String, Long> getManagerJdCountByDate(String managerId ,Integer days) {
-		// TODO Auto-generated method stub
-		Map<String,Long> jdCounts = new LinkedHashMap<>();
-		int i=0;
-		while( i <= days)
-		{
-			String dateStr = LocalDateTime.now().minusDays(i).toLocalDate().toString();
-			jdCounts.put(dateStr,jobDescriptionRepository.countJdsByManagerAndDate(managerId, dateStr));
-			i++;
-		}
+	public List<JdStatsDTO> getManagerJdStats(String managerId,String timeUnit ,Integer range) {
+		DateTimeFormatter formatter;
+	    ChronoUnit chronoUnit;
+	    String sqlFormat;
+
+	    switch (timeUnit.toLowerCase()) {
+	        case "day":
+	            formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+	            sqlFormat = "%Y-%m-%d";
+	            chronoUnit = ChronoUnit.DAYS;
+	            
+	            break;
+	        case "week":
+	            formatter = DateTimeFormatter.ofPattern("YYYY-'W'ww");
+	            sqlFormat = "%x-W%v"; // MySQL: ISO year and week
+	            chronoUnit = ChronoUnit.WEEKS;
+	           
+	            break;
+	        case "month":
+	            formatter = DateTimeFormatter.ofPattern("yyyy-MM");
+	            sqlFormat = "%Y-%m";
+	            chronoUnit = ChronoUnit.MONTHS;
+	          
+	            break;
+	        case "year":
+	            formatter = DateTimeFormatter.ofPattern("yyyy");
+	            sqlFormat = "%Y";
+	            chronoUnit = ChronoUnit.YEARS;
+	           
+	            break;
+	        default:
+	            throw new IllegalArgumentException("Invalid time unit: " + timeUnit);
+	    }
+
+	    // Generate time labels in Java
+	    LocalDate now = LocalDate.now();
+	    Map<String, Long> fullMap = new LinkedHashMap<>();
+	    for (int i = range - 1; i >= 0; i--) {
+	        String label = now.minus(i, chronoUnit).format(formatter);
+	        fullMap.put(label, 0L);
+	    }
+
+	    // Fetch grouped count from DB
+	    String startDate = now.minus(range - 1, chronoUnit).toString();
+	    List<Object[]> results = jobDescriptionRepository.getJdStatsOfManager(managerId,sqlFormat, startDate);
+
+	    for (Object[] obj : results) {
+	        String label = (String) obj[0];
+	        Long count = ((Number) obj[1]).longValue();
+	        fullMap.put(label, count);
+	    }
+
+	    return fullMap.entrySet().stream()
+	            .map(e -> new JdStatsDTO(e.getKey(), e.getValue()))
+	            .collect(Collectors.toList());
 		
-		return jdCounts;
 	}
 	
 	@Override
-	public Page<Executive> getAllExecutives(String managerId, Pageable pageable) {
-		return executiveRepository.getAllExecutives(managerId, pageable);
+	public Page<Executive> getAllExecutives(String managerId,String q, Pageable pageable) {
+		return executiveRepository.getAllExecutives(managerId,q, pageable);
+	}
+	
+	@Override
+	public Long getTotalCount() {
+		return managerRepository.count();
 	}
 
 }

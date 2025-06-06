@@ -1,14 +1,9 @@
 package com.pentagon.app.restController;
 
-import java.sql.Date;
-import java.sql.Timestamp;
-import java.time.LocalDate;
+
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -29,7 +24,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.pentagon.app.Dto.AdminDashboardInfoDTO;
 import com.pentagon.app.Dto.ExecutiveDTO;
+import com.pentagon.app.Dto.JdStatsDTO;
+import com.pentagon.app.Dto.JdVsClosureStatsDTO;
 import com.pentagon.app.Dto.JobDescriptionDTO;
 import com.pentagon.app.Dto.ManagerDTO;
 import com.pentagon.app.Dto.TrainerDTO;
@@ -306,6 +304,15 @@ public class AdminController {
 		jobDescriptionDTO.setExecutive(jobDescription.getExecutive());
 		jobDescriptionDTO.setPostedBy(jobDescription.getPostedBy());
 		jobDescriptionDTO.setDescription(jobDescription.getDescription());
+		jobDescriptionDTO.setManagerId(jobDescription.getManagerId());
+		jobDescriptionDTO.setSkills(jobDescription.getSkills());
+		jobDescriptionDTO.setJdActionReason(jobDescription.getJdActionReason());
+		Manager manager = managerService.getManagerById(jobDescription.getManagerId());
+		if(manager !=null)
+		{
+			jobDescriptionDTO.setManagerName(manager.getName());
+		}
+		
 		return ResponseEntity.ok(new ApiResponse<>("success", "Job Description Fetched", jobDescriptionDTO));
 
 	}
@@ -313,17 +320,23 @@ public class AdminController {
 	@GetMapping("/secure/jd")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<?> getAllJds(@AuthenticationPrincipal CustomUserDetails managerDetails,
-			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int limit,
-			@RequestParam(required = false) String companyName, @RequestParam(required = false) String stack,
-			@RequestParam(required = false) String role, @RequestParam(required = false) Boolean isClosed,
+			@RequestParam(defaultValue = "0") int page, 
+			@RequestParam(defaultValue = "10") int limit,
+			@RequestParam(required = false) String companyName, 
+			@RequestParam(required = false) String stack,
+			@RequestParam(required = false) String role,
+			@RequestParam(required = false) Boolean isClosed,
 			@RequestParam(required = false) Integer minYearOfPassing,
 			@RequestParam(required = false) Integer maxYearOfPassing,
-			@RequestParam(required = false) String qualification, @RequestParam(required = false) String stream,
-			@RequestParam(required = false) Double percentage, @RequestParam(required = false) String status,
-			@RequestParam(required = false) String startDate, @RequestParam(required = false) String endDate) {
+			@RequestParam(required = false) String qualification, 
+			@RequestParam(required = false) String stream,
+			@RequestParam(required = false) Double percentage, 
+			@RequestParam(required = false) String status,
+			@RequestParam(required = false) String startDate,
+			@RequestParam(required = false) String endDate) {
 		Pageable pageable = PageRequest.of(page, limit, Sort.by("created_at").descending());
 		Page<JobDescription> jobDescriptions = jobDescriptionService.findAllJobDescriptions(companyName, stack, role,
-				isClosed, minYearOfPassing, maxYearOfPassing, qualification, stream, percentage, null, status,
+				isClosed, minYearOfPassing, maxYearOfPassing, qualification, stream, percentage, null,null, status,
 				startDate, endDate, pageable);
 		return ResponseEntity.ok(new ApiResponse<>("success", "Jd results", jobDescriptions));
 	}
@@ -352,7 +365,7 @@ public class AdminController {
 		managerDetails.setJdsCount(jdDetails);
 
 	    // Last 7 days jd counts
-		Map<String, Long> jdCounts = managerService.getManagerJdCountByDate(findManager.getManagerId(), 7);
+		List<JdStatsDTO> jdCounts = managerService.getManagerJdStats(findManager.getManagerId(), "day",7);
 		
         managerDetails.setLastWeekJdCount(jdCounts);
 
@@ -366,9 +379,10 @@ public class AdminController {
 			@RequestParam(required = false ,defaultValue = "10") Integer limit)
 	{
 		
-		Pageable pageable = PageRequest.of(page, limit, Sort.by("createdAt").descending());		
-		Page<Executive> executiveList =  managerService.getAllExecutives(managerId,pageable);
+		Pageable pageable = PageRequest.of(page, limit, Sort.by("createdAt").descending());
 		
+		//null for no search text
+		Page<Executive> executiveList =  managerService.getAllExecutives(managerId,null,pageable);
 		return ResponseEntity.ok(new ApiResponse<>("success","Executives reporting to this manager",executiveList));
 		
 	}
@@ -394,16 +408,11 @@ public class AdminController {
 		executiveDetails.setName(findExecutive.getName());
 		Map<String, Long> jdDetails = (Map) executiveService.getExecutiveJdDetails(findExecutive.getExecutiveId());
 		executiveDetails.setJdsCount(jdDetails);
-		
 		Manager manager = managerService.getManagerById(findExecutive.getManagerId());
-		
 		executiveDetails.setManagerEmail(manager.getEmail());
 		executiveDetails.setManagerName(manager.getName());
-		
-		
 		return ResponseEntity.ok(new ApiResponse<>("success", "Executive Data", executiveDetails));
 	}
-	
 	
 	
 	@GetMapping("/secure/executive/{id}/recentJd")
@@ -425,5 +434,64 @@ public class AdminController {
 	
 	
 	
-
+	@GetMapping("/secure/executive/{id}/jd/stats")
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<?> getJdStatsOfExecutive(
+			@PathVariable("id") String executiveId, 
+			@RequestParam("timeUnit") String timeUnit,
+			@RequestParam("range") int range) {
+		
+		List<JdStatsDTO> jdStats =  executiveService.getExecutiveJdStats(executiveId, timeUnit,range);
+		
+		return ResponseEntity.ok(new ApiResponse<>("success", "JD Stats", jdStats));
+	}
+	
+	@GetMapping("/secure/manager/{id}/jd/stats")
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<?> getJdStatsOfManager(
+			@PathVariable("id") String managerId, 
+			@RequestParam("timeUnit") String timeUnit,
+			@RequestParam("range") int range) {
+		
+		List<JdStatsDTO> jdStats =  managerService.getManagerJdStats(managerId, timeUnit, range);
+		return ResponseEntity.ok(new ApiResponse<>("success", "JD Stats", jdStats));
+	}
+	
+	
+	
+	@GetMapping("/secure/jd/stats")
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<?> getJdStats(
+			@RequestParam("timeUnit") String timeUnit,
+			@RequestParam("range") int range) {
+		
+		List<JdStatsDTO> jdStats = adminservice.getJdStats(timeUnit, range);
+		
+		return ResponseEntity.ok(new ApiResponse<>("success", "JD Stats", jdStats));
+	}
+	
+	
+	@GetMapping("/secure/jd-vs-closure/stats")
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<?> getJdvsClosureStats(
+			@RequestParam("timeUnit") String timeUnit,
+			@RequestParam("range") int range) {
+		List<JdVsClosureStatsDTO> jdVsClosureStats = adminservice.getJdVsClosureStats(timeUnit, range);
+		return ResponseEntity.ok(new ApiResponse<>("success", "JD vs closure Stats", jdVsClosureStats));
+	}
+	
+	
+	@GetMapping("/secure/dash-info")
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<?> getAdminDashInfo() {
+		
+		AdminDashboardInfoDTO dashBoardInfo = new AdminDashboardInfoDTO();
+		dashBoardInfo.setTotalClosures(jobDescriptionService.totalClosureCount());
+		dashBoardInfo.setTotalExecutives(executiveService.getTotalCount());
+		dashBoardInfo.setTotalJobDescription(jobDescriptionService.totalCount());
+		dashBoardInfo.setTotalManagers(managerService.getTotalCount());
+		
+		return ResponseEntity.ok(new ApiResponse<>("success", "Admin Dashboard Info",dashBoardInfo));
+	}
+	
 }

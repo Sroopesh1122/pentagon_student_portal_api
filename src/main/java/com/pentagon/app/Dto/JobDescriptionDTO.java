@@ -33,9 +33,9 @@ public class JobDescriptionDTO {
     private Executive executive;
     private String postedBy;
     private String description;
-    
-    
     private String managerId;
     private String managerName;
+    private String skills;
+    private String jdActionReason;
     
 }

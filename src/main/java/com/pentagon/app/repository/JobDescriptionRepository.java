@@ -13,7 +13,7 @@ import com.pentagon.app.entity.JobDescription;
 
 public interface JobDescriptionRepository extends JpaRepository<JobDescription, Integer> {
 
-	Optional<JobDescription> findByJobDescriptionId(String jobDescriptionId);
+	public Optional<JobDescription> findByJobDescriptionId(String jobDescriptionId);
 
 	public List<JobDescription> findByStack(String stack);
 
@@ -21,14 +21,10 @@ public interface JobDescriptionRepository extends JpaRepository<JobDescription, 
 	// taht specific jd
 	@Query("SELECT COUNT(jd) FROM JobDescription jd WHERE jd.managerId = :managerId AND (:status IS NULL OR jd.jdStatus = :status)")
 	public Long managerTotalJdCount(@Param("managerId") String managerId, @Param("status") String status);
-	
-	
-	
+
 	@Query("SELECT COUNT(jd) FROM JobDescription jd WHERE jd.postedBy = :executiveId AND (:status IS NULL OR jd.jdStatus = :status)")
 	public Long executiveTotalJdCount(@Param("executiveId") String executiveId, @Param("status") String status);
 
-	
-	
 	@Query(value = "SELECT COUNT(*) FROM job_description jd WHERE jd.manager_id = :managerId AND DATE(jd.created_at) = :date", nativeQuery = true)
 	public Long countJdsByManagerAndDate(@Param("managerId") String managerId, @Param("date") String date);
 
@@ -44,6 +40,7 @@ public interface JobDescriptionRepository extends JpaRepository<JobDescription, 
 			    AND (:streamRegex IS NULL OR :streamRegex = '' OR jd.stream REGEXP :streamRegex)
 			    AND (:percentage IS NULL OR jd.percentage >= :percentage)
 			    AND (:executiveId IS NULL OR :executiveId = '' OR jd.posted_by = :executiveId)
+			    AND (:managerId IS NULL OR :managerId = '' OR jd.manager_id = :managerId)
 			    AND (:status IS NULL OR :status = '' OR jd.jd_status = :status)
 			    AND (:startDate IS NULL OR jd.created_at >= :startDate)
 			    AND (:endDate IS NULL OR jd.created_at <= :endDate)
@@ -61,24 +58,34 @@ public interface JobDescriptionRepository extends JpaRepository<JobDescription, 
 			    AND (:streamRegex IS NULL OR :streamRegex = '' OR jd.stream REGEXP :streamRegex)
 			    AND (:percentage IS NULL OR jd.percentage >= :percentage)
 			    AND (:executiveId IS NULL OR :executiveId = '' OR jd.posted_by = :executiveId)
+			    AND (:managerId IS NULL OR :managerId = '' OR jd.manager_id = :managerId)
 			    AND (:status IS NULL OR :status = '' OR jd.jd_status = :status)
 			    AND (:startDate IS NULL OR jd.created_at >= :startDate)
 			    AND (:endDate IS NULL OR jd.created_at <= :endDate)
 			)
 			""", nativeQuery = true)
-	Page<JobDescription> findWithFiltersUsingRegex(@Param("companyName") String companyName,
-			@Param("stackRegex") String stackRegex, 
-			@Param("role") String role,
-			@Param("isClosed") Boolean isClosed,
-			@Param("minYearOfPassing") Integer minYearOfPassing, 
-			@Param("maxYearOfPassing") Integer maxYearOfPassing,
-			@Param("qualificationRegex") String qualificationRegex, 
-			@Param("streamRegex") String streamRegex,
-			@Param("percentage") Double percentage, 
-			@Param("executiveId") String executiveId,
-			@Param("status") String status,
-			@Param("startDate") String startDate,
-			@Param("endDate") String endDate,
-			Pageable pageable);
+	public Page<JobDescription> findWithFiltersUsingRegex(@Param("companyName") String companyName,
+			@Param("stackRegex") String stackRegex, @Param("role") String role, @Param("isClosed") Boolean isClosed,
+			@Param("minYearOfPassing") Integer minYearOfPassing, @Param("maxYearOfPassing") Integer maxYearOfPassing,
+			@Param("qualificationRegex") String qualificationRegex, @Param("streamRegex") String streamRegex,
+			@Param("percentage") Double percentage, @Param("executiveId") String executiveId,
+			@Param("managerId") String managerId, @Param("status") String status, @Param("startDate") String startDate,
+			@Param("endDate") String endDate, Pageable pageable);
 
+	@Query(value = "SELECT DATE_FORMAT(created_at, :format) AS label, COUNT(*) AS count FROM job_description WHERE created_at >= :startDate GROUP BY label ORDER BY label", nativeQuery = true)
+	public List<Object[]> getJdStats(@Param("format") String format, @Param("startDate") String startDate);
+	
+	@Query(value = "SELECT DATE_FORMAT(created_at, :format) AS label, COUNT(*) AS count FROM job_description WHERE created_at >= :startDate AND manager_id= :managerId GROUP BY label ORDER BY label", nativeQuery = true)
+	public List<Object[]> getJdStatsOfManager(@Param("managerId") String managerId ,@Param("format") String format, @Param("startDate") String startDate);
+	
+	@Query(value = "SELECT DATE_FORMAT(created_at, :format) AS label, COUNT(*) AS count FROM job_description WHERE created_at >= :startDate AND posted_by= :executiveId GROUP BY label ORDER BY label", nativeQuery = true)
+	public List<Object[]> getJdStatsOfExecutive(@Param("executiveId") String executiveId ,@Param("format") String format, @Param("startDate") String startDate);
+
+	@Query(value = "SELECT SUM(jd.numberOfClosures) from JobDescription jd")
+	public Long getTotalClosureCount();
+	
+	
+	@Query(value = "SELECT DATE_FORMAT(created_at, :format) AS label, COUNT(*) AS count , SUM(number_of_closures) FROM job_description WHERE created_at >= :startDate GROUP BY label ORDER BY label", nativeQuery = true)
+	public List<Object[]> getJdVsClosureStats(@Param("format") String format, @Param("startDate") String startDate);
+	
 }

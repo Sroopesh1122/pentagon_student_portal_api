@@ -1,16 +1,21 @@
 package com.pentagon.app.service;
 
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import com.pentagon.app.Dto.JdStatsDTO;
 import com.pentagon.app.entity.Executive;
 import com.pentagon.app.entity.Manager;
 import com.pentagon.app.request.ManagerLoginRequest;
 import com.pentagon.app.response.ProfileResponse;
 
 public interface ManagerService {
+	
+	
+	public Long getTotalCount();
 
 	public Manager addManager( Manager manager);
 	
@@ -32,9 +37,8 @@ public interface ManagerService {
     
     public Long  getAllExecutivesCount(String managerId);
     
-    public Map<String, Long> getManagerJdCountByDate(String managerId ,Integer days);
+    public List<JdStatsDTO> getManagerJdStats(String managerId,String timeUnit ,Integer range);
     
-    
-    public Page<Executive> getAllExecutives(String managerId , Pageable pageable);
+    public Page<Executive> getAllExecutives(String managerId,String q , Pageable pageable);
 
 }

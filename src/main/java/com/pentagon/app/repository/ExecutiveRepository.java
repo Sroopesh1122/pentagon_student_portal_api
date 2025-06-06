@@ -32,7 +32,9 @@ public interface ExecutiveRepository extends JpaRepository<Executive, Integer>{
 	@Query("SELECT COUNT(e) FROM Executive e WHERE e.managerId = :managerId")
 	public Long getTotalExecutiveCountByManagerId(@Param("managerId") String managerId);
 	
-	@Query("SELECT e FROM Executive e WHERE e.managerId = :managerId")
-	public Page<Executive> getAllExecutives(@Param("managerId") String managerId , Pageable pageable);
+	@Query("SELECT e FROM Executive e WHERE e.managerId = :managerId AND "
+			+ "(:q IS NULL OR :q = '' OR LOWER(e.email) LIKE LOWER(CONCAT(:q,'%')) "
+			+ "OR LOWER(e.name) LIKE LOWER(CONCAT(:q,'%')) OR e.executiveId = :q)")
+	public Page<Executive> getAllExecutives(@Param("managerId") String managerId,@Param("q") String q,  Pageable pageable);
 
 }

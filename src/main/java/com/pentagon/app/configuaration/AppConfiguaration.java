@@ -52,6 +52,7 @@ public class AppConfiguaration {
 				.cors(cors->cors.configurationSource(corsConfigurationSource()))
 				.authorizeHttpRequests(request -> request
 						.requestMatchers("/api/auth/public/**").permitAll()
+						.requestMatchers("/api/admin/public/**").permitAll()
 						.requestMatchers(
 			                    "/v3/api-docs/**",
 			                    "/swagger-ui/**",
