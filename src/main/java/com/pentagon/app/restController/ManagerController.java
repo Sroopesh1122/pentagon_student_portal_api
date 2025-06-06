@@ -324,6 +324,7 @@ public class ManagerController {
 		jobDescriptionDTO.setDescription(jobDescription.getDescription());
 		jobDescriptionDTO.setSkills(jobDescription.getSkills());
 		jobDescriptionDTO.setJdActionReason(jobDescription.getJdActionReason());
+		//jobDescriptionDTO.setManagerId(jobDescription.getManagerId());
 		return ResponseEntity.ok(new ApiResponse<>("success", "Job Description Fetched", jobDescriptionDTO));
 
 	}
@@ -381,6 +382,7 @@ public class ManagerController {
 		return ResponseEntity.ok(new ApiResponse<>("success", "Manager Profile", JobDescriptionDTOResponse));
 	}
 
+	
 	@GetMapping("/secure/executives")
 	@PreAuthorize("hasRole('MANAGER')")
 	public ResponseEntity<?> getAllExecutives(@AuthenticationPrincipal CustomUserDetails managerDetails,
@@ -421,7 +423,5 @@ public class ManagerController {
 		executiveDetails.setManagerName(manager.getName());
 		return ResponseEntity.ok(new ApiResponse<>("success", "Executive Data", executiveDetails));
 	}
-	
-	
-	
+
 }

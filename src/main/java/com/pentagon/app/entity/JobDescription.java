@@ -129,5 +129,9 @@ public class JobDescription {
 
     public void closeJobDescription() {
         this.isClosed = true;
-    }    
+    } 
+    
+    //number of openings to be added
+    //collect list of skills
+   
 }
