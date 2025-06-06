@@ -28,10 +28,12 @@ import org.springframework.web.bind.annotation.RestController;
 import com.pentagon.app.Dto.JobDescriptionDTO;
 import com.pentagon.app.entity.Executive;
 import com.pentagon.app.entity.JobDescription;
+import com.pentagon.app.entity.Manager;
 import com.pentagon.app.exception.ExecutiveException;
 import com.pentagon.app.exception.JobDescriptionException;
 import com.pentagon.app.repository.JobDescriptionRepository;
 import com.pentagon.app.request.AddJobDescriptionRequest;
+import com.pentagon.app.request.MangerJdStatusUpdateRequest;
 import com.pentagon.app.request.UpdateClosuresRequest;
 import com.pentagon.app.request.UpdateJobDescriptionRequest;
 import com.pentagon.app.response.ApiResponse;
@@ -40,6 +42,7 @@ import com.pentagon.app.service.ActivityLogService;
 import com.pentagon.app.service.CustomUserDetails;
 import com.pentagon.app.service.ExecutiveService;
 import com.pentagon.app.service.JobDescriptionService;
+import com.pentagon.app.service.ManagerService;
 import com.pentagon.app.utils.IdGeneration;
 
 import jakarta.validation.Valid;
@@ -56,11 +59,13 @@ public class ExecutiveController {
 	@Autowired
 	private ActivityLogService activityLogService;
 
+	@Autowired
+	private ManagerService managerService;
 
 	@Autowired
 	private IdGeneration idGenerator;
 
-	//not working
+	// not working
 	@PostMapping("/secure/addJobDescription")
 	@PreAuthorize("hasRole('EXECUTIVE')")
 	public ResponseEntity<?> addJobDescription(@AuthenticationPrincipal CustomUserDetails executiveDetails,
@@ -93,6 +98,8 @@ public class ExecutiveController {
 		jd.setPostedBy(executiveDetails.getExecutive().getExecutiveId());
 		jd.setJdStatus("pending");
 		jd.setManagerId(executiveDetails.getExecutive().getManagerId());
+		jd.setSkills(newJd.getSkills());
+
 		jobDescriptionService.addJobDescription(jd);
 		activityLogService.log(executiveDetails.getExecutive().getEmail(),
 				executiveDetails.getExecutive().getExecutiveId(), "EXECUTIVE", "Executive with ID "
@@ -199,15 +206,23 @@ public class ExecutiveController {
 		jobDescriptionDTO.setExecutive(jobDescription.getExecutive());
 		jobDescriptionDTO.setPostedBy(jobDescription.getPostedBy());
 		jobDescriptionDTO.setDescription(jobDescription.getDescription());
+		jobDescriptionDTO.setSkills(jobDescription.getSkills());
+		jobDescriptionDTO.setJdActionReason(jobDescription.getJdActionReason());
+
+		Manager manager = managerService.getManagerById(jobDescription.getManagerId());
+		if (manager != null) {
+			jobDescriptionDTO.setManagerId(jobDescription.getManagerId());
+			jobDescriptionDTO.setManagerName(manager.getName());
+		}
+
 		return ResponseEntity.ok(new ApiResponse<>("success", "Job Description Fetched", jobDescriptionDTO));
 
 	}
 
-	@GetMapping("/secure/viewAllJobDescriptions")
+	@GetMapping("/secure/jd")
 	@PreAuthorize("hasRole('EXECUTIVE')")
 	public ResponseEntity<?> viewAllJobDescriptions(@AuthenticationPrincipal CustomUserDetails executiveDetails,
-			@RequestParam(defaultValue = "1") int page, 
-			@RequestParam(defaultValue = "10") int limit,
+			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int limit,
 			@RequestParam(required = false) String companyName,
 			@RequestParam(required = false, defaultValue = "") String stack,
 			@RequestParam(required = false) String role, @RequestParam(required = false) Boolean isClosed,
@@ -217,20 +232,19 @@ public class ExecutiveController {
 			@RequestParam(required = false, defaultValue = "") String stream,
 			@RequestParam(required = false) Double percentage,
 			@RequestParam(required = false, defaultValue = "") String status,
-			@RequestParam(required = false) String startDate,
-			@RequestParam(required = false) String endDate
-			) {
+			@RequestParam(required = false) String startDate, @RequestParam(required = false) String endDate) {
 
 		if (executiveDetails == null) {
 			throw new ExecutiveException("UNAUTORIZED", HttpStatus.UNAUTHORIZED);
 		}
-		
+
 		String executiveId = executiveDetails.getExecutive().getExecutiveId();
-		
+
 		Pageable pageable = PageRequest.of(page, limit, Sort.by("created_at").descending());
-		
+
 		Page<JobDescription> jobDescriptions = jobDescriptionService.findAllJobDescriptions(companyName, stack, role,
-				isClosed, minYearOfPassing, maxYearOfPassing, qualification, stream, percentage,executiveId,status,startDate,endDate, pageable);
+				isClosed, minYearOfPassing, maxYearOfPassing, qualification, stream, percentage, executiveId, null,
+				status, startDate, endDate, pageable);
 
 		Page<JobDescriptionDTO> JobDescriptionDTOResponse = jobDescriptions.map(jobDescription -> {
 			JobDescriptionDTO jobDescriptionDTO = new JobDescriptionDTO();
@@ -256,6 +270,15 @@ public class ExecutiveController {
 			jobDescriptionDTO.setCreatedAt(jobDescription.getCreatedAt());
 			jobDescriptionDTO.setUpdatedAt(jobDescription.getUpdatedAt());
 			jobDescriptionDTO.setLocation(jobDescription.getLocation());
+			jobDescriptionDTO.setSkills(jobDescription.getSkills());
+			jobDescriptionDTO.setJdActionReason(jobDescription.getJdActionReason());
+
+			Manager jdManager = managerService.getManagerById(jobDescription.getManagerId());
+			if (jdManager != null) {
+				jobDescriptionDTO.setManagerId(jdManager.getManagerId());
+				jobDescriptionDTO.setManagerName(jdManager.getName());
+			}
+
 			return jobDescriptionDTO;
 		});
 

@@ -1,7 +1,10 @@
 package com.pentagon.app.response;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
+
+import com.pentagon.app.Dto.JdStatsDTO;
 
 import lombok.Data;
 
@@ -19,6 +22,6 @@ public class ManagerDetails {
 	private LocalDateTime updatedAt;
 	private Map<String, Long> jdsCount;
 	private Long totalExecutives;
-	private Map<String, Long> lastWeekJdCount;
+	private List<JdStatsDTO> lastWeekJdCount;
 	
 }

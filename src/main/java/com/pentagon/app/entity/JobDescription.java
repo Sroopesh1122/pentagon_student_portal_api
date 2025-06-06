@@ -49,6 +49,9 @@ public class JobDescription {
 	private String stream;
     
     @Column(nullable = false)
+    private String skills;
+    
+    @Column(nullable = false)
 	private Double percentage;
 	
 	@Column(name = "min_year_of_passing")

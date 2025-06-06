@@ -42,4 +42,6 @@ public class AddJobDescriptionRequest {
 	@NotNull
 	private String location;
 	
+	private String skills;
+	
 }

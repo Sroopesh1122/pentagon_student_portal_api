@@ -1,6 +1,7 @@
 package com.pentagon.app.restController;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,7 @@ import com.pentagon.app.entity.Executive;
 import com.pentagon.app.entity.JobDescription;
 import com.pentagon.app.entity.Manager;
 import com.pentagon.app.entity.Trainer;
+import com.pentagon.app.exception.AdminException;
 import com.pentagon.app.exception.ExecutiveException;
 import com.pentagon.app.exception.JobDescriptionException;
 import com.pentagon.app.exception.ManagerException;
@@ -41,6 +43,7 @@ import com.pentagon.app.request.AddTrainerRequest;
 import com.pentagon.app.request.MangerJdStatusUpdateRequest;
 import com.pentagon.app.request.UpdateManagerRequest;
 import com.pentagon.app.response.ApiResponse;
+import com.pentagon.app.response.ExecutiveDetails;
 import com.pentagon.app.response.ProfileResponse;
 import com.pentagon.app.service.ActivityLogService;
 import com.pentagon.app.service.CustomUserDetails;
@@ -75,7 +78,6 @@ public class ManagerController {
 	@Autowired
 	private ActivityLogService activityLogService;
 
-
 	@Autowired
 	private ExecutiveService executiveService;
 
@@ -90,10 +92,9 @@ public class ManagerController {
 
 	@Autowired
 	private JobDescriptionService jobDescriptionService;
-	
+
 	@Autowired
 	private TrainerService trainerService;
-
 
 	@PostMapping("/secure/updateManager")
 	@PreAuthorize("hasRole('MANAGER')")
@@ -125,29 +126,26 @@ public class ManagerController {
 		return ResponseEntity.ok(new ApiResponse<>("success", "Manager Updated Successfully", null));
 	}
 
-	//not working
+	// not working
 	@PostMapping("secure/addExecutive")
 	@PreAuthorize("hasRole('MANAGER')")
-	public ResponseEntity<?> addExecutive(
-			@AuthenticationPrincipal CustomUserDetails managerDetails,
-			@Valid @RequestBody AddExecutiveRequest request, 
-			BindingResult bindingResult) {
+	public ResponseEntity<?> addExecutive(@AuthenticationPrincipal CustomUserDetails managerDetails,
+			@Valid @RequestBody AddExecutiveRequest request, BindingResult bindingResult) {
 
 		if (bindingResult.hasErrors()) {
 			throw new ExecutiveException("Invalid Input Data", HttpStatus.BAD_REQUEST);
 		}
 
-		Executive  findExecutive = executiveService.getExecutiveByEmail(request.getEmail());
-		
-		if(findExecutive!=null)
-		{
+		Executive findExecutive = executiveService.getExecutiveByEmail(request.getEmail());
+
+		if (findExecutive != null) {
 			throw new ManagerException("Email Already Exists", HttpStatus.CONFLICT);
 		}
-		
+
 		Executive executive = new Executive();
 		executive.setExecutiveId(idGeneration.generateId("EXECUTIVE"));
 		executive.setName(request.getName());
-		executive.setEmail(request.getEmail()); 
+		executive.setEmail(request.getEmail());
 		executive.setMobile(request.getMobile());
 		executive.setActive(true);
 		executive.setManagerId(managerDetails.getManager().getManagerId());
@@ -251,7 +249,6 @@ public class ManagerController {
 		return ResponseEntity.ok(new ApiResponse<>("success", "Trainers fetched successfully", TrainerDTOResponse));
 	}
 
-	
 	@PostMapping("/secure/jd/status")
 	@PreAuthorize("hasRole('MANAGER')")
 	public ResponseEntity<?> updateJdStatus(@AuthenticationPrincipal CustomUserDetails managerDetails,
@@ -259,18 +256,19 @@ public class ManagerController {
 
 		JobDescription findJobDescription = jobDescriptionService.findByJobDescriptionId(request.getJdId())
 				.orElseThrow(() -> new JobDescriptionException("Job Description not found", HttpStatus.NOT_FOUND));
-		
+
 		findJobDescription.setJdStatus(request.getStatus());
 		findJobDescription.setManagerApproval(request.getStatus().toLowerCase().equals("approved") ? true : false);
 		String jdActionReason;
 
 		if ("approved".equalsIgnoreCase(request.getStatus())) {
-		    jdActionReason = "JD approved by " + managerDetails.getManager().getName() + ", on " + LocalDateTime.now();
-		    findJobDescription.setApprovedDate(LocalDateTime.now());
+			jdActionReason = "JD approved by " + managerDetails.getManager().getName() + ", on "
+					+ LocalDateTime.now().toString();
+			findJobDescription.setApprovedDate(LocalDateTime.now());
 		} else {
-		    jdActionReason = request.getActionReason();
+			jdActionReason = request.getActionReason();
 		}
-		
+
 		findJobDescription.setJdActionReason(jdActionReason);
 		findJobDescription = jobDescriptionService.updateJobDescription(findJobDescription);
 		return ResponseEntity.ok(new ApiResponse<>("success", "JD stauts updated", null));
@@ -324,12 +322,13 @@ public class ManagerController {
 		jobDescriptionDTO.setExecutive(jobDescription.getExecutive());
 		jobDescriptionDTO.setPostedBy(jobDescription.getPostedBy());
 		jobDescriptionDTO.setDescription(jobDescription.getDescription());
+		jobDescriptionDTO.setSkills(jobDescription.getSkills());
+		jobDescriptionDTO.setJdActionReason(jobDescription.getJdActionReason());
 		//jobDescriptionDTO.setManagerId(jobDescription.getManagerId());
 		return ResponseEntity.ok(new ApiResponse<>("success", "Job Description Fetched", jobDescriptionDTO));
 
 	}
 
-//	not working
 	@GetMapping("/secure/jd")
 	@PreAuthorize("hasRole('MANAGER')")
 	public ResponseEntity<?> getAllJds(@AuthenticationPrincipal CustomUserDetails managerDetails,
@@ -341,19 +340,17 @@ public class ManagerController {
 			@RequestParam(required = false) Integer maxYearOfPassing,
 			@RequestParam(required = false, defaultValue = "") String qualification,
 			@RequestParam(required = false, defaultValue = "") String stream,
-			@RequestParam(required = false) Double percentage,
-			@RequestParam(required = false) String status,
-			@RequestParam(required = false) String startDate,
-			@RequestParam(required = false) String endDate) 
-	
+			@RequestParam(required = false) Double percentage, @RequestParam(required = false) String status,
+			@RequestParam(required = false) String startDate, @RequestParam(required = false) String endDate)
+
 	{
+
+		String managerId = managerDetails.getManager().getManagerId();
 		Pageable pageable = PageRequest.of(page, limit, Sort.by("created_at").descending());
 
 		Page<JobDescription> jobDescriptions = jobDescriptionService.findAllJobDescriptions(companyName, stack, role,
-				isClosed, minYearOfPassing, maxYearOfPassing, qualification, stream, percentage, null, status,
-				startDate,
-				endDate,
-				pageable);
+				isClosed, minYearOfPassing, maxYearOfPassing, qualification, stream, percentage, null, managerId,
+				status, startDate, endDate, pageable);
 
 		Page<JobDescriptionDTO> JobDescriptionDTOResponse = jobDescriptions.map(jobDescription -> {
 			JobDescriptionDTO jobDescriptionDTO = new JobDescriptionDTO();
@@ -389,11 +386,13 @@ public class ManagerController {
 	@GetMapping("/secure/executives")
 	@PreAuthorize("hasRole('MANAGER')")
 	public ResponseEntity<?> getAllExecutives(@AuthenticationPrincipal CustomUserDetails managerDetails,
-			@RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "10") int limit,
+			@RequestParam(defaultValue = "1") int page,
+			@RequestParam(defaultValue = "10") int limit,
 			@RequestParam(required = false) String q) {
 		Pageable pageable = PageRequest.of(page, limit, Sort.by("createdAt").descending());
 
-		Page<Executive> executives = executiveService.getAllExecutives(q, pageable);
+		Page<Executive> executives = managerService.getAllExecutives(managerDetails.getManager().getManagerId(),q,
+				pageable);
 
 		return ResponseEntity.ok(new ApiResponse<>("success", "Executives data", executives));
 	}
@@ -423,4 +422,32 @@ public class ManagerController {
 	    ExecutiveJDStatusDTO stats = jobDescriptionService.getExecutiveJobDescriptionStats(executiveId);
 	    return ResponseEntity.ok(new ApiResponse<>("success", "Executive JD stats", stats));
 	}
+	
+	@GetMapping("/secure/executive/{id}")
+	@PreAuthorize("hasRole('MANAGER')")
+	public ResponseEntity<?> getExecutiveById(@PathVariable String id) {
+		
+		Executive findExecutive = executiveService.getExecutiveById(id);
+		if(findExecutive ==null)
+		{
+			throw new AdminException("Executive not found", HttpStatus.NOT_FOUND);
+		}
+		
+		ExecutiveDetails executiveDetails =  new ExecutiveDetails();
+		executiveDetails.setActive(findExecutive.isActive());
+		executiveDetails.setCreatedAt(findExecutive.getCreatedAt());
+		executiveDetails.setEmail(findExecutive.getEmail());
+		executiveDetails.setExecutiveId(findExecutive.getExecutiveId());
+		executiveDetails.setId(null);
+		executiveDetails.setManagerId(findExecutive.getManagerId());
+		executiveDetails.setMobile(findExecutive.getMobile());
+		executiveDetails.setName(findExecutive.getName());
+		Map<String, Long> jdDetails = (Map) executiveService.getExecutiveJdDetails(findExecutive.getExecutiveId());
+		executiveDetails.setJdsCount(jdDetails);
+		Manager manager = managerService.getManagerById(findExecutive.getManagerId());
+		executiveDetails.setManagerEmail(manager.getEmail());
+		executiveDetails.setManagerName(manager.getName());
+		return ResponseEntity.ok(new ApiResponse<>("success", "Executive Data", executiveDetails));
+	}
+
 }

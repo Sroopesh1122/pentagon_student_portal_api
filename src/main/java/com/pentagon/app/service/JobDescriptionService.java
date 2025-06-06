@@ -8,15 +8,17 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import com.pentagon.app.Dto.ExecutiveJDStatusDTO;
+import com.pentagon.app.Dto.JdStatsDTO;
 import com.pentagon.app.entity.JobDescription;
 
 public interface JobDescriptionService {
 
-	Optional<JobDescription> findByJobDescriptionId(String jobDescriptionId);
+	public Optional<JobDescription> findByJobDescriptionId(String jobDescriptionId);
 
-	Page<JobDescription> findAllJobDescriptions(String companyName, String stack, String role, Boolean isClosed,
+	public Page<JobDescription> findAllJobDescriptions(String companyName, String stack, String role, Boolean isClosed,
 			Integer minYearOfPassing, Integer maxYearOfPassing, String qualification, String stream, Double percentage,
 			String executiveId,
+			String managerId,
 			String status,
 			 String startDate,
 		        String endDate,
@@ -32,6 +34,14 @@ public interface JobDescriptionService {
 	public List<JobDescription> viewJobDescriptionBasedOnStack(String stack);
 
 	public ExecutiveJDStatusDTO getExecutiveJobDescriptionStats(String executiveId);
+	
+	
+	public List<JdStatsDTO> getJdStats(String timeUnit , int range);
+	
+	
+	public Long totalCount();
+	
+	public Long totalClosureCount();
 	
 
 	
