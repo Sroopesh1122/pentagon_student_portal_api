@@ -15,7 +15,4 @@ public class Technology {
     private String techId;
    
     private String name;
-
-    @ManyToMany(mappedBy = "technologies")
-    private List<Stack> stacks;
 }

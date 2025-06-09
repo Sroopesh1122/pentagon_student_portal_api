@@ -10,21 +10,18 @@ import java.time.LocalDateTime;
 @Entity
 public class MockRatings {
     @Id
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
 
-    @ManyToOne
-    private Student student;
-
-    @ManyToOne
-    private Trainer trainer;
-
-    @ManyToOne
-    private Technology technology;
+    
+    private String studentId;
+    
+    private String trachId;
+    
+    private String trainerId;
 
     private Double rating;
     
-    private String feedback;
-
     @CreationTimestamp
     private LocalDateTime createdAt;
 }

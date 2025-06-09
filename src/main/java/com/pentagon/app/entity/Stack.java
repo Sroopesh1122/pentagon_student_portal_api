@@ -16,11 +16,5 @@ public class Stack {
 
     private String name;
 
-    @ManyToMany
-    @JoinTable(
-        name = "stack_technology",
-        joinColumns = @JoinColumn(name = "stack_id"),
-        inverseJoinColumns = @JoinColumn(name = "tech_id")
-    )
-    private List<Technology> technologies;
+    
 }

@@ -16,12 +16,5 @@ public class Batch {
     
     private String batchName;
 
-    @ManyToOne
-    private Stack stack; // ✅ each Batch belongs to one Stack
-
-    @OneToMany(mappedBy = "batch")
-    private List<Student> students;
-
-    @OneToMany(mappedBy = "batch")
-    private List<BatchTechTrainer> techTrainerAssignments; // ✅ new
+    private String stackId;
 }

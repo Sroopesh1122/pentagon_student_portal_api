@@ -35,6 +35,7 @@ import com.pentagon.app.entity.Admin;
 import com.pentagon.app.entity.Executive;
 import com.pentagon.app.entity.JobDescription;
 import com.pentagon.app.entity.Manager;
+import com.pentagon.app.entity.ProgramHead;
 import com.pentagon.app.entity.Trainer;
 import com.pentagon.app.exception.AdminException;
 import com.pentagon.app.exception.JobDescriptionException;
@@ -42,6 +43,7 @@ import com.pentagon.app.exception.OtpException;
 import com.pentagon.app.repository.JobDescriptionRepository;
 import com.pentagon.app.request.AddExecutiveRequest;
 import com.pentagon.app.request.AddManagerRequest;
+import com.pentagon.app.request.AddProgramHeadRequest;
 import com.pentagon.app.response.ApiResponse;
 import com.pentagon.app.response.ExecutiveDetails;
 import com.pentagon.app.response.ManagerDetails;
@@ -55,6 +57,7 @@ import com.pentagon.app.utils.HtmlContent;
 import com.pentagon.app.utils.IdGeneration;
 import com.pentagon.app.service.ManagerService;
 import com.pentagon.app.service.OtpService;
+import com.pentagon.app.service.ProgramHeadService;
 import com.pentagon.app.service.TrainerService;
 import com.pentagon.app.serviceImpl.MailService;
 import com.pentagon.app.utils.PasswordGenration;
@@ -92,6 +95,9 @@ public class AdminController {
 
 	@Autowired
 	private TrainerService trainerService;
+	
+	@Autowired
+	private ProgramHeadService programHeadService;
 
 	@PostMapping("/secure/addManager")
 	@PreAuthorize("hasRole('ADMIN')")
@@ -178,6 +184,36 @@ public class AdminController {
 
 		return ResponseEntity.ok(new ApiResponse<>("success", "Executive added Successfully", null));
 	}
+	
+	
+	
+	@PostMapping("/secure/program-head/add")
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<?> getProgramHead(@AuthenticationPrincipal CustomUserDetails adminDetails,
+			@Valid @RequestBody AddProgramHeadRequest request, BindingResult bindingResult) {
+         
+		ProgramHead findProgramHead = programHeadService.getByEmail(request.getEmail());
+		
+		if(findProgramHead !=null)
+		{
+			throw new AdminException("Email Already exists", HttpStatus.CONFLICT);
+		}
+		
+		ProgramHead newProgramHead = new ProgramHead();
+		newProgramHead.setEmail(request.getEmail());
+		newProgramHead.setId(idGeneration.generateId("PG-HEAD"));
+		newProgramHead.setName(request.getName());
+		String password = passwordGenration.generateRandomPassword();
+		newProgramHead.setPassword(password);
+		newProgramHead.setCreatedAt(LocalDateTime.now());
+		
+		
+		return ResponseEntity.ok(new ApiResponse<>("success", "Executive added Successfully", null));
+		
+		
+		
+	}
+
 
 	@GetMapping("/secure/profile")
 	@PreAuthorize("hasRole('ADMIN')")

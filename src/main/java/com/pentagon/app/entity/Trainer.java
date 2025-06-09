@@ -46,12 +46,7 @@ public class Trainer {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    @ManyToMany
-    @JoinTable(
-        name = "trainer_technologies",
-        joinColumns = @JoinColumn(name = "trainer_id"),
-        inverseJoinColumns = @JoinColumn(name = "tech_id")
-    )
-    private List<Technology> technologies;
+    
+    
+    private String programHeadId;
 }
