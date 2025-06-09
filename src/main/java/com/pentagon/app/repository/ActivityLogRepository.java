@@ -6,9 +6,10 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 import com.pentagon.app.entity.ActivityLog;
-
+@Repository
 public interface ActivityLogRepository extends JpaRepository<ActivityLog, Long> {
 	List<ActivityLog> findByEmail(String email);
 
