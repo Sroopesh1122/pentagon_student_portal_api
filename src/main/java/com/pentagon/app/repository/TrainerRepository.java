@@ -10,7 +10,7 @@ import org.springframework.data.repository.query.Param;
 
 import com.pentagon.app.entity.Trainer;
 
-public interface TrainerRepository extends JpaRepository<Trainer, Integer> {
+public interface TrainerRepository extends JpaRepository<Trainer, String> {
 
 	Optional<Trainer> findByEmail(String email);
 

@@ -11,7 +11,7 @@ import org.springframework.data.repository.query.Param;
 import com.pentagon.app.entity.Manager;
 import com.pentagon.app.entity.Trainer;
 
-public interface ManagerRepository extends JpaRepository<Manager, Integer> {
+public interface ManagerRepository extends JpaRepository<Manager, String> {
 
 	Optional<Manager> findByEmail(String email);
 	

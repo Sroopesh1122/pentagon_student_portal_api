@@ -34,9 +34,6 @@ import com.pentagon.app.exception.ExecutiveException;
 import com.pentagon.app.exception.JobDescriptionException;
 import com.pentagon.app.exception.ManagerException;
 import com.pentagon.app.exception.OtpException;
-import com.pentagon.app.repository.ExecutiveRepository;
-import com.pentagon.app.repository.JobDescriptionRepository;
-import com.pentagon.app.repository.TrainerRepository;
 import com.pentagon.app.request.AddExecutiveRequest;
 import com.pentagon.app.request.AddTrainerRequest;
 import com.pentagon.app.request.MangerJdStatusUpdateRequest;
@@ -188,7 +185,6 @@ public class ManagerController {
 		trainer.setEmail(request.getEmail());
 		trainer.setMobile(request.getMobile());
 		trainer.setTrainerStack(request.getTrainerStack());
-		trainer.setTechnologies(request.getTechnologies());
 		trainer.setYearOfExperiences(request.getYearOfExperiences());
 		trainer.setQualification(request.getQualification());
 		trainer.setAcitve(true);
@@ -230,7 +226,6 @@ public class ManagerController {
 
 		Page<TrainerDTO> TrainerDTOResponse = trainers.map(trainer -> {
 			TrainerDTO Trainerdto = new TrainerDTO();
-			Trainerdto.setId(trainer.getId());
 			Trainerdto.setTrainerId(trainer.getTrainerId());
 			Trainerdto.setName(trainer.getName());
 			Trainerdto.setEmail(trainer.getEmail());
@@ -238,7 +233,6 @@ public class ManagerController {
 			Trainerdto.setTrainerStack(trainer.getTrainerStack());
 			Trainerdto.setQualification(trainer.getQualification());
 			Trainerdto.setYearOfExperiences(trainer.getYearOfExperiences());
-			Trainerdto.setTechnologies(trainer.getTechnologies());
 			Trainerdto.setActive(trainer.isAcitve());
 			Trainerdto.setCreatedAt(trainer.getCreatedAt());
 			Trainerdto.setUpdatedAt(trainer.getUpdatedAt());
@@ -297,7 +291,6 @@ public class ManagerController {
 
 		JobDescription jobDescription = jobDescriptionOtp.get();
 		JobDescriptionDTO jobDescriptionDTO = new JobDescriptionDTO();
-		jobDescriptionDTO.setId(jobDescription.getId());
 		jobDescriptionDTO.setJobDescriptionId(jobDescription.getJobDescriptionId());
 		jobDescriptionDTO.setCompanyName(jobDescription.getCompanyName());
 		jobDescriptionDTO.setWebsite(jobDescription.getWebsite());
@@ -354,7 +347,6 @@ public class ManagerController {
 
 		Page<JobDescriptionDTO> JobDescriptionDTOResponse = jobDescriptions.map(jobDescription -> {
 			JobDescriptionDTO jobDescriptionDTO = new JobDescriptionDTO();
-			jobDescriptionDTO.setId(jobDescription.getId());
 			jobDescriptionDTO.setJobDescriptionId(jobDescription.getJobDescriptionId());
 			jobDescriptionDTO.setCompanyName(jobDescription.getCompanyName());
 			jobDescriptionDTO.setWebsite(jobDescription.getWebsite());

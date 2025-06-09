@@ -181,7 +181,6 @@ public class ExecutiveController {
 
 		JobDescription jobDescription = jobDescriptionOtp.get();
 		JobDescriptionDTO jobDescriptionDTO = new JobDescriptionDTO();
-		jobDescriptionDTO.setId(jobDescription.getId());
 		jobDescriptionDTO.setJobDescriptionId(jobDescription.getJobDescriptionId());
 		jobDescriptionDTO.setCompanyName(jobDescription.getCompanyName());
 		jobDescriptionDTO.setWebsite(jobDescription.getWebsite());
@@ -248,7 +247,6 @@ public class ExecutiveController {
 
 		Page<JobDescriptionDTO> JobDescriptionDTOResponse = jobDescriptions.map(jobDescription -> {
 			JobDescriptionDTO jobDescriptionDTO = new JobDescriptionDTO();
-			jobDescriptionDTO.setId(jobDescription.getId());
 			jobDescriptionDTO.setJobDescriptionId(jobDescription.getJobDescriptionId());
 			jobDescriptionDTO.setCompanyName(jobDescription.getCompanyName());
 			jobDescriptionDTO.setWebsite(jobDescription.getWebsite());

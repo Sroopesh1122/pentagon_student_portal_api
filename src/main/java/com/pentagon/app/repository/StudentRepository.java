@@ -9,7 +9,7 @@ import org.springframework.data.repository.query.Param;
 
 import com.pentagon.app.entity.Student;
 
-public interface StudentRepository extends JpaRepository<Student, Integer> {
+public interface StudentRepository extends JpaRepository<Student, String> {
 
 	public Optional<Student> findByStudentId(String studentId);
 	

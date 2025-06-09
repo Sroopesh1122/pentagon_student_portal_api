@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 
 import com.pentagon.app.entity.Admin;
 
-public interface AdminRepository extends JpaRepository<Admin, Integer> {
+public interface AdminRepository extends JpaRepository<Admin, String> {
 
 	Optional<Admin> findByEmail(String email);
 

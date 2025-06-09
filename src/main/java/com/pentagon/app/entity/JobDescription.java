@@ -9,8 +9,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
@@ -22,10 +20,7 @@ import lombok.Data;
 @Table(name="job_description")
 public class JobDescription {
 	
-	@Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Integer Id;
-	
+    @Id
     @Column(name = "job_description_id", unique = true)
 	private String jobDescriptionId;
 	
@@ -131,7 +126,5 @@ public class JobDescription {
         this.isClosed = true;
     } 
     
-    //number of openings to be added
-    //collect list of skills
    
 }

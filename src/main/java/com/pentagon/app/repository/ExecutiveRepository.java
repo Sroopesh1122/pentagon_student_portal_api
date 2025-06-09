@@ -10,7 +10,7 @@ import org.springframework.data.repository.query.Param;
 
 import com.pentagon.app.entity.Executive;
 
-public interface ExecutiveRepository extends JpaRepository<Executive, Integer>{
+public interface ExecutiveRepository extends JpaRepository<Executive, String>{
 
 	Optional<Executive> findByEmail(String email);
 	

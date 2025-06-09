@@ -30,7 +30,7 @@ public class JwtUtil {
                 .setClaims(claims)
                 .setSubject(email)
                 .setIssuedAt(new Date())
-                .setExpiration(expirationDate)
+//                .setExpiration(expirationDate)
                 .signWith(SECRET_KEY,SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -40,11 +40,8 @@ public class JwtUtil {
                     .build()
                     .parseClaimsJws(token)
                     .getBody()
-                    .getSubject();
-        
+                    .getSubject();        
     }
-
-    
 
     public Map<String, Object> extractClaims(String token) {
         return Jwts.parserBuilder()

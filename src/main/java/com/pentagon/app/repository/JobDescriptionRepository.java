@@ -11,7 +11,7 @@ import org.springframework.data.repository.query.Param;
 
 import com.pentagon.app.entity.JobDescription;
 
-public interface JobDescriptionRepository extends JpaRepository<JobDescription, Integer> {
+public interface JobDescriptionRepository extends JpaRepository<JobDescription, String> {
 
 	public Optional<JobDescription> findByJobDescriptionId(String jobDescriptionId);
 

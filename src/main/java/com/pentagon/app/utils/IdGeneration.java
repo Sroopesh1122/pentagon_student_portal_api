@@ -75,38 +75,6 @@ public class IdGeneration {
 	    }
 	}
 	
-//	public String generateId(String type) {
-//	    String prefix;
-//	    int count = 0;
-//
-//	    switch (type.toUpperCase()) {
-//	        case "ADMIN" -> {
-//	            prefix = "ADM";
-//	            count = adminRepository.getAdminCount();
-//	        }
-//	        case "MANAGER" -> {
-//	            prefix = "MGR";
-//	            count = managerRepository.getManagerCount(); 
-//	        }
-//	        case "EXECUTIVE" -> {
-//	            prefix = "EXE";
-//	            count = executiveRepository.getExecutiveCount(); 
-//	        }
-//	        case "TRAINER" -> {
-//	        	prefix = "TRN";
-//	        	count = trainerRepository.getTrainerCount(); 
-//	        }
-//	        case "JD" -> {
-//	        	prefix = "JD";
-//	        	count = (int) jdRepository.count();
-//	        }
-//	        default -> throw new IdGenerationException("Invalid user type: " + type, HttpStatus.BAD_REQUEST);
-//	    }
-//
-//	    String padded = String.format("%04d", count + 1);
-//	    return prefix + padded;
-//	}
-	
 	public String generateId(String type) {
 	    String prefix = switch (type.toUpperCase()) {
 	        case "ADMIN" -> "ADM";

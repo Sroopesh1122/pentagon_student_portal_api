@@ -201,7 +201,6 @@ public class AdminController {
 
 		Page<TrainerDTO> TrainerDTOPage = trainers.map(trainer -> {
 			TrainerDTO dto = new TrainerDTO();
-			dto.setId(trainer.getId());
 			dto.setTrainerId(trainer.getTrainerId());
 			dto.setName(trainer.getName());
 			dto.setEmail(trainer.getEmail());
@@ -209,7 +208,6 @@ public class AdminController {
 			dto.setTrainerStack(trainer.getTrainerStack());
 			dto.setQualification(trainer.getQualification());
 			dto.setYearOfExperiences(trainer.getYearOfExperiences());
-			dto.setTechnologies(trainer.getTechnologies());
 			dto.setActive(trainer.isAcitve());
 			dto.setCreatedAt(trainer.getCreatedAt());
 			dto.setUpdatedAt(trainer.getUpdatedAt());
@@ -231,7 +229,6 @@ public class AdminController {
 
 		Page<ManagerDTO> managerDTOPage = managers.map(manager -> {
 			ManagerDTO dto = new ManagerDTO();
-			dto.setId(manager.getId());
 			dto.setManagerId(manager.getManagerId());
 			dto.setName(manager.getName());
 			dto.setEmail(manager.getEmail());
@@ -257,7 +254,6 @@ public class AdminController {
 
 		Page<ExecutiveDTO> executiveDTOPage = executives.map(executive -> {
 			ExecutiveDTO dto = new ExecutiveDTO();
-			dto.setId(executive.getId());
 			dto.setExecutiveId(executive.getExecutiveId());
 			dto.setName(executive.getName());
 			dto.setEmail(executive.getEmail());
@@ -279,7 +275,6 @@ public class AdminController {
 				.orElseThrow(() -> new JobDescriptionException("Job Description not found", HttpStatus.NOT_FOUND));
 
 		JobDescriptionDTO jobDescriptionDTO = new JobDescriptionDTO();
-		jobDescriptionDTO.setId(jobDescription.getId());
 		jobDescriptionDTO.setJobDescriptionId(jobDescription.getJobDescriptionId());
 		jobDescriptionDTO.setCompanyName(jobDescription.getCompanyName());
 		jobDescriptionDTO.setWebsite(jobDescription.getWebsite());

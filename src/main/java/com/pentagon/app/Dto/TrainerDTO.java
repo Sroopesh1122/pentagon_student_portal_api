@@ -7,8 +7,7 @@ import lombok.Data;
 @Data
 public class TrainerDTO {
 
-	private Integer id;
-    private String trainerId;
+	private String trainerId;
     private String name;
     private String email;
     private String mobile;
