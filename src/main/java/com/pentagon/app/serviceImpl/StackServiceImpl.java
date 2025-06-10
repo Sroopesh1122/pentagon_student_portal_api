@@ -1,5 +1,6 @@
 package com.pentagon.app.serviceImpl;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,4 +42,10 @@ public class StackServiceImpl implements StackService {
     public void deleteStack(String stackId) {
         stackRepository.deleteById(stackId);
     }
+    
+    @Override
+    public List<Stack> getAll() {
+    	return stackRepository.findAll();
+    }
+    
 }

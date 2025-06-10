@@ -83,6 +83,7 @@ public class IdGeneration {
 	        case "TRAINER" -> "TRN";
 	        case "JD" -> "JD";
 	        case "PG-HEAD" -> "PG-HEAD";
+	        case "STU-ADMIN" -> "STU-ADMIN";
 	        default -> throw new IdGenerationException("Invalid type: " + type, HttpStatus.BAD_REQUEST);
 	    };
 	    

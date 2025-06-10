@@ -28,17 +28,9 @@ public class MockRatingsServiceImpl implements MockRatingsService {
     }
 
     @Override
-    public Optional<MockRatings> getRatingById(String id) {
-        return mockRatingsRepository.findById(id);
-    }
-
-    @Override
     public MockRatings updateRating(MockRatings rating) {
         return mockRatingsRepository.save(rating);
     }
 
-    @Override
-    public void deleteRating(String id) {
-        mockRatingsRepository.deleteById(id);
-    }
+   
 }

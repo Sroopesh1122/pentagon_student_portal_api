@@ -2,6 +2,7 @@ package com.pentagon.app.restController;
 
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -36,6 +37,9 @@ import com.pentagon.app.entity.Executive;
 import com.pentagon.app.entity.JobDescription;
 import com.pentagon.app.entity.Manager;
 import com.pentagon.app.entity.ProgramHead;
+import com.pentagon.app.entity.ProgramHeadStack;
+import com.pentagon.app.entity.Stack;
+import com.pentagon.app.entity.StudentAdmin;
 import com.pentagon.app.entity.Trainer;
 import com.pentagon.app.exception.AdminException;
 import com.pentagon.app.exception.JobDescriptionException;
@@ -44,6 +48,7 @@ import com.pentagon.app.repository.JobDescriptionRepository;
 import com.pentagon.app.request.AddExecutiveRequest;
 import com.pentagon.app.request.AddManagerRequest;
 import com.pentagon.app.request.AddProgramHeadRequest;
+import com.pentagon.app.request.AddStudentAdminRequest;
 import com.pentagon.app.response.ApiResponse;
 import com.pentagon.app.response.ExecutiveDetails;
 import com.pentagon.app.response.ManagerDetails;
@@ -58,6 +63,9 @@ import com.pentagon.app.utils.IdGeneration;
 import com.pentagon.app.service.ManagerService;
 import com.pentagon.app.service.OtpService;
 import com.pentagon.app.service.ProgramHeadService;
+import com.pentagon.app.service.ProgramHeadStackService;
+import com.pentagon.app.service.StackService;
+import com.pentagon.app.service.StudentAdminService;
 import com.pentagon.app.service.TrainerService;
 import com.pentagon.app.serviceImpl.MailService;
 import com.pentagon.app.utils.PasswordGenration;
@@ -98,6 +106,17 @@ public class AdminController {
 	
 	@Autowired
 	private ProgramHeadService programHeadService;
+	
+	
+	@Autowired
+	private ProgramHeadStackService programHeadStackService;
+	
+	@Autowired
+	private StackService stackService;
+	
+	
+	@Autowired
+	private StudentAdminService studentAdminService;
 
 	@PostMapping("/secure/addManager")
 	@PreAuthorize("hasRole('ADMIN')")
@@ -189,9 +208,15 @@ public class AdminController {
 	
 	@PostMapping("/secure/program-head/add")
 	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<?> getProgramHead(@AuthenticationPrincipal CustomUserDetails adminDetails,
+	public ResponseEntity<?> addProgramHead(@AuthenticationPrincipal CustomUserDetails adminDetails,
 			@Valid @RequestBody AddProgramHeadRequest request, BindingResult bindingResult) {
          
+		
+		if(bindingResult.hasErrors())
+		{
+			throw new AdminException("Invalid Inputs", HttpStatus.BAD_REQUEST);
+		}
+		
 		ProgramHead findProgramHead = programHeadService.getByEmail(request.getEmail());
 		
 		if(findProgramHead !=null)
@@ -200,6 +225,7 @@ public class AdminController {
 		}
 		
 		ProgramHead newProgramHead = new ProgramHead();
+		newProgramHead.setId(idGeneration.generateId("PG-HEAD"));
 		newProgramHead.setEmail(request.getEmail());
 		newProgramHead.setId(idGeneration.generateId("PG-HEAD"));
 		newProgramHead.setName(request.getName());
@@ -207,12 +233,55 @@ public class AdminController {
 		newProgramHead.setPassword(password);
 		newProgramHead.setCreatedAt(LocalDateTime.now());
 		
+		List<ProgramHeadStack> programHeadStacksList = new ArrayList<>();
+		request.getStackIds().forEach(stackId ->{
+			  Stack findStack = stackService.getStackById(stackId).orElse(null);
+			  if(findStack ==null)
+			  {
+				  throw new AdminException("No stack found", HttpStatus.NOT_FOUND);
+			  }
+			  ProgramHeadStack programHeadStack =  new ProgramHeadStack();
+			  programHeadStack.setProgramHeadId(newProgramHead.getId());
+			  programHeadStack.setStackId(stackId);			  
+		});
 		
-		return ResponseEntity.ok(new ApiResponse<>("success", "Executive added Successfully", null));
-		
-		
-		
+		programHeadStackService.addAll(programHeadStacksList);
+		programHeadService.add(newProgramHead);
+		return ResponseEntity.ok(new ApiResponse<>("success", "Program Head added Successfully", null));	
 	}
+	
+	
+	@PostMapping("/secure/student-admin/add")
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<?> addStudentAdmin(
+			@AuthenticationPrincipal CustomUserDetails adminDetails,
+			@Valid @RequestBody AddStudentAdminRequest request, 
+			BindingResult bindingResult) {
+       
+		if(bindingResult.hasErrors())
+		{
+			throw new AdminException("Invalid Inputs", HttpStatus.BAD_REQUEST);
+		}
+		
+		StudentAdmin findStudentAdmin = studentAdminService.getByEmail(request.getEmail());
+		if(findStudentAdmin !=null)
+		{
+			throw new AdminException("Email Already exists", HttpStatus.CONFLICT);
+		}
+		StudentAdmin studentAdmin =  new StudentAdmin();
+		studentAdmin.setEmail(request.getEmail());
+		studentAdmin.setId(idGeneration.generateId("STU-ADMIN"));
+		studentAdmin.setName(request.getName());
+		String password = passwordGenration.generateRandomPassword();
+		studentAdmin.setPassword(passwordEncoder.encode(password));
+		studentAdmin = studentAdminService.add(studentAdmin);
+		
+		return ResponseEntity.ok(new ApiResponse<>("success", "Student Admin added Successfully",null));	
+	}
+	
+	
+	
+	
 
 
 	@GetMapping("/secure/profile")
@@ -222,6 +291,38 @@ public class AdminController {
 		Admin admin = adminDetails.getAdmin();
 		ProfileResponse details = adminservice.getProfile(admin);
 		return ResponseEntity.ok(new ApiResponse<>("success", "Admin Profile", details));
+	}
+	
+	@GetMapping("/secure/program-heads")
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<?> viewAllProgramHeads(
+			@AuthenticationPrincipal CustomUserDetails adminDetails,
+			@RequestParam(defaultValue = "0") int page, 
+			@RequestParam(defaultValue = "10") int limit,
+			@RequestParam String q) {
+
+		Pageable pageable = PageRequest.of(page, limit, Sort.by("createdAt").descending());
+         
+		Page<ProgramHead> programHeads =  programHeadService.getAll(q, pageable);
+		
+
+		return ResponseEntity.ok(new ApiResponse<>("success", "Trainers fetched successfully", programHeads));
+	}
+	
+	
+	@GetMapping("/secure/student-admins")
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<?> viewAllStudentAdmins(
+			@AuthenticationPrincipal CustomUserDetails adminDetails,
+			@RequestParam(defaultValue = "0") int page, 
+			@RequestParam(defaultValue = "10") int limit,
+			@RequestParam String q) {
+
+		Pageable pageable = PageRequest.of(page, limit, Sort.by("createdAt").descending());
+         
+		Page<StudentAdmin> studentAdmins =  studentAdminService.getAll(q, pageable);
+	
+		return ResponseEntity.ok(new ApiResponse<>("success", "Trainers fetched successfully", studentAdmins));
 	}
 
 	@GetMapping("/secure/viewAllTrainers")

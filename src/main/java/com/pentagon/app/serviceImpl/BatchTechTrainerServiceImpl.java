@@ -28,7 +28,7 @@ public class BatchTechTrainerServiceImpl implements BatchTechTrainerService {
     }
 
     @Override
-    public Optional<BatchTechTrainer> getAssignmentById(String id) {
+    public Optional<BatchTechTrainer> getAssignmentById(Integer id) {
         return batchTechTrainerRepository.findById(id);
     }
 
@@ -38,7 +38,7 @@ public class BatchTechTrainerServiceImpl implements BatchTechTrainerService {
     }
 
     @Override
-    public void deleteAssignment(String id) {
+    public void deleteAssignment(Integer id) {
         batchTechTrainerRepository.deleteById(id);
     }
 }

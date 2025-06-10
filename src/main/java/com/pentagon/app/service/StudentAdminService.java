@@ -10,5 +10,8 @@ public interface StudentAdminService
   public StudentAdmin getById(String id);
   public StudentAdmin add (StudentAdmin studentAdmin);
   public StudentAdmin update(StudentAdmin studentAdmin);
-  public Page<StudentAdmin> getAll(Pageable pageable);
+  public Page<StudentAdmin> getAll(String q, Pageable pageable);
+  
+  public StudentAdmin getByEmail(String email);
+
 }

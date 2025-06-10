@@ -12,4 +12,6 @@ public interface ProgramHeadService
   public ProgramHead update(ProgramHead programHead);
   public Page<ProgramHead> getAll(Pageable pageable);
   public ProgramHead getByEmail(String email);
+  
+  public Page<ProgramHead> getAll(String q,Pageable pageable);
 }

@@ -79,6 +79,5 @@ public class Student {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @ManyToOne
-    private Batch batch;
+    private String batchId;
 }

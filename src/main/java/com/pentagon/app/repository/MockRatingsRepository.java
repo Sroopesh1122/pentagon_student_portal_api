@@ -6,6 +6,6 @@ import org.springframework.stereotype.Repository;
 import com.pentagon.app.entity.Batch;
 import com.pentagon.app.entity.MockRatings;
 @Repository
-public interface MockRatingsRepository extends JpaRepository<MockRatings,String> {
+public interface MockRatingsRepository extends JpaRepository<MockRatings,Integer> {
 
 }

@@ -6,6 +6,6 @@ import org.springframework.stereotype.Repository;
 import com.pentagon.app.entity.Batch;
 import com.pentagon.app.entity.BatchTechTrainer;
 @Repository
-public interface BatchTechTrainerRepository extends JpaRepository<BatchTechTrainer,String> {
+public interface BatchTechTrainerRepository extends JpaRepository<BatchTechTrainer,Integer> {
 
 }

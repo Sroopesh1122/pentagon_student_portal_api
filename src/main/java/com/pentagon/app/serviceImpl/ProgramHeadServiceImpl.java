@@ -40,5 +40,10 @@ public class ProgramHeadServiceImpl implements ProgramHeadService {
 	public ProgramHead getByEmail(String email) {
 		return programHeadRepository.findByEmail(email);
 	}
+	
+	@Override
+	public Page<ProgramHead> getAll(String q, Pageable pageable) {
+		return programHeadRepository.getAll(q, pageable);
+	}
 
 }

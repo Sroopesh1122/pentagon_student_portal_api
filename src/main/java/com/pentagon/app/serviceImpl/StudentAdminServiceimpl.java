@@ -14,8 +14,12 @@ public class StudentAdminServiceimpl implements StudentAdminService {
 
 	@Autowired
 	private StudentAdminRepository studentAdminRepository;
-	
-	
+
+	@Override
+	public StudentAdmin getByEmail(String email) {
+		return studentAdminRepository.findByEmail(email).orElse(null);
+	}
+
 	@Override
 	public StudentAdmin getById(String id) {
 		return studentAdminRepository.findById(id).orElse(null);
@@ -32,8 +36,8 @@ public class StudentAdminServiceimpl implements StudentAdminService {
 	}
 
 	@Override
-	public Page<StudentAdmin> getAll(Pageable pageable) {
-		return studentAdminRepository.findAll(pageable);
+	public Page<StudentAdmin> getAll(String q,Pageable pageable) {
+		return studentAdminRepository.getAll(q, pageable);
 	}
 
 }
