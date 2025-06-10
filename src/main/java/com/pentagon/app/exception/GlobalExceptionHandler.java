@@ -119,5 +119,55 @@ public class GlobalExceptionHandler {
         errorResponse.put("status", "457");
         return new ResponseEntity<>(errorResponse,HttpStatus.FORBIDDEN);
     }
+    @ExceptionHandler(BatchException.class)
+    public ResponseEntity<Map<String, Object>> handleBatchException(BatchException batchException) {
+        Map<String,Object> errorResponse = new HashMap<>();
+        errorResponse.put("status", "failure");
+        errorResponse.put("type","Batch Exception");
+        errorResponse.put("error", batchException.getMessage());
+        errorResponse.put("localTime", LocalDateTime.now());
+        errorResponse.put("status", batchException.getHttpStatus().toString());
+        return new ResponseEntity<>(errorResponse, batchException.getHttpStatus());
+    }
+    @ExceptionHandler(BatchTechTrainerException.class)
+    public ResponseEntity<Map<String, Object>> handleBatchTechTrainerException(BatchTechTrainerException batchTechTrainerException) {
+        Map<String,Object> errorResponse = new HashMap<>();
+        errorResponse.put("status", "failure");
+        errorResponse.put("type","Batch Tech Trainer Exception");
+        errorResponse.put("error", batchTechTrainerException.getMessage());
+        errorResponse.put("localTime", LocalDateTime.now());
+        errorResponse.put("status", batchTechTrainerException.getHttpStatus().toString());
+        return new ResponseEntity<>(errorResponse, batchTechTrainerException.getHttpStatus());
+    }
+    @ExceptionHandler(MockRatingsException.class)
+    public ResponseEntity<Map<String, Object>> handleMockRatingsException(MockRatingsException mockRatingsException) {
+        Map<String,Object> errorResponse = new HashMap<>();
+        errorResponse.put("status", "failure");
+        errorResponse.put("type","Mock Ratings Exception");
+        errorResponse.put("error", mockRatingsException.getMessage());
+        errorResponse.put("localTime", LocalDateTime.now());
+        errorResponse.put("status", mockRatingsException.getHttpStatus().toString());
+        return new ResponseEntity<>(errorResponse, mockRatingsException.getHttpStatus());
+    }
+    @ExceptionHandler(StackException.class)
+    public ResponseEntity<Map<String, Object>> handleStackException(StackException stackException) {
+        Map<String,Object> errorResponse = new HashMap<>();
+        errorResponse.put("status", "failure");
+        errorResponse.put("type","Stack Exception");
+        errorResponse.put("error", stackException.getMessage());
+        errorResponse.put("localTime", LocalDateTime.now());
+        errorResponse.put("status", stackException.getHttpStatus().toString());
+        return new ResponseEntity<>(errorResponse, stackException.getHttpStatus());
+    }
+    @ExceptionHandler(TechnologyException.class)
+    public ResponseEntity<Map<String, Object>> handleTechnologyException(TechnologyException technologyException) {
+        Map<String,Object> errorResponse = new HashMap<>();
+        errorResponse.put("status", "failure");
+        errorResponse.put("type","Technology Exception");
+        errorResponse.put("error", technologyException.getMessage());
+        errorResponse.put("localTime", LocalDateTime.now());
+        errorResponse.put("status", technologyException.getHttpStatus().toString());
+        return new ResponseEntity<>(errorResponse, technologyException.getHttpStatus());
+    }
     
 }
