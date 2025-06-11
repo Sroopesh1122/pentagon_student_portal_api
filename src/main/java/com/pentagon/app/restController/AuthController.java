@@ -26,17 +26,19 @@ public class AuthController {
     private final ManagerService managerService;
     private final StudentService studentService;
     private final TrainerService trainerService;
+    private final StudentAdminService studentAdminService;
     private final OtpService otpService;
     private final JwtUtil jwtUtil;
     private final ActivityLogService activityLogService;
     private final MailService mailService;
 
     public AuthController(AdminService adminService, ManagerService managerService, ExecutiveService executiveService,
-                          TrainerService trainerService, StudentService studentService,OtpService otpService, JwtUtil jwtUtil, ActivityLogService activityLogService ,MailService mailService) {
+                          TrainerService trainerService,StudentAdminService studentAdminService, StudentService studentService,OtpService otpService, JwtUtil jwtUtil, ActivityLogService activityLogService ,MailService mailService) {
         this.adminService = adminService;
         this.managerService = managerService;
         this.executiveService = executiveService;
         this.trainerService = trainerService;
+        this.studentAdminService=studentAdminService;
         this.studentService = studentService;
         this.otpService =otpService;
         this.jwtUtil = jwtUtil;
@@ -149,6 +151,13 @@ public class AuthController {
         if (result.hasErrors()) throw new StudentException("Invalid details", HttpStatus.BAD_REQUEST);
         return handleLogin("STUDENT", studentService.loginWithPassword(request));
     }
+    
+    @PostMapping("/public/studentadmin/login")
+    public ResponseEntity<?> studentAdminLogin(@RequestBody @Valid StudentAdminLoginRequest request, BindingResult result){
+    	if (result.hasErrors()) ;
+    	return handleLogin("STUDNETADMIN", studentAdminService.loginWithPassword(request));
+    }
+    
     
 //    @PostMapping("/admin/verify-OTP")
 //    public ResponseEntity<?> adminVerify(@RequestBody @Valid OtpVerificationRequest request, BindingResult result) {
