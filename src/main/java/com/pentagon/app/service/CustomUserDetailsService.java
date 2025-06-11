@@ -11,10 +11,12 @@ import org.springframework.stereotype.Service;
 import com.pentagon.app.entity.Admin;
 import com.pentagon.app.entity.Executive;
 import com.pentagon.app.entity.Manager;
+import com.pentagon.app.entity.StudentAdmin;
 import com.pentagon.app.entity.Trainer;
 import com.pentagon.app.repository.AdminRepository;
 import com.pentagon.app.repository.ExecutiveRepository;
 import com.pentagon.app.repository.ManagerRepository;
+import com.pentagon.app.repository.StudentAdminRepository;
 import com.pentagon.app.repository.TrainerRepository;
 
 @Service
@@ -31,6 +33,9 @@ public class CustomUserDetailsService implements UserDetailsService{
 	
 	@Autowired
 	private TrainerRepository trainerRepository;
+	
+	@Autowired
+	private StudentAdminRepository studentAdminRepository;
 	
 	@Override
 	public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
@@ -72,6 +77,16 @@ public class CustomUserDetailsService implements UserDetailsService{
 		}
 		
 		return new CustomUserDetails(executive.get());
+	}
+	
+	public UserDetails loadStudentAdmin(String email) {
+		Optional<StudentAdmin> studentAdmin= studentAdminRepository.findByEmail(email);
+		
+		if (studentAdmin.isEmpty()) {
+			
+			throw new UsernameNotFoundException("User Not found");
+		}
+		return new CustomUserDetails(studentAdmin.get());
 	}
 
 }

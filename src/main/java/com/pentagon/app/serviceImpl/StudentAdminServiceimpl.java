@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import com.pentagon.app.entity.Student;
 import com.pentagon.app.entity.StudentAdmin;
+import com.pentagon.app.exception.StudentAdminException;
 import com.pentagon.app.exception.StudentException;
 import com.pentagon.app.repository.StudentAdminRepository;
 import com.pentagon.app.request.StudentAdminLoginRequest;
@@ -56,13 +57,16 @@ public class StudentAdminServiceimpl implements StudentAdminService {
 
 	@Override
 	public String loginWithPassword(@Valid StudentAdminLoginRequest request) {
-		StudentAdmin studntadmin= studentAdminRepository.findByEmail(request.getEmail())
-				.orElseThrow(()-> new StudentException("Student Admin not found", HttpStatus.NOT_FOUND));
-		if(!passwordEncoder.matches(request.getPassword(), studntadmin.getPassword())) {
-//			throw new StudentException("Invalid password", HttpStatus.UNAUTHORIZED);
+		StudentAdmin studentadmin= studentAdminRepository.findByEmail(request.getEmail())
+				.orElseThrow(()-> new StudentAdminException("Student Admin not found", HttpStatus.NOT_FOUND));
+		if (!studentadmin.isActive()) {
+			throw new StudentAdminException("Suspended", HttpStatus.UNAUTHORIZED);
+		}
+		if(!passwordEncoder.matches(request.getPassword(), studentadmin.getPassword())) {
+			throw new StudentAdminException("Invalid password", HttpStatus.UNAUTHORIZED);
 		}
 		String otp = otpService.generateOtpAndStore(request.getEmail());
-		otpService.sendOtpToEmail(studntadmin.getEmail(), otp);
+		otpService.sendOtpToEmail(studentadmin.getEmail(), otp);
 		return "OTP sent to registered email";
 	}
 

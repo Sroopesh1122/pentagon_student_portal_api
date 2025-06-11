@@ -1,5 +1,6 @@
 package com.pentagon.app.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import lombok.Data;
@@ -16,5 +17,8 @@ public class StudentAdmin
   private String email;
   
   private String password;
+  
+  @Column(name = "is_active", nullable = false)
+  private boolean isActive = true;
   
 }
