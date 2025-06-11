@@ -53,6 +53,7 @@ import com.pentagon.app.response.ApiResponse;
 import com.pentagon.app.response.ExecutiveDetails;
 import com.pentagon.app.response.ManagerDetails;
 import com.pentagon.app.response.ProfileResponse;
+import com.pentagon.app.response.ProgramHeadDetails;
 import com.pentagon.app.service.ActivityLogService;
 import com.pentagon.app.service.AdminService;
 import com.pentagon.app.service.CustomUserDetails;
@@ -324,6 +325,30 @@ public class AdminController {
 	
 		return ResponseEntity.ok(new ApiResponse<>("success", "Trainers fetched successfully", studentAdmins));
 	}
+	@GetMapping("/secure/program-heads/{id}")
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<ApiResponse<ProgramHeadDetails>> getById(@PathVariable String id) {
+	    ProgramHead programHead = programHeadService.getById(id);
+	    if (programHead == null) {
+	        throw new AdminException("ProgramHead not found", HttpStatus.NOT_FOUND);
+	    }
+
+	    ProgramHeadDetails details = new ProgramHeadDetails();
+	    details.setId(programHead.getId());
+	    details.setName(programHead.getName());
+	    details.setEmail(programHead.getEmail());
+	    details.setMobile(programHead.getMobile());
+	    details.setQualification(programHead.getQualification());
+	    details.setYearOfExperiences(programHead.getYearOfExperiences());
+	    details.setActive(programHead.isActive());
+	    details.setCreatedAt(programHead.getCreatedAt());
+	    details.setUpdatedAt(programHead.getUpdatedAt());
+	    
+
+	    return ResponseEntity.ok(
+	        new ApiResponse<>("success", "ProgramHead details fetched successfully", details)
+	    );
+	}
 
 	@GetMapping("/secure/viewAllTrainers")
 	@PreAuthorize("hasRole('ADMIN')")
@@ -505,6 +530,7 @@ public class AdminController {
 	}
 	
 	
+	
 	@GetMapping("/secure/manager/{id}/executives")
 	public ResponseEntity<?> getAllExecutivesByManager(@PathVariable("id") String managerId,
 			@RequestParam(required = false , defaultValue = "0") Integer page,
@@ -545,6 +571,7 @@ public class AdminController {
 		executiveDetails.setManagerName(manager.getName());
 		return ResponseEntity.ok(new ApiResponse<>("success", "Executive Data", executiveDetails));
 	}
+	
 	
 	
 	@GetMapping("/secure/executive/{id}/recentJd")
