@@ -214,4 +214,10 @@ public class ExecutiveServiceImpl implements ExecutiveService {
 		return executiveRepository.count();
 	}
 
+//	
+	
+	@Override
+	public Page<Executive> getExecutivesByManagerIdAndSearchQuery(String managerId, String q, Pageable pageable) {
+	    return executiveRepository.findByManagerIdWithSearchQuery(managerId, q, pageable);
+	}
 }

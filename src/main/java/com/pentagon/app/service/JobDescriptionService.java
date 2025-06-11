@@ -7,6 +7,7 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import com.pentagon.app.Dto.ExecutiveJDStatusDTO;
 import com.pentagon.app.Dto.JdStatsDTO;
 import com.pentagon.app.entity.JobDescription;
 
@@ -31,6 +32,8 @@ public interface JobDescriptionService {
 	public List<JobDescription> viewAllJobDescriptions();
 	
 	public List<JobDescription> viewJobDescriptionBasedOnStack(String stack);
+
+	public ExecutiveJDStatusDTO getExecutiveJobDescriptionStats(String executiveId);
 	
 	
 	public List<JdStatsDTO> getJdStats(String timeUnit , int range);

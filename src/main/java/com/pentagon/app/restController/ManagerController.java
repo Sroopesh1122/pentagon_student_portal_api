@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.pentagon.app.Dto.ExecutiveJDStatusDTO;
 import com.pentagon.app.Dto.JobDescriptionDTO;
 import com.pentagon.app.Dto.TrainerDTO;
 import com.pentagon.app.entity.Executive;
@@ -263,7 +264,6 @@ public class ManagerController {
 		findJobDescription.setJdActionReason(jdActionReason);
 		findJobDescription = jobDescriptionService.updateJobDescription(findJobDescription);
 		return ResponseEntity.ok(new ApiResponse<>("success", "JD stauts updated", null));
-
 	}
 
 	@GetMapping("/secure/profile")
@@ -387,6 +387,32 @@ public class ManagerController {
 		return ResponseEntity.ok(new ApiResponse<>("success", "Executives data", executives));
 	}
 
+	
+	
+	//view all executives based on manger id and also search parameter
+	@GetMapping("/secure/executives")
+	@PreAuthorize("hasRole('MANAGER')")
+	public ResponseEntity<?> getExecutives(
+	        @AuthenticationPrincipal CustomUserDetails managerDetails,
+	        @RequestParam(required = false) String q,
+	        @RequestParam(defaultValue = "0") int initial,
+	        @RequestParam(defaultValue = "10") int limit) {
+
+	    Pageable pageable = PageRequest.of(initial, limit, Sort.by("createdAt").descending());
+	    String managerId = managerDetails.getManager().getManagerId();
+
+	    Page<Executive> executives = executiveService.getExecutivesByManagerIdAndSearchQuery(managerId, q, pageable);
+	    return ResponseEntity.ok(new ApiResponse<>("success", "Executives data", executives));
+	}
+	
+	//based on ex id - number of jds posted , and number of openings and number of closures
+	@GetMapping("/secure/executive/jd-stats/{executiveId}")
+	@PreAuthorize("hasAnyRole('MANAGER','ADMIN')")
+	public ResponseEntity<?> getjobDescriptionStatusByExecutive(@PathVariable String executiveId) {
+	    ExecutiveJDStatusDTO stats = jobDescriptionService.getExecutiveJobDescriptionStats(executiveId);
+	    return ResponseEntity.ok(new ApiResponse<>("success", "Executive JD stats", stats));
+	}
+	
 	@GetMapping("/secure/executive/{id}")
 	@PreAuthorize("hasRole('MANAGER')")
 	public ResponseEntity<?> getExecutiveById(@PathVariable String id) {
