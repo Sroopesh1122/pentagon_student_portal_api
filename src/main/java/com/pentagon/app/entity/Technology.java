@@ -5,6 +5,8 @@ import java.util.List;
 
 import org.hibernate.annotations.CreationTimestamp;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -15,4 +17,11 @@ public class Technology {
     private String techId;
    
     private String name;
+
+    @JsonIgnore
+    @ManyToMany(mappedBy = "technologies")
+    private List<Stack> stacks;
+
+    @ManyToMany(mappedBy = "technologies")
+    private List<Trainer> trainers;
 }

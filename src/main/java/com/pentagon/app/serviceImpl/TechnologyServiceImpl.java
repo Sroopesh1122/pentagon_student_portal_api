@@ -1,5 +1,6 @@
 package com.pentagon.app.serviceImpl;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,5 +41,10 @@ public class TechnologyServiceImpl implements TechnologyService {
     @Override
     public void deleteTechnology(String techId) {
         technologyRepository.deleteById(techId);
+    }
+    
+    @Override
+    public List<Technology> getAllTechnologies() {
+    	return technologyRepository.findAll();
     }
 }

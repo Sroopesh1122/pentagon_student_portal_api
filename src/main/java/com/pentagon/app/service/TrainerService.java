@@ -22,4 +22,6 @@ public interface TrainerService {
 	public ProfileResponse getProfile(Trainer trainer);
 
 	boolean checkExistsByEmail(String email);
+	
+	public Trainer getById(String tainerId);
 }

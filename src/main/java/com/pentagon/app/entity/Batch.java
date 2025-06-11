@@ -14,7 +14,14 @@ public class Batch {
     @Id
     private String batchId;
     
-    private String batchName;
+    private String name;
 
-    private String stackId;
+    @ManyToOne
+    private Stack stack;
+
+    @OneToMany(mappedBy = "batch", cascade = CascadeType.ALL)
+    private List<BatchTechTrainer> batchTechTrainers;
+
+    @OneToMany(mappedBy = "batch")
+    private List<Student> students;
 }

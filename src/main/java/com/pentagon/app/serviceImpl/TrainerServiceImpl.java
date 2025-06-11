@@ -105,5 +105,10 @@ public class TrainerServiceImpl implements TrainerService {
 		return  trainerRepository.existsByEmail(email);
 	}
 	
+	@Override
+	public Trainer getById(String tainerId) {
+		return trainerRepository.findById(tainerId).orElse(null);
+	}
+	
 
 }

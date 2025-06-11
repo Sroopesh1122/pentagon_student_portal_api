@@ -184,7 +184,6 @@ public class ManagerController {
 		trainer.setName(request.getName());
 		trainer.setEmail(request.getEmail());
 		trainer.setMobile(request.getMobile());
-		trainer.setTrainerStack(request.getTrainerStack());
 		trainer.setYearOfExperiences(request.getYearOfExperiences());
 		trainer.setQualification(request.getQualification());
 		trainer.setAcitve(true);
@@ -230,7 +229,6 @@ public class ManagerController {
 			Trainerdto.setName(trainer.getName());
 			Trainerdto.setEmail(trainer.getEmail());
 			Trainerdto.setMobile(trainer.getMobile());
-			Trainerdto.setTrainerStack(trainer.getTrainerStack());
 			Trainerdto.setQualification(trainer.getQualification());
 			Trainerdto.setYearOfExperiences(trainer.getYearOfExperiences());
 			Trainerdto.setActive(trainer.isAcitve());

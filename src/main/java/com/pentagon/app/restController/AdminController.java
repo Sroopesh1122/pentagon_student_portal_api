@@ -37,14 +37,12 @@ import com.pentagon.app.entity.Executive;
 import com.pentagon.app.entity.JobDescription;
 import com.pentagon.app.entity.Manager;
 import com.pentagon.app.entity.ProgramHead;
-import com.pentagon.app.entity.ProgramHeadStack;
 import com.pentagon.app.entity.Stack;
 import com.pentagon.app.entity.StudentAdmin;
 import com.pentagon.app.entity.Trainer;
 import com.pentagon.app.exception.AdminException;
 import com.pentagon.app.exception.JobDescriptionException;
 import com.pentagon.app.exception.OtpException;
-import com.pentagon.app.repository.JobDescriptionRepository;
 import com.pentagon.app.request.AddExecutiveRequest;
 import com.pentagon.app.request.AddManagerRequest;
 import com.pentagon.app.request.AddProgramHeadRequest;
@@ -63,7 +61,6 @@ import com.pentagon.app.utils.IdGeneration;
 import com.pentagon.app.service.ManagerService;
 import com.pentagon.app.service.OtpService;
 import com.pentagon.app.service.ProgramHeadService;
-import com.pentagon.app.service.ProgramHeadStackService;
 import com.pentagon.app.service.StackService;
 import com.pentagon.app.service.StudentAdminService;
 import com.pentagon.app.service.TrainerService;
@@ -108,8 +105,6 @@ public class AdminController {
 	private ProgramHeadService programHeadService;
 	
 	
-	@Autowired
-	private ProgramHeadStackService programHeadStackService;
 	
 	@Autowired
 	private StackService stackService;
@@ -224,29 +219,28 @@ public class AdminController {
 			throw new AdminException("Email Already exists", HttpStatus.CONFLICT);
 		}
 		
-		ProgramHead newProgramHead = new ProgramHead();
-		newProgramHead.setId(idGeneration.generateId("PG-HEAD"));
-		newProgramHead.setEmail(request.getEmail());
-		newProgramHead.setId(idGeneration.generateId("PG-HEAD"));
-		newProgramHead.setName(request.getName());
-		String password = passwordGenration.generateRandomPassword();
-		newProgramHead.setPassword(password);
-		newProgramHead.setCreatedAt(LocalDateTime.now());
-		
-		List<ProgramHeadStack> programHeadStacksList = new ArrayList<>();
-		request.getStackIds().forEach(stackId ->{
-			  Stack findStack = stackService.getStackById(stackId).orElse(null);
-			  if(findStack ==null)
-			  {
-				  throw new AdminException("No stack found", HttpStatus.NOT_FOUND);
-			  }
-			  ProgramHeadStack programHeadStack =  new ProgramHeadStack();
-			  programHeadStack.setProgramHeadId(newProgramHead.getId());
-			  programHeadStack.setStackId(stackId);			  
-		});
-		
-		programHeadStackService.addAll(programHeadStacksList);
-		programHeadService.add(newProgramHead);
+//		ProgramHead newProgramHead = new ProgramHead();
+//		newProgramHead.setId(idGeneration.generateId("PG-HEAD"));
+//		newProgramHead.setEmail(request.getEmail());
+//		newProgramHead.setName(request.getName());
+//		String password = passwordGenration.generateRandomPassword();
+//		newProgramHead.setPassword(password);
+//		newProgramHead.setCreatedAt(LocalDateTime.now());
+//		
+//		List<ProgramHeadStack> programHeadStacksList = new ArrayList<>();
+//		request.getStackIds().forEach(stackId ->{
+//			  Stack findStack = stackService.getStackById(stackId).orElse(null);
+//			  if(findStack ==null)
+//			  {
+//				  throw new AdminException("No stack found", HttpStatus.NOT_FOUND);
+//			  }
+//			  ProgramHeadStack programHeadStack =  new ProgramHeadStack();
+//			  programHeadStack.setProgramHeadId(newProgramHead.getId());
+//			  programHeadStack.setStackId(stackId);			  
+//		});
+//		
+//		programHeadStackService.addAll(programHeadStacksList);
+//		programHeadService.add(newProgramHead);
 		return ResponseEntity.ok(new ApiResponse<>("success", "Program Head added Successfully", null));	
 	}
 	
@@ -342,7 +336,6 @@ public class AdminController {
 			dto.setName(trainer.getName());
 			dto.setEmail(trainer.getEmail());
 			dto.setMobile(trainer.getMobile());
-			dto.setTrainerStack(trainer.getTrainerStack());
 			dto.setQualification(trainer.getQualification());
 			dto.setYearOfExperiences(trainer.getYearOfExperiences());
 			dto.setActive(trainer.isAcitve());
