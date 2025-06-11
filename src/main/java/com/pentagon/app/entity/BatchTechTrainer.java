@@ -10,15 +10,18 @@ import lombok.Data;
 @Data
 @Entity
 public class BatchTechTrainer {
-    @Id
+	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
 
-    private String batchId;
-    
-    private String techId;
-    
-    private String trainerId;
+    @ManyToOne
+    private Batch batch;
+
+    @ManyToOne
+    private Technology technology;
+
+    @ManyToOne
+    private Trainer trainer;
     
     @CreationTimestamp
     private LocalDateTime createdAt;

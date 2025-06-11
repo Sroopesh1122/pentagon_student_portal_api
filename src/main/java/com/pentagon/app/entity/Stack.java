@@ -16,5 +16,13 @@ public class Stack {
 
     private String name;
 
-    
+    @ManyToMany
+    private List<Technology> technologies;
+
+    @ManyToMany
+    private List<ProgramHead> programHeads;
+
+    @OneToMany(mappedBy = "stack")
+    private List<Batch> batches;
+
 }

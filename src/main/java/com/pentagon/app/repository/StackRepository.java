@@ -9,4 +9,5 @@ import com.pentagon.app.entity.Stack;
 @Repository
 public interface StackRepository extends JpaRepository<Stack,String> {
 
+	
 }

@@ -35,7 +35,6 @@ public class Trainer {
     @Column(name = "is_active", nullable = false)
     private boolean isAcitve;
 
-    private String trainerStack;
     private String qualification;
     private Integer yearOfExperiences;
 
@@ -48,5 +47,8 @@ public class Trainer {
     private LocalDateTime updatedAt;
     
     
-    private String programHeadId;
+    private String programHeadId;  // added by
+    
+    @ManyToMany
+    private List<Technology> technologies;
 }

@@ -28,12 +28,18 @@ public class ProgramHead
 	  private String password;
 	  
 	  @ManyToMany
-	  @JoinTable(
-	       name = "programhead_stack",
-	       joinColumns = @JoinColumn(name = "program_head_id"),
-	       inverseJoinColumns = @JoinColumn(name = "stack_id")
-	 )
-	 private List<Stack> stacks;
+	  private List<Stack> stacks;
+
+	  private String mobile;
+	  
+	  private String qualification;
+	    
+	  private Integer yearOfExperiences;
+	  
+	  @Column(name = "is_active", nullable = false)
+	  private boolean isActive = true;
+	  
+
 	  
 	  @CreationTimestamp
 	    @Column(name = "created_at", updatable = false)
@@ -44,3 +50,5 @@ public class ProgramHead
 	    private LocalDateTime updatedAt;
 
 }
+	
+
