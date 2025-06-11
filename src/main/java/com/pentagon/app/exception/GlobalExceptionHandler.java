@@ -169,5 +169,15 @@ public class GlobalExceptionHandler {
         errorResponse.put("status", technologyException.getHttpStatus().toString());
         return new ResponseEntity<>(errorResponse, technologyException.getHttpStatus());
     }
+    @ExceptionHandler(StudentAdminException.class)
+    public ResponseEntity<Map<String, Object>> handleStudentAdminException(StudentAdminException studentAdminException) {
+        Map<String,Object> errorResponse = new HashMap<>();
+        errorResponse.put("status", "failure");
+        errorResponse.put("type","Student Admin Exception");
+        errorResponse.put("error", studentAdminException.getMessage());
+        errorResponse.put("localTime", LocalDateTime.now());
+        errorResponse.put("status", studentAdminException.getHttpStatus().toString());
+        return new ResponseEntity<>(errorResponse, studentAdminException.getHttpStatus());
+    }
     
 }
