@@ -1,6 +1,7 @@
 package com.pentagon.app.configuaration;
 import java.util.Arrays;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -44,6 +45,10 @@ public class AppConfiguaration {
 	public PasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder();
 	}
+	@Bean
+    public ModelMapper modelMapper() {
+        return new ModelMapper();
+    }
 
 	@Bean 
 	public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
