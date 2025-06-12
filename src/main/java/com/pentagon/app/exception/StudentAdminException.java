@@ -2,8 +2,7 @@ package com.pentagon.app.exception;
 
 import org.springframework.http.HttpStatus;
 
-public class StudentAdminException extends RuntimeException {
-    
+public class StudentAdminException extends RuntimeException {    
     private static final long serialVersionUID = 1L;
     
     private HttpStatus httpStatus;

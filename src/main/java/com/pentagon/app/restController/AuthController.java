@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import com.pentagon.app.entity.ProgramHead;
 import com.pentagon.app.exception.*;
 import com.pentagon.app.request.*;
 import com.pentagon.app.response.ApiResponse;
@@ -16,6 +17,9 @@ import com.pentagon.app.serviceImpl.MailService;
 import com.pentagon.app.utils.JwtUtil;
 
 import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
 
 @RestController
 @RequestMapping("/api/auth")
@@ -26,17 +30,21 @@ public class AuthController {
     private final ManagerService managerService;
     private final StudentService studentService;
     private final TrainerService trainerService;
+    private final StudentAdminService studentAdminService;
+    private final ProgramHeadService programHeadService;
     private final OtpService otpService;
     private final JwtUtil jwtUtil;
     private final ActivityLogService activityLogService;
     private final MailService mailService;
 
     public AuthController(AdminService adminService, ManagerService managerService, ExecutiveService executiveService,
-                          TrainerService trainerService, StudentService studentService,OtpService otpService, JwtUtil jwtUtil, ActivityLogService activityLogService ,MailService mailService) {
+                          TrainerService trainerService,StudentAdminService studentAdminService,ProgramHeadService programHeadService, StudentService studentService,OtpService otpService, JwtUtil jwtUtil, ActivityLogService activityLogService ,MailService mailService) {
         this.adminService = adminService;
         this.managerService = managerService;
         this.executiveService = executiveService;
         this.trainerService = trainerService;
+        this.studentAdminService=studentAdminService;
+        this.programHeadService=programHeadService;
         this.studentService = studentService;
         this.otpService =otpService;
         this.jwtUtil = jwtUtil;
@@ -69,6 +77,8 @@ public class AuthController {
                 case "EXECUTIVE" -> throw new ExecutiveException("OTP is Invalid/Expired", HttpStatus.UNAUTHORIZED);
                 case "TRAINER" -> throw new TrainerException("OTP is Invalid/Expired", HttpStatus.UNAUTHORIZED);
                 case "STUDENT" -> throw new StudentException("OTP is Invalid/Expired", HttpStatus.UNAUTHORIZED);
+                case "STUDNETADMIN" -> throw new StudentAdminException("otp is Invalid/Expired", HttpStatus.UNAUTHORIZED);
+                case "PROGRAMHEAD" -> throw new ProgramHeadException("otp is Invalid/Expired", HttpStatus.UNAUTHORIZED);
                 default -> throw new UserException("Unknown role: " + role, HttpStatus.UNAUTHORIZED);
             }
         }
@@ -92,6 +102,7 @@ public class AuthController {
     }
 
 
+//    @PostMapping("/public/send-otp") and @PostMapping("/public/verify-otp") End-point are used to check email is valid or not
     @PostMapping("/public/verify-otp")
 	public ResponseEntity<?> verifyOtp(
 	        @RequestParam String email,
@@ -108,7 +119,6 @@ public class AuthController {
 	        throw new OtpException("Invalid/Expired Otp", HttpStatus.UNAUTHORIZED);
 	    } 
 	}
-    
     
     
 	@PostMapping("/public/send-otp")
@@ -149,6 +159,19 @@ public class AuthController {
         if (result.hasErrors()) throw new StudentException("Invalid details", HttpStatus.BAD_REQUEST);
         return handleLogin("STUDENT", studentService.loginWithPassword(request));
     }
+    
+    @PostMapping("/public/studentadmin/login")
+    public ResponseEntity<?> studentAdminLogin(@RequestBody @Valid StudentAdminLoginRequest request, BindingResult result){
+    	if (result.hasErrors()) throw new StudentAdminException("Invalid details", HttpStatus.BAD_REQUEST);
+    	return handleLogin("STUDNETADMIN", studentAdminService.loginWithPassword(request));
+    }
+    @PostMapping("/public/programhead/login")
+    public ResponseEntity<?> programHeadLogin(@RequestBody @Valid ProgramheadLoginRequest request, BindingResult result) {
+        if (result.hasErrors()) throw new ProgramHeadException("Invalid details", HttpStatus.BAD_REQUEST);
+        return handleLogin("PROGRAMHEAD", programHeadService.loginwithPassword(request));
+    }
+    
+    
     
 //    @PostMapping("/admin/verify-OTP")
 //    public ResponseEntity<?> adminVerify(@RequestBody @Valid OtpVerificationRequest request, BindingResult result) {
