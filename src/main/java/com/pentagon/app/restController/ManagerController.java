@@ -390,20 +390,20 @@ public class ManagerController {
 	
 	
 	//view all executives based on manger id and also search parameter
-	@GetMapping("/secure/executives")
-	@PreAuthorize("hasRole('MANAGER')")
-	public ResponseEntity<?> getExecutives(
-	        @AuthenticationPrincipal CustomUserDetails managerDetails,
-	        @RequestParam(required = false) String q,
-	        @RequestParam(defaultValue = "0") int initial,
-	        @RequestParam(defaultValue = "10") int limit) {
-
-	    Pageable pageable = PageRequest.of(initial, limit, Sort.by("createdAt").descending());
-	    String managerId = managerDetails.getManager().getManagerId();
-
-	    Page<Executive> executives = executiveService.getExecutivesByManagerIdAndSearchQuery(managerId, q, pageable);
-	    return ResponseEntity.ok(new ApiResponse<>("success", "Executives data", executives));
-	}
+//	@GetMapping("/secure/executives")
+//	@PreAuthorize("hasRole('MANAGER')")
+//	public ResponseEntity<?> getExecutives(
+//	        @AuthenticationPrincipal CustomUserDetails managerDetails,
+//	        @RequestParam(required = false) String q,
+//	        @RequestParam(defaultValue = "0") int initial,
+//	        @RequestParam(defaultValue = "10") int limit) {
+//
+//	    Pageable pageable = PageRequest.of(initial, limit, Sort.by("createdAt").descending());
+//	    String managerId = managerDetails.getManager().getManagerId();
+//
+//	    Page<Executive> executives = executiveService.getExecutivesByManagerIdAndSearchQuery(managerId, q, pageable);
+//	    return ResponseEntity.ok(new ApiResponse<>("success", "Executives data", executives));
+//	}
 	
 	//based on ex id - number of jds posted , and number of openings and number of closures
 	@GetMapping("/secure/executive/jd-stats/{executiveId}")
