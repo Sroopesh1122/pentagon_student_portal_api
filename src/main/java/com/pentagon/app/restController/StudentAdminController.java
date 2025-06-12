@@ -40,8 +40,10 @@ public class StudentAdminController {
 	private ManagerService managerService;
 
 	@GetMapping("/secure/viewJobdescription")
-	public ResponseEntity<?> getMethodName(@AuthenticationPrincipal CustomUserDetails studnetAdminDetails,
-			@RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "10") int limit,
+	public ResponseEntity<?> getMethodName(
+			@AuthenticationPrincipal CustomUserDetails studnetAdminDetails,
+			@RequestParam(defaultValue = "0") int page,
+			@RequestParam(defaultValue = "10") int limit,
 			@RequestParam(required = false) String companyName,
 			@RequestParam(required = false) Integer minYearOfPassing,
 			@RequestParam(required = false) Integer maxYearOfPassing,

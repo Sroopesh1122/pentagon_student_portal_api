@@ -220,28 +220,27 @@ public class AdminController {
 			throw new AdminException("Email Already exists", HttpStatus.CONFLICT);
 		}
 		
-//		ProgramHead newProgramHead = new ProgramHead();
-//		newProgramHead.setId(idGeneration.generateId("PG-HEAD"));
-//		newProgramHead.setEmail(request.getEmail());
-//		newProgramHead.setName(request.getName());
-//		String password = passwordGenration.generateRandomPassword();
-//		newProgramHead.setPassword(password);
-//		newProgramHead.setCreatedAt(LocalDateTime.now());
-//		
-//		List<ProgramHeadStack> programHeadStacksList = new ArrayList<>();
-//		request.getStackIds().forEach(stackId ->{
-//			  Stack findStack = stackService.getStackById(stackId).orElse(null);
-//			  if(findStack ==null)
-//			  {
-//				  throw new AdminException("No stack found", HttpStatus.NOT_FOUND);
-//			  }
-//			  ProgramHeadStack programHeadStack =  new ProgramHeadStack();
-//			  programHeadStack.setProgramHeadId(newProgramHead.getId());
-//			  programHeadStack.setStackId(stackId);			  
-//		});
-//		
-//		programHeadStackService.addAll(programHeadStacksList);
-//		programHeadService.add(newProgramHead);
+		ProgramHead newProgramHead = new ProgramHead();
+		newProgramHead.setId(idGeneration.generateId("PG-HEAD"));
+		newProgramHead.setEmail(request.getEmail());
+		newProgramHead.setName(request.getName());
+		String password = passwordGenration.generateRandomPassword();
+		newProgramHead.setPassword(password);
+		newProgramHead.setCreatedAt(LocalDateTime.now());
+		
+		List<Stack> programHeadStacks = new ArrayList<>();
+		
+		request.getStackIds().forEach(stackId ->{
+			  Stack findStack = stackService.getStackById(stackId).orElse(null);
+			  if(findStack ==null)
+			  {
+				  throw new AdminException("No stack found", HttpStatus.NOT_FOUND);
+			  }
+			  programHeadStacks.add(findStack);			  
+		});
+
+		programHeadService.add(newProgramHead); 
+		
 		return ResponseEntity.ok(new ApiResponse<>("success", "Program Head added Successfully", null));	
 	}
 	

@@ -29,6 +29,16 @@ public interface JobDescriptionRepository extends JpaRepository<JobDescription, 
 	@Query(value = "SELECT COUNT(*) FROM job_description jd WHERE jd.manager_id = :managerId AND DATE(jd.created_at) = :date", nativeQuery = true)
 	public Long countJdsByManagerAndDate(@Param("managerId") String managerId, @Param("date") String date);
 
+	
+	@Query("SELECT COUNT(j) FROM JobDescription j WHERE j.executive.executiveId = :executiveId")
+	int countTotalJDsByExecutive(@Param("executiveId") String executiveId);
+
+	@Query("SELECT COUNT(j) FROM JobDescription j WHERE j.executive.executiveId = :executiveId AND j.isClosed = false")
+	int countOpeningsByExecutive(@Param("executiveId") String executiveId);
+
+	@Query("SELECT COUNT(j) FROM JobDescription j WHERE j.executive.executiveId = :executiveId AND j.isClosed = true")
+	int countClosuresByExecutive(@Param("executiveId") String executiveId);
+	
 	@Query(value = """
 			SELECT * FROM job_description jd
 			WHERE (
@@ -65,37 +75,22 @@ public interface JobDescriptionRepository extends JpaRepository<JobDescription, 
 			    AND (:endDate IS NULL OR jd.created_at <= :endDate)
 			)
 			""", nativeQuery = true)
-	Page<JobDescription> findWithFiltersUsingRegex(@Param("companyName") String companyName,
+	public Page<JobDescription> findWithFiltersUsingRegex(
+			@Param("companyName") String companyName,
 			@Param("stackRegex") String stackRegex, 
 			@Param("role") String role,
 			@Param("isClosed") Boolean isClosed,
-			@Param("minYearOfPassing") Integer minYearOfPassing, 
+			@Param("minYearOfPassing") Integer minYearOfPassing,
 			@Param("maxYearOfPassing") Integer maxYearOfPassing,
-			@Param("qualificationRegex") String qualificationRegex, 
+			@Param("qualificationRegex") String qualificationRegex,
 			@Param("streamRegex") String streamRegex,
-			@Param("percentage") Double percentage, 
+			@Param("percentage") Double percentage,
 			@Param("executiveId") String executiveId,
-			@Param("status") String status,
+			@Param("managerId") String managerId,
+			@Param("status") String status, 
 			@Param("startDate") String startDate,
-			@Param("endDate") String endDate,
+			@Param("endDate") String endDate, 
 			Pageable pageable);
-	
-	@Query("SELECT COUNT(j) FROM JobDescription j WHERE j.executive.executiveId = :executiveId")
-	int countTotalJDsByExecutive(@Param("executiveId") String executiveId);
-
-	@Query("SELECT COUNT(j) FROM JobDescription j WHERE j.executive.executiveId = :executiveId AND j.isClosed = false")
-	int countOpeningsByExecutive(@Param("executiveId") String executiveId);
-
-	@Query("SELECT COUNT(j) FROM JobDescription j WHERE j.executive.executiveId = :executiveId AND j.isClosed = true")
-	int countClosuresByExecutive(@Param("executiveId") String executiveId);
-	
-	public Page<JobDescription> findWithFiltersUsingRegex(@Param("companyName") String companyName,
-			@Param("stackRegex") String stackRegex, @Param("role") String role, @Param("isClosed") Boolean isClosed,
-			@Param("minYearOfPassing") Integer minYearOfPassing, @Param("maxYearOfPassing") Integer maxYearOfPassing,
-			@Param("qualificationRegex") String qualificationRegex, @Param("streamRegex") String streamRegex,
-			@Param("percentage") Double percentage, @Param("executiveId") String executiveId,
-			@Param("managerId") String managerId, @Param("status") String status, @Param("startDate") String startDate,
-			@Param("endDate") String endDate, Pageable pageable);
 
 	@Query(value = "SELECT DATE_FORMAT(created_at, :format) AS label, COUNT(*) AS count FROM job_description WHERE created_at >= :startDate GROUP BY label ORDER BY label", nativeQuery = true)
 	public List<Object[]> getJdStats(@Param("format") String format, @Param("startDate") String startDate);
