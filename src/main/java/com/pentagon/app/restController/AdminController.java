@@ -51,7 +51,6 @@ import com.pentagon.app.response.ApiResponse;
 import com.pentagon.app.response.ExecutiveDetails;
 import com.pentagon.app.response.ManagerDetails;
 import com.pentagon.app.response.ProfileResponse;
-import com.pentagon.app.response.ProgramHeadDetails;
 import com.pentagon.app.service.ActivityLogService;
 import com.pentagon.app.service.AdminService;
 import com.pentagon.app.service.CustomUserDetails;
@@ -220,28 +219,27 @@ public class AdminController {
 			throw new AdminException("Email Already exists", HttpStatus.CONFLICT);
 		}
 		
-//		ProgramHead newProgramHead = new ProgramHead();
-//		newProgramHead.setId(idGeneration.generateId("PG-HEAD"));
-//		newProgramHead.setEmail(request.getEmail());
-//		newProgramHead.setName(request.getName());
-//		String password = passwordGenration.generateRandomPassword();
-//		newProgramHead.setPassword(password);
-//		newProgramHead.setCreatedAt(LocalDateTime.now());
-//		
-//		List<ProgramHeadStack> programHeadStacksList = new ArrayList<>();
-//		request.getStackIds().forEach(stackId ->{
-//			  Stack findStack = stackService.getStackById(stackId).orElse(null);
-//			  if(findStack ==null)
-//			  {
-//				  throw new AdminException("No stack found", HttpStatus.NOT_FOUND);
-//			  }
-//			  ProgramHeadStack programHeadStack =  new ProgramHeadStack();
-//			  programHeadStack.setProgramHeadId(newProgramHead.getId());
-//			  programHeadStack.setStackId(stackId);			  
-//		});
-//		
-//		programHeadStackService.addAll(programHeadStacksList);
-//		programHeadService.add(newProgramHead);
+		ProgramHead newProgramHead = new ProgramHead();
+		newProgramHead.setId(idGeneration.generateId("PG-HEAD"));
+		newProgramHead.setEmail(request.getEmail());
+		newProgramHead.setName(request.getName());
+		String password = passwordGenration.generateRandomPassword();
+		newProgramHead.setPassword(password);
+		newProgramHead.setCreatedAt(LocalDateTime.now());
+		
+		List<Stack> programHeadStacks = new ArrayList<>();
+		
+		request.getStackIds().forEach(stackId ->{
+			  Stack findStack = stackService.getStackById(stackId).orElse(null);
+			  if(findStack ==null)
+			  {
+				  throw new AdminException("No stack found", HttpStatus.NOT_FOUND);
+			  }
+			  programHeadStacks.add(findStack);			  
+		});
+
+		programHeadService.add(newProgramHead); 
+		
 		return ResponseEntity.ok(new ApiResponse<>("success", "Program Head added Successfully", null));	
 	}
 	
@@ -319,30 +317,6 @@ public class AdminController {
 		Page<StudentAdmin> studentAdmins =  studentAdminService.getAll(q, pageable);
 	
 		return ResponseEntity.ok(new ApiResponse<>("success", "Trainers fetched successfully", studentAdmins));
-	}
-	@GetMapping("/secure/program-heads/{id}")
-	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<ApiResponse<ProgramHeadDetails>> getById(@PathVariable String id) {
-	    ProgramHead programHead = programHeadService.getById(id);
-	    if (programHead == null) {
-	        throw new AdminException("ProgramHead not found", HttpStatus.NOT_FOUND);
-	    }
-
-	    ProgramHeadDetails details = new ProgramHeadDetails();
-	    details.setId(programHead.getId());
-	    details.setName(programHead.getName());
-	    details.setEmail(programHead.getEmail());
-	    details.setMobile(programHead.getMobile());
-	    details.setQualification(programHead.getQualification());
-	    details.setYearOfExperiences(programHead.getYearOfExperiences());
-	    details.setActive(programHead.isActive());
-	    details.setCreatedAt(programHead.getCreatedAt());
-	    details.setUpdatedAt(programHead.getUpdatedAt());
-	    
-
-	    return ResponseEntity.ok(
-	        new ApiResponse<>("success", "ProgramHead details fetched successfully", details)
-	    );
 	}
 
 	@GetMapping("/secure/viewAllTrainers")
@@ -524,7 +498,6 @@ public class AdminController {
 	}
 	
 	
-	
 	@GetMapping("/secure/manager/{id}/executives")
 	public ResponseEntity<?> getAllExecutivesByManager(@PathVariable("id") String managerId,
 			@RequestParam(required = false , defaultValue = "0") Integer page,
@@ -565,7 +538,6 @@ public class AdminController {
 		executiveDetails.setManagerName(manager.getName());
 		return ResponseEntity.ok(new ApiResponse<>("success", "Executive Data", executiveDetails));
 	}
-	
 	
 	
 	@GetMapping("/secure/executive/{id}/recentJd")

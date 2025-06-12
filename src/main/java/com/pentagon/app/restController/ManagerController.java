@@ -387,8 +387,6 @@ public class ManagerController {
 		return ResponseEntity.ok(new ApiResponse<>("success", "Executives data", executives));
 	}
 
-	
-	
 	//view all executives based on manger id and also search parameter
 //	@GetMapping("/secure/executives")
 //	@PreAuthorize("hasRole('MANAGER')")

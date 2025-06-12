@@ -60,16 +60,16 @@ public class ProgramHeadServiceImpl implements ProgramHeadService {
 
 	@Override
 	public String loginwithPassword(@Valid ProgramheadLoginRequest request) {
-		ProgramHead programHead = programHeadRepository.findByEmail(request.getEmail())
-				.orElseThrow(()-> new ProgramHeadException("Student Admin not found", HttpStatus.NOT_FOUND));
-		if (!programHead.isActive()) {
-			throw new ProgramHeadException("Suspended", HttpStatus.UNAUTHORIZED);
-		}
-		if(!passwordEncoder.matches(request.getPassword(), programHead.getPassword())) {
-			throw new ProgramHeadException("Invalid password", HttpStatus.UNAUTHORIZED);
-		}
-		String otp = otpService.generateOtpAndStore(request.getEmail());
-		otpService.sendOtpToEmail(programHead.getEmail(), otp);
+//		ProgramHead programHead = programHeadRepository.findByEmail(request.getEmail())
+//				.orElseThrow(()-> new ProgramHeadException("Student Admin not found", HttpStatus.NOT_FOUND));
+//		if (!programHead.isActive()) {
+//			throw new ProgramHeadException("Suspended", HttpStatus.UNAUTHORIZED);
+//		}
+//		if(!passwordEncoder.matches(request.getPassword(), programHead.getPassword())) {
+//			throw new ProgramHeadException("Invalid password", HttpStatus.UNAUTHORIZED);
+//		}
+//		String otp = otpService.generateOtpAndStore(request.getEmail());
+//		otpService.sendOtpToEmail(programHead.getEmail(), otp);
 		return "OTP sent to registered email";
 	}
 
