@@ -8,7 +8,7 @@ import lombok.Data;
 
 @Data
 public class JobDescriptionDTO {
-    private Integer id;
+//    private Integer id;
     private String jobDescriptionId;
     private String companyName;
     private String website;

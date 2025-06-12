@@ -56,13 +56,13 @@ public class StudentAdminController {
 			throw new StudentAdminException("UNAUTORIZED", HttpStatus.UNAUTHORIZED);
 		}
 		String StduentAdminId= studnetAdminDetails.getStudentAdmin().getId();
-		Pageable pageable = PageRequest.of(page, limit, Sort.by("created_at").descending());
+		Pageable pageable = PageRequest.of(page, limit, Sort.by("created_at").ascending());
 
 		Page<JobDescription> filterdJobDiscription= jobDescriptionService.findAllJobDescriptions(companyName, stack, role, isClosed, minYearOfPassing, maxYearOfPassing, qualification, stream, percentage, null, null, status, startDate, endDate, pageable);
 		Page<JobDescriptionDTO> jobDescriptionDTO = filterdJobDiscription.map(
 			    job -> {
 			    	JobDescriptionDTO dto = modelMapper.map(job, JobDescriptionDTO.class);
-			    	dto.setManagerName(managerService.getManagerById(job.getManagerId()).getName());
+//			    	dto.setManagerName(managerService.getManagerById(job.getManagerId()).getName());
 			    	 return dto;
 			    });
 		

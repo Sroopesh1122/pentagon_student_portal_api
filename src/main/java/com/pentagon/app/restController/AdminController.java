@@ -268,6 +268,7 @@ public class AdminController {
 		studentAdmin.setId(idGeneration.generateId("STU-ADMIN"));
 		studentAdmin.setName(request.getName());
 		String password = passwordGenration.generateRandomPassword();
+		System.out.println(password);
 		studentAdmin.setPassword(passwordEncoder.encode(password));
 		studentAdmin = studentAdminService.add(studentAdmin);
 		

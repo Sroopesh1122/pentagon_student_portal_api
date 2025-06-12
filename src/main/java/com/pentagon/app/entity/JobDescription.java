@@ -32,7 +32,7 @@ public class JobDescription {
 	
     @Column(name="description",nullable = false)
     @Size(max = 50000) 
-    private String Description;
+    private String description;
     
     @Column(nullable = false)
     private String role;
