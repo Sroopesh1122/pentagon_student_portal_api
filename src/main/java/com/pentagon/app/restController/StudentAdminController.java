@@ -30,8 +30,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RequestMapping("/api/studentAdmin/")
 public class StudentAdminController {
 	
-	@Autowired
-	private ModelMapper modelMapper;
 	
 	@Autowired
 	private JobDescriptionService jobDescriptionService;
@@ -61,14 +59,9 @@ public class StudentAdminController {
 		Pageable pageable = PageRequest.of(page, limit, Sort.by("created_at").descending());
 
 		Page<JobDescription> filterdJobDiscription= jobDescriptionService.findAllJobDescriptions(companyName, stack, role, isClosed, minYearOfPassing, maxYearOfPassing, qualification, stream, percentage, null, null, status, startDate, endDate, pageable);
-		Page<JobDescriptionDTO> jobDescriptionDTO = filterdJobDiscription.map(
-			    job -> {
-			    	JobDescriptionDTO dto = modelMapper.map(job, JobDescriptionDTO.class);
-			    	dto.setManagerName(managerService.getManagerById(job.getManagerId()).getName());
-			    	 return dto;
-			    });
 		
-		return ResponseEntity.ok(new ApiResponse<>("success", "Job Description Fetched", jobDescriptionDTO));
+		
+		return ResponseEntity.ok(new ApiResponse<>("success", "Job Description Fetched", filterdJobDiscription));
 	}
 	
 }
