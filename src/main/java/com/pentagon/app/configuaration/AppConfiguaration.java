@@ -46,9 +46,10 @@ public class AppConfiguaration {
 		return new BCryptPasswordEncoder();
 	}
 	@Bean
-    public ModelMapper modelMapper() {
-        return new ModelMapper();
-    }
+	public ModelMapper modelMapper() {
+	    return new ModelMapper();
+	}
+	
 
 	@Bean 
 	public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {

@@ -30,18 +30,21 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RequestMapping("/api/studentAdmin/")
 public class StudentAdminController {
 	
-	@Autowired
-	private ModelMapper modelMapper;
 	
 	@Autowired
 	private JobDescriptionService jobDescriptionService;
 	
 	@Autowired
 	private ManagerService managerService;
+	
+	@Autowired
+	private ModelMapper modelMapper;
 
 	@GetMapping("/secure/viewJobdescription")
-	public ResponseEntity<?> getMethodName(@AuthenticationPrincipal CustomUserDetails studnetAdminDetails,
-			@RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "10") int limit,
+	public ResponseEntity<?> getMethodName(
+			@AuthenticationPrincipal CustomUserDetails studnetAdminDetails,
+			@RequestParam(defaultValue = "0") int page,
+			@RequestParam(defaultValue = "10") int limit,
 			@RequestParam(required = false) String companyName,
 			@RequestParam(required = false) Integer minYearOfPassing,
 			@RequestParam(required = false) Integer maxYearOfPassing,
@@ -66,7 +69,8 @@ public class StudentAdminController {
 			    	 return dto;
 			    });
 		
-		return ResponseEntity.ok(new ApiResponse<>("success", "Job Description Fetched", jobDescriptionDTO));
+		
+		return ResponseEntity.ok(new ApiResponse<>("success", "Job Description Fetched", filterdJobDiscription));
 	}
 	
 }
