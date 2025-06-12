@@ -10,6 +10,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import com.pentagon.app.entity.Admin;
 import com.pentagon.app.entity.Executive;
 import com.pentagon.app.entity.Manager;
+import com.pentagon.app.entity.ProgramHead;
 import com.pentagon.app.entity.StudentAdmin;
 import com.pentagon.app.entity.Trainer;
 
@@ -24,6 +25,7 @@ public class CustomUserDetails implements UserDetails {
 	private Executive executive;
 	private Trainer trainer;
 	private StudentAdmin studnetAdmin;
+	private ProgramHead programHead;
 
 	public CustomUserDetails(Admin admin) {
 		this.admin = admin;
@@ -45,6 +47,10 @@ public class CustomUserDetails implements UserDetails {
 		this.studnetAdmin = studentAdmin;
 	}
 
+	public CustomUserDetails(ProgramHead programHead) {
+		this.programHead = programHead;
+	}
+
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
 		if (admin != null) {
@@ -57,6 +63,8 @@ public class CustomUserDetails implements UserDetails {
 			return List.of(new SimpleGrantedAuthority("ROLE_TRAINER"));
 		} else if (studnetAdmin != null) {
 			return List.of(new SimpleGrantedAuthority("ROLE_STUDENTADMIN"));
+		} else if (programHead != null) {
+			return List.of(new SimpleGrantedAuthority("ROLE_PROGRAMHEAD"));
 		}
 		return List.of(); // Empty list if none
 	}
@@ -88,7 +96,13 @@ public class CustomUserDetails implements UserDetails {
 	public Trainer getTrainer() {
 		return trainer;
 	}
+
 	public StudentAdmin getStudentAdmin() {
 		return studnetAdmin;
 	}
+
+	public ProgramHead getProgramHead() {
+		return programHead;
+	}
+
 }
