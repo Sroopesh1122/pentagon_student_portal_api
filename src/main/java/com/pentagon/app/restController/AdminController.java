@@ -31,6 +31,8 @@ import com.pentagon.app.Dto.JdStatsDTO;
 import com.pentagon.app.Dto.JdVsClosureStatsDTO;
 import com.pentagon.app.Dto.JobDescriptionDTO;
 import com.pentagon.app.Dto.ManagerDTO;
+import com.pentagon.app.Dto.ProgramHeadDTO;
+import com.pentagon.app.Dto.StudentAdminDTO;
 import com.pentagon.app.Dto.TrainerDTO;
 import com.pentagon.app.entity.Admin;
 import com.pentagon.app.entity.Executive;
@@ -43,6 +45,8 @@ import com.pentagon.app.entity.Trainer;
 import com.pentagon.app.exception.AdminException;
 import com.pentagon.app.exception.JobDescriptionException;
 import com.pentagon.app.exception.OtpException;
+import com.pentagon.app.mapper.ProgramHeadMapper;
+import com.pentagon.app.mapper.StudentAdminMapper;
 import com.pentagon.app.request.AddExecutiveRequest;
 import com.pentagon.app.request.AddManagerRequest;
 import com.pentagon.app.request.AddProgramHeadRequest;
@@ -103,6 +107,13 @@ public class AdminController {
 	
 	@Autowired
 	private ProgramHeadService programHeadService;
+	
+	
+	@Autowired
+	private ProgramHeadMapper programHeadMapper;
+	
+	@Autowired
+	private StudentAdminMapper studentAdminMapper;
 	
 	
 	
@@ -198,8 +209,7 @@ public class AdminController {
 
 		return ResponseEntity.ok(new ApiResponse<>("success", "Executive added Successfully", null));
 	}
-	
-	
+		
 	
 	@PostMapping("/secure/program-head/add")
 	@PreAuthorize("hasRole('ADMIN')")
@@ -224,7 +234,7 @@ public class AdminController {
 		newProgramHead.setEmail(request.getEmail());
 		newProgramHead.setName(request.getName());
 		String password = passwordGenration.generateRandomPassword();
-		newProgramHead.setPassword(password);
+		newProgramHead.setPassword(passwordEncoder.encode(password));
 		newProgramHead.setCreatedAt(LocalDateTime.now());
 		
 		List<Stack> programHeadStacks = new ArrayList<>();
@@ -237,8 +247,18 @@ public class AdminController {
 			  }
 			  programHeadStacks.add(findStack);			  
 		});
+		
+		newProgramHead.setStacks(programHeadStacks);
 
-		programHeadService.add(newProgramHead); 
+		newProgramHead= programHeadService.add(newProgramHead); 
+		
+		String htmlContent = htmlContentService.getLoginEmailHtmlContent(newProgramHead.getName(), newProgramHead.getEmail(), password);
+
+		try {
+			mailService.sendPasswordEmail(newProgramHead.getEmail(), "Welcome to Pentagon – Login Credentials Enclosed",htmlContent);
+		} catch (Exception e) {
+			throw new OtpException("Mail couldn't be sent", HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 		
 		return ResponseEntity.ok(new ApiResponse<>("success", "Program Head added Successfully", null));	
 	}
@@ -267,15 +287,20 @@ public class AdminController {
 		studentAdmin.setName(request.getName());
 		String password = passwordGenration.generateRandomPassword();
 		studentAdmin.setPassword(passwordEncoder.encode(password));
+		studentAdmin.setCreatedAt(LocalDateTime.now());	
 		studentAdmin = studentAdminService.add(studentAdmin);
+		
+		String htmlContent = htmlContentService.getLoginEmailHtmlContent(studentAdmin.getName(), studentAdmin.getEmail(), password);
+
+		try {
+			mailService.sendPasswordEmail(studentAdmin.getEmail(), "Welcome to Pentagon – Login Credentials Enclosed",htmlContent);
+		} catch (Exception e) {
+			throw new OtpException("Mail couldn't be sent", HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 		
 		return ResponseEntity.ok(new ApiResponse<>("success", "Student Admin added Successfully",null));	
 	}
 	
-	
-	
-	
-
 
 	@GetMapping("/secure/profile")
 	@PreAuthorize("hasRole('ADMIN')")
@@ -296,7 +321,7 @@ public class AdminController {
 
 		Pageable pageable = PageRequest.of(page, limit, Sort.by("createdAt").descending());
          
-		Page<ProgramHead> programHeads =  programHeadService.getAll(q, pageable);
+		Page<ProgramHeadDTO> programHeads =  programHeadService.getAll(q, pageable).map(programHead -> programHeadMapper.toDTO(programHead));
 		
 
 		return ResponseEntity.ok(new ApiResponse<>("success", "Trainers fetched successfully", programHeads));
@@ -313,7 +338,7 @@ public class AdminController {
 
 		Pageable pageable = PageRequest.of(page, limit, Sort.by("createdAt").descending());
          
-		Page<StudentAdmin> studentAdmins =  studentAdminService.getAll(q, pageable);
+		Page<StudentAdminDTO> studentAdmins =  studentAdminService.getAll(q, pageable).map(studentAdmin -> studentAdminMapper.toDto(studentAdmin));
 	
 		return ResponseEntity.ok(new ApiResponse<>("success", "Trainers fetched successfully", studentAdmins));
 	}
@@ -556,6 +581,14 @@ public class AdminController {
 		return ResponseEntity.ok(new ApiResponse<>("success", "Executive Data", jobDescriptions));
 	}
 	
+	
+	
+	
+	
+	
+	
+	
+	//Stats
 	
 	@GetMapping("/secure/executive/{id}/jd/stats")
 	@PreAuthorize("hasRole('ADMIN')")

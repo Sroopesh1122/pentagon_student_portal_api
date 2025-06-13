@@ -8,6 +8,8 @@ import java.util.List;
 
 import org.hibernate.annotations.CreationTimestamp;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Data
 @Entity
 public class Batch {
@@ -19,9 +21,11 @@ public class Batch {
     @ManyToOne
     private Stack stack;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "batch", cascade = CascadeType.ALL)
     private List<BatchTechTrainer> batchTechTrainers;
 
     @OneToMany(mappedBy = "batch")
+    @JsonIgnore
     private List<Student> students;
 }

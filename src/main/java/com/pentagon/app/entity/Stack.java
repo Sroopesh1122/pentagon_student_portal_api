@@ -8,21 +8,26 @@ import java.util.List;
 
 import org.hibernate.annotations.CreationTimestamp;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Data
 @Entity
 public class Stack {
-    @Id
-    private String stackId;
+	@Id
+	private String stackId;
 
-    private String name;
+	private String name;
 
-    @ManyToMany
-    private List<Technology> technologies;
+	@ManyToMany
+	@JsonIgnore
+	private List<Technology> technologies;
 
-    @ManyToMany
-    private List<ProgramHead> programHeads;
+	@ManyToMany(mappedBy = "stacks")
+	@JsonIgnore
+	private List<ProgramHead> programHeads;
 
-    @OneToMany(mappedBy = "stack")
-    private List<Batch> batches;
+	@OneToMany(mappedBy = "stack")
+	@JsonIgnore
+	private List<Batch> batches;
 
 }

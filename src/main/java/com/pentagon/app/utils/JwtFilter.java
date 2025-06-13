@@ -64,6 +64,14 @@ public class JwtFilter extends OncePerRequestFilter {
 				{
 					userDetails =  (CustomUserDetails) customUserDetailsService.loadManager(email);
 				}
+				else if(role.equals("PROGRAMHEAD"))
+				{
+					userDetails =  (CustomUserDetails) customUserDetailsService.loadProgramHead(email);
+				}
+				else if(role.equals("STUDENTADMIN"))
+				{
+					userDetails =  (CustomUserDetails) customUserDetailsService.loadStudentAdmin(email);
+				}
 	            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
 	                    userDetails,
 	                    null,

@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -50,5 +52,6 @@ public class Trainer {
     private String programHeadId;  // added by
     
     @ManyToMany
+    @JsonIgnore
     private List<Technology> technologies;
 }
