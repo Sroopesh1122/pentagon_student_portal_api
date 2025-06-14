@@ -1,5 +1,7 @@
 package com.pentagon.app.serviceImpl;
 
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,7 +23,7 @@ public class ProgramHeadServiceImpl implements ProgramHeadService {
 
 	@Autowired
 	private ProgramHeadRepository programHeadRepository;
-	
+
 	@Autowired
 	private PasswordEncoder passwordEncoder;
 
@@ -50,7 +52,11 @@ public class ProgramHeadServiceImpl implements ProgramHeadService {
 
 	@Override
 	public ProgramHead getByEmail(String email) {
-		return programHeadRepository.findByEmail(email).get();
+		Optional<ProgramHead> programHead = programHeadRepository.findByEmail(email);
+		if (programHead.isPresent()) {
+			return programHead.get();
+		}
+		return null;
 	}
 
 	@Override
