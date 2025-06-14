@@ -1,5 +1,7 @@
 package com.pentagon.app.configuaration;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +22,9 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import com.cloudinary.Cloudinary;
 import com.pentagon.app.service.CustomUserDetailsService;
+import com.pentagon.app.utils.AppProperties;
 import com.pentagon.app.utils.JwtFilter;
 
 import io.swagger.v3.oas.models.Components;
@@ -112,5 +116,6 @@ public class AppConfiguaration {
 	                            .bearerFormat("JWT")        // Bearer token (JWT) support
 	            ));
 	}
+	
 
 }
