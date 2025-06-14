@@ -23,5 +23,6 @@ public class Technology {
     private List<Stack> stacks;
 
     @ManyToMany(mappedBy = "technologies")
+    @JsonIgnore
     private List<Trainer> trainers;
 }

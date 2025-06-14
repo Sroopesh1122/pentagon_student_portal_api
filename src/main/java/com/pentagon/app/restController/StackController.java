@@ -9,8 +9,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.pentagon.app.Dto.StackDTO;
 import com.pentagon.app.entity.Stack;
 import com.pentagon.app.entity.Trainer;
+import com.pentagon.app.mapper.StackMapper;
 import com.pentagon.app.response.ApiResponse;
 import com.pentagon.app.response.StackTechResponse;
 import com.pentagon.app.response.TechTrainersResponse;
@@ -36,10 +38,14 @@ public class StackController {
 	@Autowired
 	private TrainerService trainerService;
 	
+	
+	@Autowired
+	private StackMapper stackMapper;
+	
 	@GetMapping("/public/all")
 	public ResponseEntity<?> getAllSatcks()
 	{
-		List<Stack> allStacks = stackService.getAll();
+		List<StackDTO> allStacks = stackService.getAll().stream().map(stack->stackMapper.convertToDTO(stack)).toList();
 		
 		return ResponseEntity.ok(new ApiResponse<>("success","Stack Data", allStacks));
 	}

@@ -180,4 +180,15 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, studentAdminException.getHttpStatus());
     }
     
+    @ExceptionHandler(ProgramHeadException.class)
+    public ResponseEntity<Map<String, Object>> handleProgramException(ProgramHeadException programHeadException) {
+        Map<String,Object> errorResponse = new HashMap<>();
+        errorResponse.put("status", "failure");
+        errorResponse.put("type","Program Head Exception");
+        errorResponse.put("error", programHeadException.getMessage());
+        errorResponse.put("localTime", LocalDateTime.now());
+        errorResponse.put("status", programHeadException.getHttpStatus().toString());
+        return new ResponseEntity<>(errorResponse, programHeadException.getHttpStatus());
+    }
+    
 }

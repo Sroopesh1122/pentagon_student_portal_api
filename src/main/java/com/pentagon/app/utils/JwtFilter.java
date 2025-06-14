@@ -50,23 +50,34 @@ public class JwtFilter extends OncePerRequestFilter {
 
 			}
 			if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-
-				CustomUserDetails userDetails = null;
-				if (role.equals("ADMIN")) {
-					userDetails = (CustomUserDetails) customUserDetailsService.loadAdmin(email);
-				} else if (role.equals("EXECUTIVE")) {
-					userDetails = (CustomUserDetails) customUserDetailsService.loadExecutive(email);
-				} else if (role.equals("MANAGER")) {
-					userDetails = (CustomUserDetails) customUserDetailsService.loadManager(email);
-				} else if (role.equals("STUDENTADMIN")) {
-					userDetails = (CustomUserDetails) customUserDetailsService.loadStudentAdmin(email);
-				}else if (role.equals("PROGRAMADMIN")) {
-					userDetails= (CustomUserDetails) customUserDetailsService.loadProgramHead(email);
+				CustomUserDetails userDetails =null;
+				if(role.equals("ADMIN"))
+				{
+					userDetails= (CustomUserDetails) customUserDetailsService.loadAdmin(email);
 				}
-				UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-						userDetails, null, userDetails.getAuthorities());
-				System.out.println(authentication);
-				authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+				else if(role.equals("EXECUTIVE"))
+				{
+					userDetails =  (CustomUserDetails) customUserDetailsService.loadExecutive(email);
+				}
+				else if(role.equals("MANAGER"))
+				{
+					userDetails =  (CustomUserDetails) customUserDetailsService.loadManager(email);
+				}
+				else if(role.equals("PROGRAMHEAD"))
+				{
+					userDetails =  (CustomUserDetails) customUserDetailsService.loadProgramHead(email);
+				}
+				else if(role.equals("STUDENTADMIN"))
+				{
+					userDetails =  (CustomUserDetails) customUserDetailsService.loadStudentAdmin(email);
+				}
+	            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+	                    userDetails,
+	                    null,
+	                    userDetails.getAuthorities()
+	            );
+	            System.out.println(authentication);
+	            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
 				SecurityContextHolder.getContext().setAuthentication(authentication);
 			}
