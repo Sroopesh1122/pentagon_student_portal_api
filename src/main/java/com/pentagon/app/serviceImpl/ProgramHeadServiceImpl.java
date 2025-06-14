@@ -7,10 +7,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.pentagon.app.entity.Executive;
 import com.pentagon.app.entity.ProgramHead;
 import com.pentagon.app.exception.ProgramHeadException;
 import com.pentagon.app.repository.ProgramHeadRepository;
 import com.pentagon.app.request.ProgramheadLoginRequest;
+import com.pentagon.app.response.ProfileResponse;
 import com.pentagon.app.service.OtpService;
 import com.pentagon.app.service.ProgramHeadService;
 
@@ -69,6 +71,17 @@ public class ProgramHeadServiceImpl implements ProgramHeadService {
 		String otp = otpService.generateOtpAndStore(request.getEmail());
 		otpService.sendOtpToEmail(programHead.getEmail(), otp);
 		return "OTP sent to registered email";
+	}
+
+	@Override
+	public ProfileResponse getProfile(ProgramHead programHead) {
+		// TODO Auto-generated method stub
+			ProfileResponse result = new ProfileResponse();
+			result.setUniqueId(programHead.getId());
+			result.setName(programHead.getName());
+			result.setEmail(programHead.getEmail());
+			result.setMobile(programHead.getMobile());
+			return result;
 	}
 
 }

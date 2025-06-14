@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.pentagon.app.entity.Executive;
 import com.pentagon.app.entity.Trainer;
 @Repository
 public interface TrainerRepository extends JpaRepository<Trainer, String> {
@@ -25,4 +26,11 @@ public interface TrainerRepository extends JpaRepository<Trainer, String> {
 	int getTrainerCount();
 	
 	boolean existsByEmail(String email);
+	
+	@Query("SELECT t FROM Trainer t WHERE t.programHeadId = :programHeadId AND "
+			+ "(:q IS NULL OR :q = '' OR LOWER(t.email) LIKE LOWER(CONCAT(:q,'%')) "
+			+ "OR LOWER(t.name) LIKE LOWER(CONCAT(:q,'%')) OR t.trainerId = :q)")
+	public Page<Trainer> getAllTrainers(@Param("programHeadId") String programHeadId,@Param("q") String q,  Pageable pageable);
+	
+	
 }

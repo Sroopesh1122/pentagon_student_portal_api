@@ -167,48 +167,48 @@ public class ManagerController {
 		return ResponseEntity.ok(new ApiResponse<>("success", "Executive Added Successfully", null));
 	}
 
-	@PostMapping("secure/addTrainer")
-	@PreAuthorize("hasRole('MANAGER')")
-	public ResponseEntity<?> addTrainer(@AuthenticationPrincipal CustomUserDetails managerDetails,
-			@Valid @RequestBody AddTrainerRequest request, BindingResult bindingResult) {
-
-		if (bindingResult.hasErrors()) {
-			throw new ManagerException("Invalid Input Data", HttpStatus.BAD_REQUEST);
-		}
-
-		if (trainerService.checkExistsByEmail(request.getEmail())) {
-			throw new ExecutiveException("Email already in use by another trainer", HttpStatus.CONFLICT);
-		}
-
-		Trainer trainer = new Trainer();
-		trainer.setTrainerId(idGeneration.generateId("TRAINER"));
-		trainer.setName(request.getName());
-		trainer.setEmail(request.getEmail());
-		trainer.setMobile(request.getMobile());
-		trainer.setYearOfExperiences(request.getYearOfExperiences());
-		trainer.setQualification(request.getQualification());
-		trainer.setAcitve(true);
-
-		String password = passwordGenration.generateRandomPassword();
-		trainer.setPassword(passwordEncoder.encode(password));
-
-		Trainer newTrainer = trainerService.addTrainer(trainer);
-
-		String htmlContent = htmlContentService.getHtmlContent(trainer.getName(), trainer.getEmail(), password);
-
-		try {
-			mailService.sendPasswordEmail(trainer.getEmail(), "Welcome to Pentagon – Login Credentials Enclosed",
-					htmlContent);
-		} catch (Exception e) {
-			throw new OtpException("Mail couldn't be sent", HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-
-		activityLogService.log(managerDetails.getManager().getEmail(), managerDetails.getManager().getManagerId(),
-				"MANAGER", "Manager with ID " + managerDetails.getManager().getManagerId()
-						+ " added a new Trainer with ID " + newTrainer.getTrainerId());
-
-		return ResponseEntity.ok(new ApiResponse<>("success", "Trainer Added Successfully", null));
-	}
+//	@PostMapping("secure/addTrainer")
+//	@PreAuthorize("hasRole('MANAGER')")
+//	public ResponseEntity<?> addTrainer(@AuthenticationPrincipal CustomUserDetails managerDetails,
+//			@Valid @RequestBody AddTrainerRequest request, BindingResult bindingResult) {
+//
+//		if (bindingResult.hasErrors()) {
+//			throw new ManagerException("Invalid Input Data", HttpStatus.BAD_REQUEST);
+//		}
+//
+//		if (trainerService.checkExistsByEmail(request.getEmail())) {
+//			throw new ExecutiveException("Email already in use by another trainer", HttpStatus.CONFLICT);
+//		}
+//
+//		Trainer trainer = new Trainer();
+//		trainer.setTrainerId(idGeneration.generateId("TRAINER"));
+//		trainer.setName(request.getName());
+//		trainer.setEmail(request.getEmail());
+//		trainer.setMobile(request.getMobile());
+//		trainer.setYearOfExperiences(request.getYearOfExperiences());
+//		trainer.setQualification(request.getQualification());
+//		trainer.setAcitve(true);
+//
+//		String password = passwordGenration.generateRandomPassword();
+//		trainer.setPassword(passwordEncoder.encode(password));
+//
+//		Trainer newTrainer = trainerService.addTrainer(trainer);
+//
+//		String htmlContent = htmlContentService.getHtmlContent(trainer.getName(), trainer.getEmail(), password);
+//
+//		try {
+//			mailService.sendPasswordEmail(trainer.getEmail(), "Welcome to Pentagon – Login Credentials Enclosed",
+//					htmlContent);
+//		} catch (Exception e) {
+//			throw new OtpException("Mail couldn't be sent", HttpStatus.INTERNAL_SERVER_ERROR);
+//		}
+//
+//		activityLogService.log(managerDetails.getManager().getEmail(), managerDetails.getManager().getManagerId(),
+//				"MANAGER", "Manager with ID " + managerDetails.getManager().getManagerId()
+//						+ " added a new Trainer with ID " + newTrainer.getTrainerId());
+//
+//		return ResponseEntity.ok(new ApiResponse<>("success", "Trainer Added Successfully", null));
+//	}
 
 	@GetMapping("/secure/viewAllTrainers")
 	@PreAuthorize("hasRole('MANAGER')")
@@ -232,7 +232,7 @@ public class ManagerController {
 			Trainerdto.setMobile(trainer.getMobile());
 			Trainerdto.setQualification(trainer.getQualification());
 			Trainerdto.setYearOfExperiences(trainer.getYearOfExperiences());
-			Trainerdto.setActive(trainer.isAcitve());
+			Trainerdto.setActive(trainer.isActive());
 			Trainerdto.setCreatedAt(trainer.getCreatedAt());
 			Trainerdto.setUpdatedAt(trainer.getUpdatedAt());
 			return Trainerdto;

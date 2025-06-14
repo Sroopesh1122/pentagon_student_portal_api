@@ -27,6 +27,11 @@ public class ProgramHead {
 	private String email;
 
 	private String password;
+	
+	private String mobile;
+	
+	@Column(name = "is_active", nullable = false)
+    private boolean isAcitve;
 
 	@ManyToMany
     @JoinTable(
