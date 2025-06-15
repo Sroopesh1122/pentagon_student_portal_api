@@ -3,7 +3,6 @@ package com.pentagon.app.restController;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Page;
@@ -36,7 +35,6 @@ import com.pentagon.app.exception.JobDescriptionException;
 import com.pentagon.app.exception.ManagerException;
 import com.pentagon.app.exception.OtpException;
 import com.pentagon.app.request.AddExecutiveRequest;
-import com.pentagon.app.request.AddTrainerRequest;
 import com.pentagon.app.request.MangerJdStatusUpdateRequest;
 import com.pentagon.app.request.UpdateManagerRequest;
 import com.pentagon.app.response.ApiResponse;
@@ -51,7 +49,6 @@ import com.pentagon.app.service.TrainerService;
 import com.pentagon.app.serviceImpl.MailService;
 import com.pentagon.app.utils.HtmlContent;
 import com.pentagon.app.utils.IdGeneration;
-import com.pentagon.app.utils.JwtUtil;
 import com.pentagon.app.utils.PasswordGenration;
 
 import jakarta.validation.Valid;
@@ -68,9 +65,6 @@ public class ManagerController {
 
 	@Autowired
 	private IdGeneration idGeneration;
-
-	@Autowired
-	private JwtUtil jwtUtil;
 
 	@Autowired
 	private ActivityLogService activityLogService;

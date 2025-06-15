@@ -2,6 +2,7 @@ package com.pentagon.app.serviceImpl;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -129,6 +130,15 @@ public class StudentServiceImpl implements StudentService {
 			throw new StudentException("Failed to Fetch Students : " + e.getMessage(),
 					HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+	}
+
+	@Override
+	public Student findByStudentId(String studentId) {
+		Optional<Student> student = studentRepository.findById(studentId);
+		if (student == null) {
+			throw new StudentException("Stduent not found", HttpStatus.NOT_FOUND); 
+		}
+		return student.get();
 	}
 
 

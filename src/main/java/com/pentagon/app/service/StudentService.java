@@ -24,4 +24,6 @@ public interface StudentService {
 	
 	public List<Student> viewAllStudents();
 	
+	public Student findByStudentId(String studentId);
+	
 }

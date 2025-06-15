@@ -6,9 +6,11 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import com.pentagon.app.entity.Technology;
+import com.pentagon.app.exception.TechnologyException;
 import com.pentagon.app.repository.TechnologyRepository;
 import com.pentagon.app.service.TechnologyService;
 
@@ -47,4 +49,12 @@ public class TechnologyServiceImpl implements TechnologyService {
     public List<Technology> getAllTechnologies() {
     	return technologyRepository.findAll();
     }
+    public Technology findByTechId(String techId) {
+    	Optional<Technology> tech=technologyRepository.findById(techId);
+    	if (tech==null) {
+    		throw new TechnologyException("Technology not found", HttpStatus.NOT_FOUND);			
+		}
+    	return null;
+    }
+    
 }
