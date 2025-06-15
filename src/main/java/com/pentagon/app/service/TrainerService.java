@@ -21,7 +21,11 @@ public interface TrainerService {
 
 	public ProfileResponse getProfile(Trainer trainer);
 
-	boolean checkExistsByEmail(String email);
+	Trainer checkExistsByEmail(String email);
 	
 	public Trainer getById(String tainerId);
+	
+	public Trainer disableTrainerById(String Id);
+	
+	Page<Trainer> getAllTrainers(String programHeadId, String q, Pageable pageable);
 }

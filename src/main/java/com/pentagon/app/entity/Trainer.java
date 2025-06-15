@@ -35,7 +35,7 @@ public class Trainer {
     private String password;
 
     @Column(name = "is_active", nullable = false)
-    private boolean isAcitve;
+    private boolean isActive;
 
     private String qualification;
     private Integer yearOfExperiences;

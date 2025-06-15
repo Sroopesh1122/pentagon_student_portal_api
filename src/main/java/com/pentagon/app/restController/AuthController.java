@@ -77,7 +77,7 @@ public class AuthController {
                 case "EXECUTIVE" -> throw new ExecutiveException("OTP is Invalid/Expired", HttpStatus.UNAUTHORIZED);
                 case "TRAINER" -> throw new TrainerException("OTP is Invalid/Expired", HttpStatus.UNAUTHORIZED);
                 case "STUDENT" -> throw new StudentException("OTP is Invalid/Expired", HttpStatus.UNAUTHORIZED);
-                case "STUDNETADMIN" -> throw new StudentAdminException("otp is Invalid/Expired", HttpStatus.UNAUTHORIZED);
+                case "STUDENTADMIN" -> throw new StudentAdminException("otp is Invalid/Expired", HttpStatus.UNAUTHORIZED);
                 case "PROGRAMHEAD" -> throw new ProgramHeadException("otp is Invalid/Expired", HttpStatus.UNAUTHORIZED);
                 default -> throw new UserException("Unknown role: " + role, HttpStatus.UNAUTHORIZED);
             }

@@ -41,16 +41,19 @@ import com.pentagon.app.entity.Manager;
 import com.pentagon.app.entity.ProgramHead;
 import com.pentagon.app.entity.Stack;
 import com.pentagon.app.entity.StudentAdmin;
+import com.pentagon.app.entity.Technology;
 import com.pentagon.app.entity.Trainer;
 import com.pentagon.app.exception.AdminException;
 import com.pentagon.app.exception.JobDescriptionException;
 import com.pentagon.app.exception.OtpException;
+import com.pentagon.app.exception.ProgramHeadException;
 import com.pentagon.app.mapper.ProgramHeadMapper;
 import com.pentagon.app.mapper.StudentAdminMapper;
 import com.pentagon.app.request.AddExecutiveRequest;
 import com.pentagon.app.request.AddManagerRequest;
 import com.pentagon.app.request.AddProgramHeadRequest;
 import com.pentagon.app.request.AddStudentAdminRequest;
+import com.pentagon.app.request.AddTrainerRequest;
 import com.pentagon.app.response.ApiResponse;
 import com.pentagon.app.response.ExecutiveDetails;
 import com.pentagon.app.response.ManagerDetails;
@@ -67,6 +70,7 @@ import com.pentagon.app.service.OtpService;
 import com.pentagon.app.service.ProgramHeadService;
 import com.pentagon.app.service.StackService;
 import com.pentagon.app.service.StudentAdminService;
+import com.pentagon.app.service.TechnologyService;
 import com.pentagon.app.service.TrainerService;
 import com.pentagon.app.serviceImpl.MailService;
 import com.pentagon.app.utils.PasswordGenration;
@@ -115,14 +119,15 @@ public class AdminController {
 	@Autowired
 	private StudentAdminMapper studentAdminMapper;
 	
-	
-	
 	@Autowired
 	private StackService stackService;
 	
 	
 	@Autowired
 	private StudentAdminService studentAdminService;
+	
+	@Autowired
+	private TechnologyService technologyService;
 
 	@PostMapping("/secure/addManager")
 	@PreAuthorize("hasRole('ADMIN')")
@@ -362,7 +367,7 @@ public class AdminController {
 			dto.setMobile(trainer.getMobile());
 			dto.setQualification(trainer.getQualification());
 			dto.setYearOfExperiences(trainer.getYearOfExperiences());
-			dto.setActive(trainer.isAcitve());
+			dto.setActive(trainer.isActive());
 			dto.setCreatedAt(trainer.getCreatedAt());
 			dto.setUpdatedAt(trainer.getUpdatedAt());
 			return dto;
@@ -580,8 +585,6 @@ public class AdminController {
 		
 		return ResponseEntity.ok(new ApiResponse<>("success", "Executive Data", jobDescriptions));
 	}
-	
-	
 	
 	
 	

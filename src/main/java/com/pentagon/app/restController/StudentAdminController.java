@@ -88,7 +88,7 @@ public class StudentAdminController {
 			dto.setMobile(trainer.getMobile());
 			dto.setQualification(trainer.getQualification());
 			dto.setYearOfExperiences(trainer.getYearOfExperiences());
-			dto.setActive(trainer.isAcitve());
+			dto.setActive(trainer.isActive());
 			dto.setCreatedAt(trainer.getCreatedAt());
 			dto.setUpdatedAt(trainer.getUpdatedAt());
 			return dto;
