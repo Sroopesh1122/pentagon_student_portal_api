@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.pentagon.app.Dto.JdStatsDTO;
 import com.pentagon.app.Dto.JobDescriptionDTO;
 import com.pentagon.app.entity.Executive;
 import com.pentagon.app.entity.JobDescription;
@@ -269,6 +270,8 @@ public class ExecutiveController {
 			jobDescriptionDTO.setUpdatedAt(jobDescription.getUpdatedAt());
 			jobDescriptionDTO.setLocation(jobDescription.getLocation());
 			jobDescriptionDTO.setSkills(jobDescription.getSkills());
+			jobDescriptionDTO.setPostedBy(jobDescription.getPostedBy());
+			jobDescriptionDTO.setJdStatus(jobDescription.getJdStatus());
 			jobDescriptionDTO.setJdActionReason(jobDescription.getJdActionReason());
 
 			Manager jdManager = managerService.getManagerById(jobDescription.getManagerId());
@@ -293,6 +296,33 @@ public class ExecutiveController {
 		Executive executive = executiveDetails.getExecutive();
 		ProfileResponse details = executiveService.getProfile(executive);
 		return ResponseEntity.ok(new ApiResponse<>("success", "Executive Profile", details));
+	}
+	
+	@GetMapping("/secure/jd/stats")
+	@PreAuthorize("hasRole('EXECUTIVE')")
+	public ResponseEntity<?> getJdStats(
+			@AuthenticationPrincipal CustomUserDetails executiveDetails,
+			@RequestParam("timeUnit") String timeUnit,
+			@RequestParam("range") int range) {
+		
+		String executiveId = executiveDetails.getExecutive().getExecutiveId(); 
+		
+		List<JdStatsDTO> jdStats = executiveService.getExecutiveJdStats(executiveId, timeUnit, range);
+		
+		return ResponseEntity.ok(new ApiResponse<>("success", "JD Stats", jdStats));
+	}
+	
+	
+	@GetMapping("/secure/jd/status/stats")
+	@PreAuthorize("hasRole('EXECUTIVE')")
+	public ResponseEntity<?> getJdStats(
+			@AuthenticationPrincipal CustomUserDetails executiveDetails) {
+		
+		String executiveId = executiveDetails.getExecutive().getExecutiveId(); 
+		
+		Map<String,Long> jdStatusStats = (Map) executiveService.getExecutiveJdDetails(executiveId);
+		
+		return ResponseEntity.ok(new ApiResponse<>("success", "JD Stats", jdStatusStats));
 	}
 	
 	//vieW ALL JDS BY EXECU ID
