@@ -2,6 +2,7 @@ package com.pentagon.app.serviceImpl;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -10,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.pentagon.app.entity.Executive;
 import com.pentagon.app.entity.Student;
 import com.pentagon.app.entity.Trainer;
 import com.pentagon.app.entity.Student.EnrollmentStatus;
@@ -100,14 +102,41 @@ public class TrainerServiceImpl implements TrainerService {
 
 
 	@Override
-	public boolean checkExistsByEmail(String email) {
+	public Trainer checkExistsByEmail(String email) {
 		// TODO Auto-generated method stub
-		return  trainerRepository.existsByEmail(email);
+		Optional<Trainer> trainer = trainerRepository.findByEmail(email);
+		if (trainer.isEmpty()) {
+			return null;
+		}
+		return trainer.get();
 	}
 	
 	@Override
 	public Trainer getById(String tainerId) {
 		return trainerRepository.findById(tainerId).orElse(null);
+	}
+
+
+	@Override
+	public Trainer disableTrainerById(String Id) {
+		// TODO Auto-generated method stub
+		Trainer trainer = trainerRepository.findById(Id)
+	            .orElseThrow(() -> new TrainerException( "Trainer not found with ID: " + Id,   HttpStatus.NOT_FOUND));
+		
+		if (!trainer.isActive()) {
+            throw new TrainerException( "Trainer is already suspended", HttpStatus.BAD_REQUEST);
+        }
+		
+		trainer.setActive(false);
+        trainer.setUpdatedAt(LocalDateTime.now());
+        return trainerRepository.save(trainer);
+	}
+
+
+	@Override
+	public Page<Trainer> getAllTrainers(String programHeadId, String q, Pageable pageable) {
+		// TODO Auto-generated method stub
+		return trainerRepository.getAllTrainers(programHeadId,q, pageable);
 	}
 	
 

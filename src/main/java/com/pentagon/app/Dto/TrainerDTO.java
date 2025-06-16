@@ -1,6 +1,9 @@
 package com.pentagon.app.Dto;
 
 import java.time.LocalDateTime;
+import java.util.List;
+
+import com.pentagon.app.entity.Technology;
 
 import lombok.Data;
 
@@ -11,11 +14,12 @@ public class TrainerDTO {
     private String name;
     private String email;
     private String mobile;
-    private String trainerStack;
+//  private String trainerStack;
+    private List<Technology> technologies;
     private String qualification;
     private Integer yearOfExperiences;
-    private String technologies;
     private boolean isActive;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private String programHeadId;
 }

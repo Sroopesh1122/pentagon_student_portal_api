@@ -16,13 +16,17 @@ public class DataInitializer {
 	@Bean
     CommandLineRunner initAdmin(AdminRepository adminRepository, PasswordEncoder passwordEncoder) {
         return args -> {
-            if (adminRepository.findByEmail("shivuroopesh@gmail.com").isEmpty()) {
+            if (adminRepository.findByEmail("pradeepkurba2001@gmail.com").isEmpty()) {
                 Admin admin = new Admin();
                 admin.setAdminId("ADM001");
                 admin.setName("Shivuroopesh");
-                admin.setEmail("shivuroopesh6362@gmail.com");
+
+                admin.setEmail("pradeepkurba2001@gmail.com");
+
+                admin.setEmail("sahana30gowda@gmail.com");
+
                 admin.setMobile("6363636363");
-                admin.setPassword(passwordEncoder.encode("Shivu9895")); // Raw password
+                admin.setPassword(passwordEncoder.encode("Admin123")); // Raw password
                 admin.setCreatedAt(LocalDateTime.now());
                 adminRepository.save(admin);
                 System.out.println("✅ Default admin created.");
