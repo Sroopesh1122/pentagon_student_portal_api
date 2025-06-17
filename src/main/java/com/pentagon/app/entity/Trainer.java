@@ -54,4 +54,12 @@ public class Trainer {
     @ManyToMany
     @JsonIgnore
     private List<Technology> technologies;
+    
+    
+    @JsonIgnore
+    @OneToMany(mappedBy = "trainer")
+    private List<BatchTechTrainer> batchTechTrainer;
+    
+    
+    
 }

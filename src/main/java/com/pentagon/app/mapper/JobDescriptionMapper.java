@@ -2,11 +2,8 @@ package com.pentagon.app.mapper;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
-
 import com.pentagon.app.Dto.JobDescriptionDTO;
-
 import com.pentagon.app.entity.JobDescription;
 
 @Component

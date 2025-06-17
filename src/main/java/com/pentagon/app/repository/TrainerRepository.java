@@ -27,7 +27,7 @@ public interface TrainerRepository extends JpaRepository<Trainer, String> {
 	
 	boolean existsByEmail(String email);
 	
-	@Query("SELECT t FROM Trainer t WHERE t.programHeadId = :programHeadId AND "
+	@Query("SELECT t FROM Trainer t WHERE ( :programHeadId IS NULL OR t.programHeadId = :programHeadId ) AND "
 			+ "(:q IS NULL OR :q = '' OR LOWER(t.email) LIKE LOWER(CONCAT(:q,'%')) "
 			+ "OR LOWER(t.name) LIKE LOWER(CONCAT(:q,'%')) OR t.trainerId = :q)")
 	public Page<Trainer> getAllTrainers(@Param("programHeadId") String programHeadId,@Param("q") String q,  Pageable pageable);

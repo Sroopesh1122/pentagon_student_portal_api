@@ -65,6 +65,7 @@ public class AppConfiguaration {
 						.requestMatchers("/api/admin/public/**").permitAll()
 						.requestMatchers("/api/technology/public/**").permitAll()
 						.requestMatchers("/api/stack/public/**").permitAll()
+						.requestMatchers("/api/programHead/public/**").permitAll()
 						.requestMatchers(
 			                    "/v3/api-docs/**",
 			                    "/swagger-ui/**",

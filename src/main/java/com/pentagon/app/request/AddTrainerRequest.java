@@ -17,6 +17,6 @@ public class AddTrainerRequest {
 	@NotBlank
 	private String mobile;
 	@Size(min = 1, message = "At least one technology ID must be provided")
-	private List<String> technologyIds;
+	private List<String> techId;
 	
 }

@@ -102,13 +102,9 @@ public class TrainerServiceImpl implements TrainerService {
 
 
 	@Override
-	public Trainer checkExistsByEmail(String email) {
+	public Trainer getByEmail(String email) {
 		// TODO Auto-generated method stub
-		Optional<Trainer> trainer = trainerRepository.findByEmail(email);
-		if (trainer.isEmpty()) {
-			return null;
-		}
-		return trainer.get();
+		return trainerRepository.findByEmail(email).orElse(null);
 	}
 	
 	@Override
