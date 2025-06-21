@@ -3,6 +3,7 @@ package com.pentagon.app.restController;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -183,40 +184,21 @@ public class ProgramHeadController {
 		return ResponseEntity.ok(new ApiResponse<>("success", "Job Descriptions Fetched", JobDescriptionDTOResponse));
 	}
 	
-	//trainers under program head
-	@GetMapping("/secure/trainers")
+	@GetMapping("/secure/jd/{id}")
 	@PreAuthorize("hasRole('PROGRAMHEAD')")
-	public ResponseEntity<?> getAllTrainers(
-			@AuthenticationPrincipal CustomUserDetails programHeadDetails,
-			@RequestParam(defaultValue = "0") int page,
-			@RequestParam(defaultValue = "10") int limit,
-			@RequestParam(required = false) String q) {
+	public ResponseEntity<?> getJdById(@PathVariable String id)
+	{
+		Optional<JobDescription> jobDescriptionoptional  = jobDescriptionService.findByJobDescriptionId(id);
 		
-		Pageable pageable = PageRequest.of(page, limit, Sort.by("createdAt").descending());
-
-		
-		//if we pass null then all trainers are fetched under every program Head
-		Page<TrainerDTO> trainers = trainerService.getAllTrainers(null,q,
-				pageable).map(trainer -> trainerMapper.toDTO(trainer));
-
-		return ResponseEntity.ok(new ApiResponse<>("success", "Trainers data", trainers));
-	}
-	
-	//individual trainers
-	@GetMapping("/secure/trainer/{id}")
-	@PreAuthorize("hasRole('PROGRAMHEAD')")
-	public ResponseEntity<?> getTrainerById(@PathVariable String id){
-		
-		Trainer findTrainer = trainerService.getById(id);
-		
-		if(findTrainer == null)
+		if(jobDescriptionoptional.isEmpty())
 		{
-			throw new TrainerException("Trainer not found", HttpStatus.NOT_FOUND);
+			throw new ProgramHeadException("Not Jd Found", HttpStatus.NOT_FOUND);
 		}
 		
-		TrainerDTO trainer = trainerMapper.toDTO(findTrainer);
-
-		return ResponseEntity.ok(new ApiResponse<>("success", "Trainer data", trainer));
+		JobDescriptionDTO jobDescriptionDTO = jobDescriptionMapper.toDTO(jobDescriptionoptional.get());
+		
+		return ResponseEntity.ok(new ApiResponse<>("success","JD Data", jobDescriptionDTO));
+		
 	}
 	
 	

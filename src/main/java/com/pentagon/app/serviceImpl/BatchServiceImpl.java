@@ -22,8 +22,8 @@ public class BatchServiceImpl implements BatchService {
     }
 
     @Override
-    public Page<Batch> getAllBatches(Pageable pageable) {
-        return batchRepository.findAll(pageable);
+    public Page<Batch> getAllBatches(String q, String mode, String stackId, Pageable pageable) {
+    	return batchRepository.findAll(q, mode, stackId, pageable);
     }
 
     @Override

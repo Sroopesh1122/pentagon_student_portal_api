@@ -23,5 +23,4 @@ public class TrainerDTO {
     private LocalDateTime updatedAt;
     private String programHeadId;
     
-    private List<BatchTechTrainerDTO> batchTechTrainer;
 }

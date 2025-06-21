@@ -59,45 +59,6 @@ public class StackController {
 		List<StackTechResponse> listOfstackTechResponse =  new ArrayList<>();
 		
 		
-		//Looping through stacks
-//		allStacks.forEach(stack->{
-//			
-//			StackTechResponse stackTechResponse = new StackTechResponse();
-//			
-//			System.out.println(stack.getName());
-//			
-//			stackTechResponse.setStack(stack);
-//			
-//			//get All techs under stack
-//			List<StackTech> stackTechs = stackTechService.getAllTechnologiesByStack(stack.getStackId());
-//			
-//			List<TechTrainersResponse> techTrainersResponses  = new ArrayList<>();
-//			
-//			//Get all trainers under technology
-//			stackTechs.forEach(tech->{
-//				
-//				TechTrainersResponse techTrainersResponse = new TechTrainersResponse();
-//				techTrainersResponse.setTechnology(technologyService.getTechnologyById(tech.getTechId()).orElse(null));
-//				
-//				//List of trainer under tech
-//				List<Trainer> trainers =  new ArrayList<>();
-//				List<TrainerTech> trainerTech = trainerTechService.getAllTrainerByTechnology(tech.getTechId());
-//				trainerTech.forEach(trainerTechData -> {
-//					trainers.add(trainerService.getById(trainerTechData.getTrainerId()));
-//				});
-//				techTrainersResponse.setTrainers(trainers);
-//				
-//				techTrainersResponses.add(techTrainersResponse);
-//				
-//			});
-//			
-//			
-//			listOfstackTechResponse.add(stackTechResponse);
-//			
-//			
-//		});
-		
-		
 		
 		return ResponseEntity.ok(new ApiResponse<>("success","Stack - trainer - tech  Data", listOfstackTechResponse));
 	}

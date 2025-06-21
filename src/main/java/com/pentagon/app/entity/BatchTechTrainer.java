@@ -29,4 +29,11 @@ public class BatchTechTrainer {
     @CreationTimestamp
     private LocalDateTime createdAt;
     
+    private Double startTime;
+    
+    private Double endTime;
+    
+    
+    private boolean completed = false;
+    
 }

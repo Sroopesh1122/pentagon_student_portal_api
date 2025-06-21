@@ -1,9 +1,12 @@
 package com.pentagon.app.service;
 
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import com.pentagon.app.entity.BatchTechTrainer;
 import com.pentagon.app.entity.Trainer;
 import com.pentagon.app.request.TrainerLoginRequest;
 import com.pentagon.app.response.ProfileResponse;
@@ -28,4 +31,6 @@ public interface TrainerService {
 	public Trainer disableTrainerById(String Id);
 	
 	public Page<Trainer> getAllTrainers(String programHeadId, String q, Pageable pageable);
+	
+	
 }

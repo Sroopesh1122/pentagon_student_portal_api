@@ -31,6 +31,7 @@ public class Trainer {
     @Column(nullable = false, length = 10)
     private String mobile;
 
+    @JsonIgnore
     @Column(nullable = false)
     private String password;
 

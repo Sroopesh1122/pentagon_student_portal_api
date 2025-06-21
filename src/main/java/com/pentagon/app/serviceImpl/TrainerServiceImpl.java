@@ -11,12 +11,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.pentagon.app.entity.BatchTechTrainer;
 import com.pentagon.app.entity.Executive;
 import com.pentagon.app.entity.Student;
 import com.pentagon.app.entity.Trainer;
 import com.pentagon.app.entity.Student.EnrollmentStatus;
 import com.pentagon.app.exception.StudentException;
 import com.pentagon.app.exception.TrainerException;
+import com.pentagon.app.repository.BatchTechTrainerRepository;
 import com.pentagon.app.repository.StudentRepository;
 import com.pentagon.app.repository.TrainerRepository;
 import com.pentagon.app.request.OtpVerificationRequest;
@@ -38,6 +40,7 @@ public class TrainerServiceImpl implements TrainerService {
 	
 	@Autowired
 	private PasswordEncoder passwordEncoder;
+	
 	
 	
 	@Override
@@ -134,6 +137,8 @@ public class TrainerServiceImpl implements TrainerService {
 		// TODO Auto-generated method stub
 		return trainerRepository.getAllTrainers(programHeadId,q, pageable);
 	}
+	
+	
 	
 
 }

@@ -15,7 +15,11 @@ public class BatchTechTrainerDTO {
 
     private Technology technology;
 
-    private Trainer trainer;
+    private TrainerDTO trainers;
     
     private LocalDateTime createdAt;
+    
+    private Double startTime;
+    
+    private Double endTime;
 }

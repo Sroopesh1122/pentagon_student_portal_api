@@ -2,7 +2,6 @@ package com.pentagon.app.restController;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -16,7 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -30,14 +28,14 @@ import com.pentagon.app.Dto.JobDescriptionDTO;
 import com.pentagon.app.entity.Executive;
 import com.pentagon.app.entity.JobDescription;
 import com.pentagon.app.entity.Manager;
+import com.pentagon.app.exception.AdminException;
 import com.pentagon.app.exception.ExecutiveException;
 import com.pentagon.app.exception.JobDescriptionException;
-import com.pentagon.app.repository.JobDescriptionRepository;
 import com.pentagon.app.request.AddJobDescriptionRequest;
-import com.pentagon.app.request.MangerJdStatusUpdateRequest;
 import com.pentagon.app.request.UpdateClosuresRequest;
 import com.pentagon.app.request.UpdateJobDescriptionRequest;
 import com.pentagon.app.response.ApiResponse;
+import com.pentagon.app.response.ExecutiveDetails;
 import com.pentagon.app.response.ProfileResponse;
 import com.pentagon.app.service.ActivityLogService;
 import com.pentagon.app.service.CustomUserDetails;
@@ -72,13 +70,18 @@ public class ExecutiveController {
 	public ResponseEntity<?> addJobDescription(@AuthenticationPrincipal CustomUserDetails executiveDetails,
 			@Valid @RequestBody AddJobDescriptionRequest newJd, BindingResult bindingResult) {
 		if (bindingResult.hasErrors()) {
-			throw new ExecutiveException("Invalid input data", HttpStatus.BAD_REQUEST);
+		    List<String> errorMessages = bindingResult.getFieldErrors().stream()
+		        .map(error -> error.getField() + ": " + error.getDefaultMessage())
+		        .collect(Collectors.toList());
+
+		    throw new ExecutiveException("Invalid input data: " + String.join(", ", errorMessages), HttpStatus.BAD_REQUEST);
 		}
 		if (executiveDetails.getExecutive() == null) {
 			throw new ExecutiveException("UNAUTHORIZED", HttpStatus.UNAUTHORIZED);
 		}
 		JobDescription jd = new JobDescription();
 		jd.setJobDescriptionId(idGenerator.generateId("JD"));
+		jd.setCompanyLogo(newJd.getCompanyLogoUrl());
 		jd.setCompanyName(newJd.getCompanyName());
 		jd.setWebsite(newJd.getWebsite());
 		jd.setDescription(newJd.getDescription());
@@ -182,6 +185,7 @@ public class ExecutiveController {
 
 		JobDescription jobDescription = jobDescriptionOtp.get();
 		JobDescriptionDTO jobDescriptionDTO = new JobDescriptionDTO();
+		jobDescriptionDTO.setCompanyLogo(jobDescription.getCompanyLogo());
 		jobDescriptionDTO.setJobDescriptionId(jobDescription.getJobDescriptionId());
 		jobDescriptionDTO.setCompanyName(jobDescription.getCompanyName());
 		jobDescriptionDTO.setWebsite(jobDescription.getWebsite());
@@ -248,6 +252,7 @@ public class ExecutiveController {
 
 		Page<JobDescriptionDTO> JobDescriptionDTOResponse = jobDescriptions.map(jobDescription -> {
 			JobDescriptionDTO jobDescriptionDTO = new JobDescriptionDTO();
+			jobDescriptionDTO.setCompanyLogo(jobDescription.getCompanyLogo());
 			jobDescriptionDTO.setJobDescriptionId(jobDescription.getJobDescriptionId());
 			jobDescriptionDTO.setCompanyName(jobDescription.getCompanyName());
 			jobDescriptionDTO.setWebsite(jobDescription.getWebsite());
@@ -323,6 +328,64 @@ public class ExecutiveController {
 		Map<String,Long> jdStatusStats = (Map) executiveService.getExecutiveJdDetails(executiveId);
 		
 		return ResponseEntity.ok(new ApiResponse<>("success", "JD Stats", jdStatusStats));
+	}
+	
+	@GetMapping("/secure/{id}")
+	@PreAuthorize("hasAnyRole('ADMIN','MANAGER','EXECUTIVE')")
+	public ResponseEntity<?> getExecutiveById(@PathVariable String id) {
+		
+		Executive findExecutive = executiveService.getExecutiveById(id);
+		if(findExecutive ==null)
+		{
+			throw new AdminException("Executive not found", HttpStatus.NOT_FOUND);
+		}
+		
+		ExecutiveDetails executiveDetails =  new ExecutiveDetails();
+		executiveDetails.setActive(findExecutive.isActive());
+		executiveDetails.setCreatedAt(findExecutive.getCreatedAt());
+		executiveDetails.setEmail(findExecutive.getEmail());
+		executiveDetails.setExecutiveId(findExecutive.getExecutiveId());
+		executiveDetails.setId(null);
+		executiveDetails.setManagerId(findExecutive.getManagerId());
+		executiveDetails.setMobile(findExecutive.getMobile());
+		executiveDetails.setName(findExecutive.getName());
+		Map<String, Long> jdDetails = (Map) executiveService.getExecutiveJdDetails(findExecutive.getExecutiveId());
+		executiveDetails.setJdsCount(jdDetails);
+		Manager manager = managerService.getManagerById(findExecutive.getManagerId());
+		executiveDetails.setManagerEmail(manager.getEmail());
+		executiveDetails.setManagerName(manager.getName());
+		return ResponseEntity.ok(new ApiResponse<>("success", "Executive Data", executiveDetails));
+	}
+	
+	
+	@GetMapping("/secure/{id}/recentJd")
+	@PreAuthorize("hasAnyRole('ADMIN','MANAGER','EXECUTIVE')")
+	public ResponseEntity<?> getExecutiveRecentJd(@PathVariable String id) {
+		
+		Executive findExecutive = executiveService.getExecutiveById(id);
+		if(findExecutive ==null)
+		{
+			throw new AdminException("Executive not found", HttpStatus.NOT_FOUND);
+		}
+	 
+		Integer RECENT_COUNT = 5;
+		
+		Page<JobDescription> jobDescriptions = executiveService.getRecentJobDescriptions(id, RECENT_COUNT);
+		
+		return ResponseEntity.ok(new ApiResponse<>("success", "Executive Data", jobDescriptions));
+	}
+	
+	
+	@GetMapping("/secure/{id}/jd/stats")
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<?> getJdStatsOfExecutive(
+			@PathVariable("id") String executiveId, 
+			@RequestParam("timeUnit") String timeUnit,
+			@RequestParam("range") int range) {
+		
+		List<JdStatsDTO> jdStats =  executiveService.getExecutiveJdStats(executiveId, timeUnit,range);
+		
+		return ResponseEntity.ok(new ApiResponse<>("success", "JD Stats", jdStats));
 	}
 	
 	//vieW ALL JDS BY EXECU ID

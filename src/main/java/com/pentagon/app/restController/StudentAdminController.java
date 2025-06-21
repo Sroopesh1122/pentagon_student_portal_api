@@ -5,20 +5,33 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.pentagon.app.Dto.JobDescriptionDTO;
 import com.pentagon.app.Dto.TrainerDTO;
-import com.pentagon.app.entity.JobDescription;
+import com.pentagon.app.entity.Batch;
+import com.pentagon.app.entity.BatchTechTrainer;
+import com.pentagon.app.entity.Stack;
+import com.pentagon.app.entity.StudentAdmin;
+import com.pentagon.app.entity.Technology;
 import com.pentagon.app.entity.Trainer;
-import com.pentagon.app.exception.ExecutiveException;
 import com.pentagon.app.exception.StudentAdminException;
+import com.pentagon.app.exception.TrainerException;
+import com.pentagon.app.mapper.BatchMapper;
 import com.pentagon.app.mapper.JobDescriptionMapper;
-import com.pentagon.app.request.MangerJdStatusUpdateRequest;
+import com.pentagon.app.mapper.TrainerMapper;
+import com.pentagon.app.request.CreateBatchRequest;
 import com.pentagon.app.response.ApiResponse;
+import com.pentagon.app.response.ProfileResponse;
+import com.pentagon.app.service.BatchService;
+import com.pentagon.app.service.BatchTechTrainerService;
 import com.pentagon.app.service.CustomUserDetails;
 import com.pentagon.app.service.JobDescriptionService;
-import com.pentagon.app.service.ManagerService;
+import com.pentagon.app.service.StackService;
+import com.pentagon.app.service.TechnologyService;
 import com.pentagon.app.service.TrainerService;
-import com.pentagon.app.serviceImpl.JobDescriptionServiceImp;
+import com.pentagon.app.utils.IdGeneration;
 
-import org.modelmapper.ModelMapper;
+import jakarta.validation.Valid;
+
+import java.time.LocalDateTime;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -28,7 +41,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 
@@ -43,8 +60,45 @@ public class StudentAdminController {
 	@Autowired
 	private JobDescriptionMapper jobDescriptionMapper;
 	
-	@GetMapping("/secure/jd")
-	@PreAuthorize("hasRole('STUDNETADMIN')")
+	@Autowired
+	private BatchTechTrainerService batchTechTrainerService;
+	
+	
+	@Autowired
+	private TechnologyService technologyService;
+	
+	@Autowired
+	private BatchMapper batchMapper;
+	
+	
+	@Autowired
+	private StackService stackService;
+	
+	@Autowired
+	private BatchService batchService;
+	
+	
+	@Autowired
+	private IdGeneration idGeneration;
+	
+	
+	
+	@GetMapping("/secure/profile")
+	@PreAuthorize("hasRole('STUDENTADMIN')")
+	public ResponseEntity<?> getAdminProfile(@AuthenticationPrincipal CustomUserDetails adminDetails) {
+		if(adminDetails.getStudentAdmin() == null) {
+			throw new TrainerException("UNAUTHORIZED", HttpStatus.UNAUTHORIZED);
+		}
+	    
+		StudentAdmin studentAdmin = adminDetails.getStudentAdmin();
+		studentAdmin.setPassword(null);
+	    return ResponseEntity.ok(new ApiResponse<>("success", "Student Admin Profile", studentAdmin));
+	}
+	
+	
+	
+	@GetMapping("/public/jd")
+	@PreAuthorize("hasRole('STUDENTADMIN')")
 	public ResponseEntity<?> getAllJds(@AuthenticationPrincipal CustomUserDetails managerDetails,
 			@RequestParam(defaultValue = "0") int page, 
 			@RequestParam(defaultValue = "10") int limit,
@@ -70,7 +124,7 @@ public class StudentAdminController {
 	
 	
 	@GetMapping("/secure/viewAllTrainers")
-	@PreAuthorize("hasRole('STUDNETADMIN')")
+	@PreAuthorize("hasRole('STUDENTADMIN')")
 	public ResponseEntity<?> viewAllTrainers(@AuthenticationPrincipal CustomUserDetails adminDetails,
 			@RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "10") int limit,
 			@RequestParam(required = false) String stack, @RequestParam(required = false) String name,
@@ -97,6 +151,67 @@ public class StudentAdminController {
 		return ResponseEntity.ok(new ApiResponse<>("success", "Trainers fetched successfully", TrainerDTOPage));
 	}
 	
+	
+	@PostMapping("/secure/batch/add")
+	@PreAuthorize("hasRole('STUDENTADMIN')")
+	public ResponseEntity<?> createBatch(@Valid @RequestBody CreateBatchRequest request ,BindingResult bindingResult){
+		if(bindingResult.hasErrors())
+		{
+			throw new StudentAdminException("Invalid Data", HttpStatus.BAD_REQUEST);
+
+		}
+		Stack findStack =stackService.getStackById(request.getStackId()).orElse(null);
+		if(findStack ==null)
+		{
+			throw new StudentAdminException("Stack Not Found",HttpStatus.NOT_FOUND);
+		}
+		
+		String batchId = idGeneration.generateBatchId(findStack.getName());
+		
+		Batch findBatch = batchService.getBatchById(batchId).orElse(null);
+		
+		if(findBatch !=null)
+		{
+			throw new StudentAdminException("Batch Already exists", HttpStatus.CONFLICT);
+		
+		}
+		
+		request.getScheduleDetails().forEach(schedule->{
+			boolean available = batchTechTrainerService.checkTrainerAvailabality(schedule.getTrainerId(), schedule.getStartTime(), schedule.getEndTime());
+			if(!available)
+			{
+				throw new StudentAdminException("Trainer unavailable between "+schedule.getStartTime()+" to "+schedule.getEndTime(), HttpStatus.CONFLICT);
+			}
+		});
+		Batch newBatch =  new Batch();
+		newBatch.setBatchId(batchId);
+		newBatch.setName(request.getBatchName());
+		newBatch.setMode(request.getBatchMode());
+		newBatch.setStack(findStack);
+		Batch createdBatch = batchService.addBatch(newBatch);
+		request.getScheduleDetails().forEach(schedule->{
+			Technology findTechnology = technologyService.getTechnologyById(schedule.getTechId()).orElse(null);
+			Trainer findTrainer = trainerService.getById(schedule.getTrainerId());
+			if(findTechnology==null)
+			{
+				throw new StudentAdminException("Technology Not Found", HttpStatus.CONFLICT);
+			}
+			if(findTrainer ==  null)
+			{
+				throw new StudentAdminException("Trainer Not Found", HttpStatus.CONFLICT);
+			}
+			BatchTechTrainer batchTechTrainer  = new BatchTechTrainer();
+			batchTechTrainer.setBatch(createdBatch);
+			batchTechTrainer.setCreatedAt(LocalDateTime.now());
+			batchTechTrainer.setEndTime(schedule.getEndTime());
+			batchTechTrainer.setStartTime(schedule.getStartTime());
+			batchTechTrainer.setTechnology(findTechnology);
+			batchTechTrainer.setTrainer(findTrainer);
+			batchTechTrainer = batchTechTrainerService.assignTrainer(batchTechTrainer);
+		});	
+		return ResponseEntity.ok(new ApiResponse<>("success","Batch Created Successfully", null));
+	
+	}
 	
 
 }

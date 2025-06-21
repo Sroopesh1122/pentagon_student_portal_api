@@ -1,5 +1,6 @@
 package com.pentagon.app.serviceImpl;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,5 +41,19 @@ public class BatchTechTrainerServiceImpl implements BatchTechTrainerService {
     @Override
     public void deleteAssignment(Integer id) {
         batchTechTrainerRepository.deleteById(id);
+    }
+    @Override
+    public boolean checkTrainerAvailabality(String trainerId, Double startTime, Double endTime) {
+    	return batchTechTrainerRepository.isTrainerAvailable(trainerId, startTime, endTime);
+    }
+    
+    @Override
+    public List<BatchTechTrainer> getBatchScheduleInfo(String batchId) {
+    	return batchTechTrainerRepository.getBatchInfo(batchId);
+    }
+    
+    @Override
+    public List<BatchTechTrainer> getTrainerSchedule(String trainerId) {
+    	return batchTechTrainerRepository.getTrainerSchedule(trainerId);
     }
 }

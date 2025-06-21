@@ -171,30 +171,4 @@ public class AuthController {
     }
     
     
-    
-//    @PostMapping("/admin/verify-OTP")
-//    public ResponseEntity<?> adminVerify(@RequestBody @Valid OtpVerificationRequest request, BindingResult result) {
-//        if (result.hasErrors()) throw new AdminException("Invalid details", HttpStatus.BAD_REQUEST);
-//        return handleOtpVerification("ADMIN", request, adminService.verifyOtp(request));
-//    }
-//    @PostMapping("/manager/verify-OTP")
-//    public ResponseEntity<?> managerVerify(@RequestBody @Valid OtpVerificationRequest request, BindingResult result) {
-//        if (result.hasErrors()) throw new ManagerException("Invalid details", HttpStatus.BAD_REQUEST);
-//        return handleOtpVerification("MANAGER", request, managerService.verifyOtp(request));
-//    }
-//    @PostMapping("/executive/verify-OTP")
-//    public ResponseEntity<?> executiveVerify(@RequestBody @Valid OtpVerificationRequest request, BindingResult result) {
-//        if (result.hasErrors()) throw new ExecutiveException("Invalid details", HttpStatus.BAD_REQUEST);
-//        return handleOtpVerification("EXECUTIVE", request, executiveService.verifyOtp(request));
-//    }
-//    @PostMapping("/trainer/verify-OTP")
-//    public ResponseEntity<?> trainerVerify(@RequestBody @Valid OtpVerificationRequest request, BindingResult result) {
-//        if (result.hasErrors()) throw new TrainerException("Invalid details", HttpStatus.BAD_REQUEST);
-//        return handleOtpVerification("TRAINER", request, trainerService.verifyOtp(request));
-//    }
-//    @PostMapping("/student/verify-OTP")
-//    public ResponseEntity<?> studentVerify(@RequestBody @Valid OtpVerificationRequest request, BindingResult result) {
-//        if (result.hasErrors()) throw new StudentException("Invalid details", HttpStatus.BAD_REQUEST);
-//        return handleOtpVerification("STUDENT", request, studentService.verifyOtp(request));
-//    }
 }
