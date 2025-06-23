@@ -163,7 +163,7 @@ public class AuthController {
     @PostMapping("/public/studentadmin/login")
     public ResponseEntity<?> studentAdminLogin(@RequestBody @Valid StudentAdminLoginRequest request, BindingResult result){
     	if (result.hasErrors()) throw new StudentAdminException("Invalid details", HttpStatus.BAD_REQUEST);
-    	return handleLogin("STUDNETADMIN", studentAdminService.loginWithPassword(request));
+    	return handleLogin("STUDENTADMIN", studentAdminService.loginWithPassword(request));
     }
     @PostMapping("/public/programhead/login")
     public ResponseEntity<?> programHeadLogin(@RequestBody @Valid ProgramheadLoginRequest request, BindingResult result) {
