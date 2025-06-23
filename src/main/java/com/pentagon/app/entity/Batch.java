@@ -17,7 +17,9 @@ public class Batch {
     private String batchId;
     
     private String name;
-
+    
+    private String mode;
+    
     @ManyToOne
     private Stack stack;
 
@@ -28,4 +30,14 @@ public class Batch {
     @OneToMany(mappedBy = "batch")
     @JsonIgnore
     private List<Student> students;
+    
+    @CreationTimestamp
+    private LocalDateTime startDate;
+    
+    
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+    
+   
+    
 }

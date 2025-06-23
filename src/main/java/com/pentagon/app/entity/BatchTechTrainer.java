@@ -15,14 +15,25 @@ public class BatchTechTrainer {
     private Long id;
 
     @ManyToOne
+    @JoinColumn(name = "batch-id")
     private Batch batch;
 
     @ManyToOne
+    @JoinColumn(name = "technology-id")
     private Technology technology;
 
     @ManyToOne
+    @JoinColumn(name = "trainer-id")
     private Trainer trainer;
     
     @CreationTimestamp
     private LocalDateTime createdAt;
+    
+    private Double startTime;
+    
+    private Double endTime;
+    
+    
+    private boolean completed = false;
+    
 }

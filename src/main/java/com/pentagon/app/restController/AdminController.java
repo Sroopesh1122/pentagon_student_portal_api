@@ -257,6 +257,32 @@ public class AdminController {
 
 		newProgramHead= programHeadService.add(newProgramHead); 
 		
+		
+		Trainer trainer = new Trainer();
+	    trainer.setTrainerId(idGeneration.generateId("TRAINER"));
+	    trainer.setName(request.getName());
+		trainer.setEmail(request.getEmail());
+		trainer.setMobile(request.getMobile());		
+		trainer.setActive(true);
+		trainer.setProgramHeadId(newProgramHead.getId());
+		trainer.setCreatedAt(LocalDateTime.now());
+		trainer.setPassword(passwordEncoder.encode(password));
+		
+		List<Technology> trainerTechnologies = new ArrayList<>();
+		
+		request.getTechnologies().forEach(technologyId ->{
+			  Technology findTechnology = technologyService.getTechnologyById(technologyId).orElse(null);
+			  if(findTechnology ==null)
+			  {
+				  throw new ProgramHeadException("No Technology found", HttpStatus.NOT_FOUND);
+			  }
+			  trainerTechnologies.add(findTechnology);			  
+		});
+		
+		trainer.setTechnologies(trainerTechnologies);
+		
+		trainerService.addTrainer(trainer);
+		
 		String htmlContent = htmlContentService.getLoginEmailHtmlContent(newProgramHead.getName(), newProgramHead.getEmail(), password);
 
 		try {
@@ -436,6 +462,7 @@ public class AdminController {
 		JobDescriptionDTO jobDescriptionDTO = new JobDescriptionDTO();
 		jobDescriptionDTO.setJobDescriptionId(jobDescription.getJobDescriptionId());
 		jobDescriptionDTO.setCompanyName(jobDescription.getCompanyName());
+		jobDescriptionDTO.setCompanyLogo(jobDescription.getCompanyLogo());
 		jobDescriptionDTO.setWebsite(jobDescription.getWebsite());
 		jobDescriptionDTO.setRole(jobDescription.getRole());
 		jobDescriptionDTO.setStack(jobDescription.getStack());
@@ -518,8 +545,7 @@ public class AdminController {
 		Map<String, Long> jdDetails = (Map) managerService.getManagersJdDetails(findManager.getManagerId());
 		managerDetails.setJdsCount(jdDetails);
 
-	    // Last 7 days jd counts
-		List<JdStatsDTO> jdCounts = managerService.getManagerJdStats(findManager.getManagerId(), "day",7);
+	    List<JdStatsDTO> jdCounts = managerService.getManagerJdStats(findManager.getManagerId(), "day",7);
 		
         managerDetails.setLastWeekJdCount(jdCounts);
 
@@ -586,11 +612,7 @@ public class AdminController {
 		return ResponseEntity.ok(new ApiResponse<>("success", "Executive Data", jobDescriptions));
 	}
 	
-	
-	
-	
-	
-	
+
 	//Stats
 	
 	@GetMapping("/secure/executive/{id}/jd/stats")

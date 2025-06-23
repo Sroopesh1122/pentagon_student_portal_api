@@ -3,6 +3,7 @@ package com.pentagon.app.restController;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -26,14 +27,13 @@ import org.springframework.web.bind.annotation.RestController;
 import com.pentagon.app.Dto.JobDescriptionDTO;
 import com.pentagon.app.Dto.TrainerDTO;
 import com.pentagon.app.entity.JobDescription;
-import com.pentagon.app.entity.Manager;
 import com.pentagon.app.entity.ProgramHead;
 import com.pentagon.app.entity.Technology;
 import com.pentagon.app.entity.Trainer;
-import com.pentagon.app.exception.ManagerException;
 import com.pentagon.app.exception.OtpException;
 import com.pentagon.app.exception.ProgramHeadException;
 import com.pentagon.app.exception.TrainerException;
+import com.pentagon.app.mapper.JobDescriptionMapper;
 import com.pentagon.app.mapper.TrainerMapper;
 import com.pentagon.app.request.AddTrainerRequest;
 import com.pentagon.app.response.ApiResponse;
@@ -88,17 +88,22 @@ public class ProgramHeadController {
 	
 	@Autowired
 	private ProgramHeadService programHeadService;
+	
+	@Autowired
+	private JobDescriptionMapper jobDescriptionMapper;
 
 	@PostMapping("/secure/addTrainer")
 	@PreAuthorize("hasRole('PROGRAMHEAD')")
-	public ResponseEntity<?> addTrainer(@AuthenticationPrincipal CustomUserDetails programHeadDetails,
-			@Valid @RequestBody AddTrainerRequest request, BindingResult bindingResult){
+	public ResponseEntity<?> addTrainer(
+			@AuthenticationPrincipal CustomUserDetails programHeadDetails,
+			@Valid @RequestBody AddTrainerRequest request, 
+			BindingResult bindingResult){
 		
 		if (bindingResult.hasErrors()) {
 			throw new ProgramHeadException("Invalid Input Data", HttpStatus.BAD_REQUEST);
 		}
 		
-		Trainer findTrainer = trainerService.checkExistsByEmail(request.getEmail());
+		Trainer findTrainer = trainerService.getByEmail(request.getEmail());
 		
 		if (findTrainer != null) {
 			throw new ProgramHeadException("Email Already Exists", HttpStatus.CONFLICT);
@@ -117,7 +122,7 @@ public class ProgramHeadController {
 		
 		List<Technology> trainerTechnologies = new ArrayList<>();
 		
-		request.getTechnologyIds().forEach(technologyId ->{
+		request.getTechId().forEach(technologyId ->{
 			  Technology findTechnology = technologyService.getTechnologyById(technologyId).orElse(null);
 			  if(findTechnology ==null)
 			  {
@@ -131,12 +136,13 @@ public class ProgramHeadController {
 		Trainer newTrainer = trainerService.addTrainer(trainer);
 		
 		String htmlContent = htmlContentService.getHtmlContent(trainer.getName(), trainer.getEmail(), password);
-		
-
-		try {
+		try 
+		{
 			mailService.sendPasswordEmail(trainer.getEmail(), "Welcome to Pentagon – Login Credentials Enclosed",
 					htmlContent);
-	    } catch (Exception e) {
+	    } 
+		catch (Exception e)
+		{
 			throw new OtpException("Mail couldn't be sent", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 		
@@ -150,7 +156,7 @@ public class ProgramHeadController {
 	@GetMapping("/secure/jd")
 	@PreAuthorize("hasRole('PROGRAMHEAD')")
 	public ResponseEntity<?> getAllJds(
-			@RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "10") int limit,
+			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int limit,
 			@RequestParam(required = false) String companyName,
 			@RequestParam(required = false, defaultValue = "") String stack,
 			@RequestParam(required = false) String role, @RequestParam(required = false) Boolean isClosed,
@@ -165,72 +171,34 @@ public class ProgramHeadController {
 
 		Pageable pageable = PageRequest.of(page, limit, Sort.by("created_at").descending());
 
+		
+		//Will get only approved JD
 		Page<JobDescription> jobDescriptions = jobDescriptionService.findAllJobDescriptions(companyName, stack, role,
 				isClosed, minYearOfPassing, maxYearOfPassing, qualification, stream, percentage, null, null,
-				status, startDate, endDate, pageable);
+				"approved", startDate, endDate, pageable);
 
 		Page<JobDescriptionDTO> JobDescriptionDTOResponse = jobDescriptions.map(jobDescription -> {
-			JobDescriptionDTO jobDescriptionDTO = new JobDescriptionDTO();
-			jobDescriptionDTO.setJobDescriptionId(jobDescription.getJobDescriptionId());
-			jobDescriptionDTO.setCompanyName(jobDescription.getCompanyName());
-			jobDescriptionDTO.setWebsite(jobDescription.getWebsite());
-			jobDescriptionDTO.setRole(jobDescription.getRole());
-			jobDescriptionDTO.setStack(jobDescription.getStack());
-			jobDescriptionDTO.setQualification(jobDescription.getQualification());
-			jobDescriptionDTO.setStream(jobDescription.getStream());
-			jobDescriptionDTO.setPercentage(jobDescription.getPercentage());
-			jobDescriptionDTO.setMinYearOfPassing(jobDescription.getMinYearOfPassing());
-			jobDescriptionDTO.setMaxYearOfPassing(jobDescription.getMaxYearOfPassing());
-			jobDescriptionDTO.setSalaryPackage(jobDescription.getSalaryPackage());
-			jobDescriptionDTO.setNumberOfRegistrations(jobDescription.getNumberOfRegistrations());
-			jobDescriptionDTO.setCurrentRegistrations(jobDescription.getCurrentRegistrations());
-			jobDescriptionDTO.setMockRating(jobDescription.getMockRating());
-			jobDescriptionDTO.setJdStatus(jobDescription.getJdStatus());
-			jobDescriptionDTO.setManagerApproval(jobDescription.isManagerApproval());
-			jobDescriptionDTO.setNumberOfClosures(jobDescription.getNumberOfClosures());
-			jobDescriptionDTO.setClosed(jobDescription.isClosed());
-			jobDescriptionDTO.setCreatedAt(jobDescription.getCreatedAt());
-			jobDescriptionDTO.setUpdatedAt(jobDescription.getUpdatedAt());
-			jobDescriptionDTO.setLocation(jobDescription.getLocation());
-			return jobDescriptionDTO;
+			return jobDescriptionMapper.toDTO(jobDescription);
 		});
 
 		return ResponseEntity.ok(new ApiResponse<>("success", "Job Descriptions Fetched", JobDescriptionDTOResponse));
 	}
 	
-	//trainers under program head
-	@GetMapping("/secure/trainers")
+	@GetMapping("/secure/jd/{id}")
 	@PreAuthorize("hasRole('PROGRAMHEAD')")
-	public ResponseEntity<?> getAllTrainers(@AuthenticationPrincipal CustomUserDetails programHeadDetails,
-			@RequestParam(defaultValue = "1") int page,
-			@RequestParam(defaultValue = "10") int limit,
-			@RequestParam(required = false) String q) {
+	public ResponseEntity<?> getJdById(@PathVariable String id)
+	{
+		Optional<JobDescription> jobDescriptionoptional  = jobDescriptionService.findByJobDescriptionId(id);
 		
-		Pageable pageable = PageRequest.of(page-1, limit, Sort.by("createdAt").descending());
-		
-		System.out.println(programHeadDetails.getProgramHead().getId());
-
-		Page<TrainerDTO> trainers = trainerService.getAllTrainers(programHeadDetails.getProgramHead().getId(),q,
-				pageable).map(trainer -> trainerMapper.toDTO(trainer));
-
-		return ResponseEntity.ok(new ApiResponse<>("success", "Trainers data", trainers));
-	}
-	
-	//individual trainers
-	@GetMapping("/secure/trainer/{id}")
-	@PreAuthorize("hasRole('PROGRAMHEAD')")
-	public ResponseEntity<?> getTrainerById(@PathVariable String id){
-		
-		Trainer findTrainer = trainerService.getById(id);
-		
-		if(findTrainer == null)
+		if(jobDescriptionoptional.isEmpty())
 		{
-			throw new TrainerException("Trainer not found", HttpStatus.NOT_FOUND);
+			throw new ProgramHeadException("Not Jd Found", HttpStatus.NOT_FOUND);
 		}
 		
-		TrainerDTO trainer = trainerMapper.toDTO(findTrainer);
-
-		return ResponseEntity.ok(new ApiResponse<>("success", "Trainer data", trainer));
+		JobDescriptionDTO jobDescriptionDTO = jobDescriptionMapper.toDTO(jobDescriptionoptional.get());
+		
+		return ResponseEntity.ok(new ApiResponse<>("success","JD Data", jobDescriptionDTO));
+		
 	}
 	
 	

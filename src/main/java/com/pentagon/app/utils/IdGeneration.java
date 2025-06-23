@@ -75,6 +75,31 @@ public class IdGeneration {
 	    }
 	}
 	
+	public  String generateBatchId(String stack) {
+		
+		String prefix="";
+		
+		if(stack.toLowerCase().contains("python"))
+		{
+			prefix ="PFS";
+		}
+		else if(stack.toLowerCase().contains("java"))
+		{
+			prefix ="JFS";
+		}
+		else if(stack.toLowerCase().contains("mern"))
+		{
+			prefix ="MERN";
+		}else if(stack.toLowerCase().contains("testing"))
+		{
+			prefix ="TESTING";
+		}
+		
+        LocalDate today = LocalDate.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+        return prefix+"-BATCH-" + today.format(formatter);
+    }
+	
 	public String generateId(String type) {
 	    String prefix = switch (type.toUpperCase()) {
 	        case "ADMIN" -> "ADM";

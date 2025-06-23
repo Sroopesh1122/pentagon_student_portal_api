@@ -291,6 +291,7 @@ public class ManagerController {
 		JobDescriptionDTO jobDescriptionDTO = new JobDescriptionDTO();
 		jobDescriptionDTO.setJobDescriptionId(jobDescription.getJobDescriptionId());
 		jobDescriptionDTO.setCompanyName(jobDescription.getCompanyName());
+		jobDescriptionDTO.setCompanyLogo(jobDescription.getCompanyLogo());
 		jobDescriptionDTO.setWebsite(jobDescription.getWebsite());
 		jobDescriptionDTO.setRole(jobDescription.getRole());
 		jobDescriptionDTO.setStack(jobDescription.getStack());
@@ -347,6 +348,7 @@ public class ManagerController {
 			JobDescriptionDTO jobDescriptionDTO = new JobDescriptionDTO();
 			jobDescriptionDTO.setJobDescriptionId(jobDescription.getJobDescriptionId());
 			jobDescriptionDTO.setCompanyName(jobDescription.getCompanyName());
+			jobDescriptionDTO.setCompanyLogo(jobDescription.getCompanyLogo());
 			jobDescriptionDTO.setWebsite(jobDescription.getWebsite());
 			jobDescriptionDTO.setRole(jobDescription.getRole());
 			jobDescriptionDTO.setStack(jobDescription.getStack());

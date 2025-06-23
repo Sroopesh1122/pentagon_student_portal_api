@@ -8,8 +8,8 @@ import lombok.Data;
 
 @Data
 public class JobDescriptionDTO {
-    private Integer id;
     private String jobDescriptionId;
+    private String companyLogo;
     private String companyName;
     private String website;
     private String role;

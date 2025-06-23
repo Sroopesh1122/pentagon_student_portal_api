@@ -63,8 +63,11 @@ public class AppConfiguaration {
 				.authorizeHttpRequests(request -> request
 						.requestMatchers("/api/auth/public/**").permitAll()
 						.requestMatchers("/api/admin/public/**").permitAll()
+						.requestMatchers("/api/trainer/public/**").permitAll()
 						.requestMatchers("/api/technology/public/**").permitAll()
 						.requestMatchers("/api/stack/public/**").permitAll()
+						.requestMatchers("/api/programHead/public/**").permitAll()
+						.requestMatchers("/api/studentAdmin/public/**").permitAll()
 						.requestMatchers(
 			                    "/v3/api-docs/**",
 			                    "/swagger-ui/**",
@@ -89,17 +92,17 @@ public class AppConfiguaration {
     }
 	
 	@Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration corsConfiguration = new CorsConfiguration();
-        corsConfiguration.setAllowedOrigins(Arrays.asList("http://192.168.0.109:5173" ,"http://localhost:5173" )); // need to add port number
-        corsConfiguration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS")); 
-        corsConfiguration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With")); 
-        corsConfiguration.setAllowCredentials(true); 
-        
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", corsConfiguration);
-        return source;
-    }
+	public CorsConfigurationSource corsConfigurationSource() {
+	    CorsConfiguration corsConfiguration = new CorsConfiguration();
+	    corsConfiguration.addAllowedOriginPattern("*"); // Accept requests from any origin
+	    corsConfiguration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+	    corsConfiguration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With"));
+	    corsConfiguration.setAllowCredentials(true); // Allow credentials (cookies, auth headers)
+
+	    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+	    source.registerCorsConfiguration("/**", corsConfiguration);
+	    return source;
+	}
 	@Bean
 	public OpenAPI customOpenAPI() {
 	    return new OpenAPI()

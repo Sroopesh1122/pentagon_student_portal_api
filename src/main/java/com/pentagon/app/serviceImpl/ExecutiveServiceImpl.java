@@ -143,7 +143,7 @@ public class ExecutiveServiceImpl implements ExecutiveService {
 	}
 
 	
-	//PAssing only executive value to get Jd of specific executive
+	//Passing only executive value to get Jd of specific executive
 	@Override
 	public Page<JobDescription> getRecentJobDescriptions(String executiveId, Integer count) {
 		Pageable pageable = PageRequest.of(0, count, Sort.by("created_at").descending());

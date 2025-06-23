@@ -31,6 +31,7 @@ public class Trainer {
     @Column(nullable = false, length = 10)
     private String mobile;
 
+    @JsonIgnore
     @Column(nullable = false)
     private String password;
 
@@ -54,4 +55,12 @@ public class Trainer {
     @ManyToMany
     @JsonIgnore
     private List<Technology> technologies;
+    
+    
+    @JsonIgnore
+    @OneToMany(mappedBy = "trainer")
+    private List<BatchTechTrainer> batchTechTrainer;
+    
+    
+    
 }

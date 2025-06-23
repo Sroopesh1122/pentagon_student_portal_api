@@ -23,6 +23,9 @@ public class JobDescription {
     @Id
     @Column(name = "job_description_id", unique = true)
 	private String jobDescriptionId;
+    
+    @Column( nullable = false )
+   	private String companyLogo = "https://cdn-icons-png.flaticon.com/512/4537/4537992.png";
 	
     @Column(name = "company_name", nullable = false)
 	private String companyName;
