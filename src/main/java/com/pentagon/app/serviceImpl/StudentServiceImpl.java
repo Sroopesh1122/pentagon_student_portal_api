@@ -40,12 +40,11 @@ public class StudentServiceImpl implements StudentService {
 	}
 
 	@Override
-	public boolean updateStudent(Student student) {
+	public Student updateStudent(Student student) {
 		// TODO Auto-generated method stub
 		try {
 			student.setUpdatedAt(LocalDateTime.now());
-			studentRepository.save(student);
-			return true;
+			return studentRepository.save(student);
 		}
 		catch (Exception e) {
 	        throw new StudentException("Failed to update Student: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -54,12 +53,20 @@ public class StudentServiceImpl implements StudentService {
 
 
 	@Override
-	public String loginWithPassword(StudentLoginRequest studentLoginRequest) {
-		Student student= studentRepository.findByStudentId(studentLoginRequest.getStudentId())
-				.orElseThrow(()-> new StudentException("Manager not found", HttpStatus.NOT_FOUND));
+	public String loginWithPassword(StudentLoginRequest studentLoginRequest) 
+	{
+		Student student= studentRepository.findByEmail(studentLoginRequest.getEmail()).orElse(null);
+		
+		if(student ==null)
+		{
+			throw new StudentException("Account Not Found", HttpStatus.NOT_FOUND);
+		}
+		
 		if(!passwordEncoder.matches(studentLoginRequest.getPassword(), student.getPassword())) {
 			throw new StudentException("Invalid password", HttpStatus.UNAUTHORIZED);
 		}
+		
+		
 		String otp= otpService.generateOtpAndStore(student.getEmail());
 		otpService.sendOtpToEmail(student.getEmail(), otp);
 		
@@ -77,6 +84,11 @@ public class StudentServiceImpl implements StudentService {
 		catch (Exception e) {
 	        throw new StudentException("Failed to add Student: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 	    }
+	}
+	
+	@Override
+	public Student findByEmail(String email) {
+		return studentRepository.findByEmail(email).orElse(null);
 	}
 
 	@Override
@@ -103,21 +115,7 @@ public class StudentServiceImpl implements StudentService {
 		studentRepository.save(student);
 	}
 
-	@Override
-	public boolean addMockRating(String studentId, Double mockRating) {
-		Student student = studentRepository.findByStudentId(studentId)
-           .orElseThrow(()-> new StudentException("Student not found with id: " + studentId, HttpStatus.NOT_FOUND));	
-		
-		student.setMockRating(mockRating);
-		student.setUpdatedAt(LocalDateTime.now());
-		
-		try {
-	        studentRepository.save(student);
-	        return true;
-	    } catch (Exception e) {
-	        throw new StudentException("Failed to update mock rating: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-	    }
-	}
+	
 
 	@Override
 	public List<Student> viewAllStudents() {
@@ -129,6 +127,16 @@ public class StudentServiceImpl implements StudentService {
 			throw new StudentException("Failed to Fetch Students : " + e.getMessage(),
 					HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+	}
+	
+	@Override
+	public Student findByPasswordResetToken(String token) {
+		return studentRepository.findByPasswordResetToken(token);
+	}
+
+	@Override
+	public Student findById(String studentId) {
+		return studentRepository.findById(studentId).orElse(null);
 	}
 
 

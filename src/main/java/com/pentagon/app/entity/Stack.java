@@ -29,5 +29,10 @@ public class Stack {
 	@OneToMany(mappedBy = "stack")
 	@JsonIgnore
 	private List<Batch> batches;
+	
+	
+	@OneToMany(mappedBy = "stack")
+	@JsonIgnore
+	private List<Student> students;
 
 }

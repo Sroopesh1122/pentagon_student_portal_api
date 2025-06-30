@@ -3,6 +3,8 @@ package com.pentagon.app.utils;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
+import java.util.UUID;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -119,4 +121,9 @@ public class IdGeneration {
 	    return prefix + suffix; // e.g., "ADM04192683"
 	
 	}
+    
+	public  String generateRandomString() {
+        return UUID.randomUUID().toString().replace("-", "");
+    }
+
 }

@@ -103,7 +103,17 @@ public class ExecutiveController {
 		jd.setJdStatus("pending");
 		jd.setManagerId(executiveDetails.getExecutive().getManagerId());
 		jd.setSkills(newJd.getSkills());
-
+		jd.setAcardemicGap(newJd.getAcardemicGap());
+		jd.setBacklogs(newJd.getBacklogs());
+		if(newJd.getBondDetails()!=null)
+		{
+			jd.setBondDetails(newJd.getBondDetails());
+		}
+		if(newJd.getSalaryDetails()!=null)
+		{
+			jd.setSalaryDetails(newJd.getSalaryDetails());
+		}
+		
 		jobDescriptionService.addJobDescription(jd);
 		activityLogService.log(executiveDetails.getExecutive().getEmail(),
 				executiveDetails.getExecutive().getExecutiveId(), "EXECUTIVE", "Executive with ID "
@@ -212,6 +222,10 @@ public class ExecutiveController {
 		jobDescriptionDTO.setDescription(jobDescription.getDescription());
 		jobDescriptionDTO.setSkills(jobDescription.getSkills());
 		jobDescriptionDTO.setJdActionReason(jobDescription.getJdActionReason());
+		jobDescriptionDTO.setAcardemicGap(jobDescription.getAcardemicGap());
+		jobDescriptionDTO.setBacklogs(jobDescription.getBacklogs());
+		jobDescriptionDTO.setBondDetails(jobDescription.getBondDetails());
+		jobDescriptionDTO.setSalaryDetails(jobDescription.getSalaryDetails());
 
 		Manager manager = managerService.getManagerById(jobDescription.getManagerId());
 		if (manager != null) {

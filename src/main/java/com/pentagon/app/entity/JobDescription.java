@@ -107,6 +107,17 @@ public class JobDescription {
 	
 	private LocalDateTime approvedDate;
 	
+	
+	private String bondDetails;
+	
+	private String salaryDetails;
+	
+	private String backlogs;
+	
+	private String acardemicGap;
+	
+	private String currentRound = "Not Scheduled";
+	
 	//update current registration count
 	public void updateCurrentRegistrations(int newCount) {
         if (newCount < 0) {

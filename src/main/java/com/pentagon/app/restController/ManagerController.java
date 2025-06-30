@@ -49,7 +49,7 @@ import com.pentagon.app.service.JobDescriptionService;
 import com.pentagon.app.service.ManagerService;
 import com.pentagon.app.service.TrainerService;
 import com.pentagon.app.serviceImpl.MailService;
-import com.pentagon.app.utils.HtmlContent;
+import com.pentagon.app.utils.HtmlTemplates;
 import com.pentagon.app.utils.IdGeneration;
 import com.pentagon.app.utils.JwtUtil;
 import com.pentagon.app.utils.PasswordGenration;
@@ -82,7 +82,7 @@ public class ManagerController {
 	private PasswordGenration passwordGenration;
 
 	@Autowired
-	private HtmlContent htmlContentService;
+	private HtmlTemplates htmlContentService;
 
 	@Autowired
 	private MailService mailService;
@@ -154,7 +154,7 @@ public class ManagerController {
 		String htmlContent = htmlContentService.getHtmlContent(executive.getName(), executive.getEmail(), password);
 
 		try {
-			mailService.sendPasswordEmail(executive.getEmail(), "Welcome to Pentagon – Login Credentials Enclosed",
+			mailService.send(executive.getEmail(), "Welcome to Pentagon – Login Credentials Enclosed",
 					htmlContent);
 		} catch (Exception e) {
 			throw new OtpException("Mail couldn't be sent", HttpStatus.INTERNAL_SERVER_ERROR);

@@ -8,31 +8,36 @@ import com.pentagon.app.Dto.TrainerDTO;
 import com.pentagon.app.entity.Batch;
 import com.pentagon.app.entity.BatchTechTrainer;
 import com.pentagon.app.entity.Stack;
+import com.pentagon.app.entity.Student;
 import com.pentagon.app.entity.StudentAdmin;
 import com.pentagon.app.entity.Technology;
 import com.pentagon.app.entity.Trainer;
 import com.pentagon.app.exception.StudentAdminException;
 import com.pentagon.app.exception.TrainerException;
-import com.pentagon.app.mapper.BatchMapper;
 import com.pentagon.app.mapper.JobDescriptionMapper;
-import com.pentagon.app.mapper.TrainerMapper;
 import com.pentagon.app.request.CreateBatchRequest;
+import com.pentagon.app.request.CreateStudentRequest;
 import com.pentagon.app.response.ApiResponse;
-import com.pentagon.app.response.ProfileResponse;
 import com.pentagon.app.service.BatchService;
 import com.pentagon.app.service.BatchTechTrainerService;
 import com.pentagon.app.service.CustomUserDetails;
 import com.pentagon.app.service.JobDescriptionService;
 import com.pentagon.app.service.StackService;
+import com.pentagon.app.service.StudentService;
 import com.pentagon.app.service.TechnologyService;
 import com.pentagon.app.service.TrainerService;
+import com.pentagon.app.serviceImpl.MailService;
+import com.pentagon.app.utils.HtmlTemplates;
 import com.pentagon.app.utils.IdGeneration;
+import com.pentagon.app.utils.PasswordGenration;
 
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 
 import java.time.LocalDateTime;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -41,9 +46,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -67,8 +72,7 @@ public class StudentAdminController {
 	@Autowired
 	private TechnologyService technologyService;
 	
-	@Autowired
-	private BatchMapper batchMapper;
+
 	
 	
 	@Autowired
@@ -80,6 +84,25 @@ public class StudentAdminController {
 	
 	@Autowired
 	private IdGeneration idGeneration;
+	
+	
+	@Autowired
+	private StudentService studentService;
+	
+	@Autowired
+	private PasswordEncoder passwordEncoder;
+	
+	@Autowired
+	private PasswordGenration passwordGenration;
+	
+	@Autowired
+	private HtmlTemplates htmlTemplates;
+	
+	@Autowired
+	private MailService mailServicel;
+	
+	@Value("${FRONTEND_URL}")
+	private String FRONTEND_URL;
 	
 	
 	
@@ -154,6 +177,7 @@ public class StudentAdminController {
 	
 	@PostMapping("/secure/batch/add")
 	@PreAuthorize("hasRole('STUDENTADMIN')")
+	@Transactional
 	public ResponseEntity<?> createBatch(@Valid @RequestBody CreateBatchRequest request ,BindingResult bindingResult){
 		if(bindingResult.hasErrors())
 		{
@@ -176,13 +200,6 @@ public class StudentAdminController {
 		
 		}
 		
-		request.getScheduleDetails().forEach(schedule->{
-			boolean available = batchTechTrainerService.checkTrainerAvailabality(schedule.getTrainerId(), schedule.getStartTime(), schedule.getEndTime());
-			if(!available)
-			{
-				throw new StudentAdminException("Trainer unavailable between "+schedule.getStartTime()+" to "+schedule.getEndTime(), HttpStatus.CONFLICT);
-			}
-		});
 		Batch newBatch =  new Batch();
 		newBatch.setBatchId(batchId);
 		newBatch.setName(request.getBatchName());
@@ -190,6 +207,11 @@ public class StudentAdminController {
 		newBatch.setStack(findStack);
 		Batch createdBatch = batchService.addBatch(newBatch);
 		request.getScheduleDetails().forEach(schedule->{
+			boolean available = batchTechTrainerService.checkTrainerAvailabality(schedule.getTrainerId(), schedule.getStartTime(), schedule.getEndTime());
+			if(!available)
+			{
+				throw new StudentAdminException("Trainer unavailable between "+schedule.getStartTime()+" to "+schedule.getEndTime(), HttpStatus.CONFLICT);
+			}
 			Technology findTechnology = technologyService.getTechnologyById(schedule.getTechId()).orElse(null);
 			Trainer findTrainer = trainerService.getById(schedule.getTrainerId());
 			if(findTechnology==null)
@@ -212,6 +234,101 @@ public class StudentAdminController {
 		return ResponseEntity.ok(new ApiResponse<>("success","Batch Created Successfully", null));
 	
 	}
+	
+	
+	@PostMapping("/secure/student/add")
+	@PreAuthorize("hasRole('STUDENTADMIN')")
+	public ResponseEntity<?> createStudentAccount(@RequestBody @Valid CreateStudentRequest request, BindingResult bindingResult)
+	{
+		if(bindingResult.hasErrors())
+		{
+			throw new StudentAdminException("Invalid Data", HttpStatus.BAD_REQUEST);
+		}
+		
+		
+		Stack findStack = stackService.getStackById(request.getStackId()).orElse(null);
+		if(findStack == null)
+		{
+			throw new StudentAdminException("Stack Not Found", HttpStatus.NOT_FOUND); 
+		}
+		
+		Batch findBatch = batchService.getBatchById(request.getBatchId()).orElse(null);
+		if(findBatch == null)
+		{
+			throw new StudentAdminException("Batch Not Found", HttpStatus.NOT_FOUND); 	
+		}
+		
+		Student findStudent  = studentService.findByEmail(request.getEmail());
+		if(findStudent !=null)
+		{
+			throw new StudentAdminException("Email Already exists", HttpStatus.CONFLICT); 
+		}
+		
+		String stackCode="";
+		
+		switch (findStack.getName()) {
+		case "Java Full Stack": {
+			stackCode ="java full stack";
+		   break;
+		}
+		case "Python Full Stack": {
+			stackCode ="jpython full stack";
+		   break;
+		}
+		case "MERN Full Stack": {
+			stackCode ="mern full stack";
+		   break;
+		}
+		case "Software Testing": {
+			stackCode ="software testing";
+		   break;
+		}
+		default:
+			throw new IllegalArgumentException("Unexpected value: " + findStack);
+		}
+		
+		
+		
+		
+		Student newStudent = new Student();
+		newStudent.setStudentId(idGeneration.generateStudentId(stackCode, request.getMode(), request.getAdmissionMode()));
+		newStudent.setName(request.getFullName());
+		newStudent.setStack(findStack);
+		newStudent.setBatch(findBatch);
+		newStudent.setEmail(request.getEmail());
+		newStudent.setMobile(request.getMobile());
+		newStudent.setStudyMode(request.getMode());
+		newStudent.setTypeOfAdmission(request.getAdmissionMode());
+		String generatedPassword =passwordGenration.generateRandomPassword();
+		newStudent.setPassword(passwordEncoder.encode(generatedPassword));
+		
+		String passwordResetToken = idGeneration.generateRandomString();
+		
+		newStudent.setPasswordResetToken(passwordResetToken);
+		
+		newStudent = studentService.addStudent(newStudent);
+		
+		
+		String passwordResetLink = FRONTEND_URL+"/auth/student/reset-password?token="+passwordResetToken;
+		
+		
+		
+		
+		String accountCreatedHtmlTemplates = htmlTemplates.getAccountCreatedEmail(newStudent.getName(), passwordResetLink);
+		
+		try {
+			mailServicel.send(newStudent.getEmail(),"Account Created", accountCreatedHtmlTemplates);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return ResponseEntity.ok(new ApiResponse<>("success","Student Added Successfully", newStudent));
+		
+		
+	}
+	
+	
 	
 
 }

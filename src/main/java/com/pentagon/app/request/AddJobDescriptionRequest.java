@@ -1,6 +1,5 @@
 package com.pentagon.app.request;
 
-
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -9,7 +8,7 @@ import lombok.Data;
 
 @Data
 public class AddJobDescriptionRequest {
-	
+
 	@NotBlank
 	private String companyLogoUrl;
 	@NotBlank
@@ -36,13 +35,23 @@ public class AddJobDescriptionRequest {
 	@NotBlank
 	private String salaryPackage;
 	@NotNull
-	@Min(value=1)
+	@Min(value = 1)
 	private Integer noOfRegistrations;
 	@NotNull
 	private Double mockRating;
 	@NotNull
 	private String location;
-	
+
 	private String skills;
-	
+
+	private String bondDetails;
+
+	private String salaryDetails;
+
+	@NotNull
+	private String backlogs;
+
+	@NotNull
+	private String acardemicGap;
+
 }

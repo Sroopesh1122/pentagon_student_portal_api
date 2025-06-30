@@ -34,7 +34,7 @@ public class BatchTechTrainerServiceImpl implements BatchTechTrainerService {
     }
 
     @Override
-    public BatchTechTrainer updateAssignment(BatchTechTrainer assignment) {
+    public BatchTechTrainer update(BatchTechTrainer assignment) {
         return batchTechTrainerRepository.save(assignment);
     }
 
@@ -55,5 +55,11 @@ public class BatchTechTrainerServiceImpl implements BatchTechTrainerService {
     @Override
     public List<BatchTechTrainer> getTrainerSchedule(String trainerId) {
     	return batchTechTrainerRepository.getTrainerSchedule(trainerId);
+    }
+    
+    @Override
+    public BatchTechTrainer getById(Integer id) {
+    	
+    	return batchTechTrainerRepository.findById(id).orElse(null);
     }
 }

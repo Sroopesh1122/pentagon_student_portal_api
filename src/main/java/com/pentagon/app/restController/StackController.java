@@ -56,10 +56,7 @@ public class StackController {
 	{
 		List<Stack> allStacks = stackService.getAll();
 		
-		List<StackTechResponse> listOfstackTechResponse =  new ArrayList<>();
-		
-		
-		
+		List<StackTechResponse> listOfstackTechResponse =  new ArrayList<>();	
 		return ResponseEntity.ok(new ApiResponse<>("success","Stack - trainer - tech  Data", listOfstackTechResponse));
 	}
 

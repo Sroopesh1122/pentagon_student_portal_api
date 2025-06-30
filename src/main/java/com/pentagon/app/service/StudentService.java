@@ -10,18 +10,24 @@ public interface StudentService {
 
 	public Student addStudent(Student student);
 	
+	public Student findByEmail(String email);
+	
+	public Student findById(String studentId);
+	
 	public List<Student> viewStudentsBasedOnStack(String stack);
 	
 	public boolean changePassword(String password, String studentId);
 	
-	public boolean updateStudent(Student student);
+	public Student updateStudent(Student student);
 	
 	public void disableStudentByUniqueId(String studentId);
 	
-	public boolean addMockRating(String studentId, Double mockRating);
 
 	public String loginWithPassword(StudentLoginRequest studentLoginRequest);
 	
 	public List<Student> viewAllStudents();
+	
+	
+	public Student findByPasswordResetToken(String token);
 	
 }

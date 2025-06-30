@@ -25,14 +25,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.pentagon.app.Dto.JobDescriptionDTO;
-import com.pentagon.app.Dto.TrainerDTO;
 import com.pentagon.app.entity.JobDescription;
 import com.pentagon.app.entity.ProgramHead;
 import com.pentagon.app.entity.Technology;
 import com.pentagon.app.entity.Trainer;
 import com.pentagon.app.exception.OtpException;
 import com.pentagon.app.exception.ProgramHeadException;
-import com.pentagon.app.exception.TrainerException;
 import com.pentagon.app.mapper.JobDescriptionMapper;
 import com.pentagon.app.mapper.TrainerMapper;
 import com.pentagon.app.request.AddTrainerRequest;
@@ -45,7 +43,7 @@ import com.pentagon.app.service.ProgramHeadService;
 import com.pentagon.app.service.TechnologyService;
 import com.pentagon.app.service.TrainerService;
 import com.pentagon.app.serviceImpl.MailService;
-import com.pentagon.app.utils.HtmlContent;
+import com.pentagon.app.utils.HtmlTemplates;
 import com.pentagon.app.utils.IdGeneration;
 import com.pentagon.app.utils.PasswordGenration;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -69,7 +67,7 @@ public class ProgramHeadController {
 	private PasswordEncoder passwordEncoder;
 	
 	@Autowired
-	private HtmlContent htmlContentService;
+	private HtmlTemplates htmlContentService;
 	
 	@Autowired
 	private MailService mailService;
@@ -138,7 +136,7 @@ public class ProgramHeadController {
 		String htmlContent = htmlContentService.getHtmlContent(trainer.getName(), trainer.getEmail(), password);
 		try 
 		{
-			mailService.sendPasswordEmail(trainer.getEmail(), "Welcome to Pentagon – Login Credentials Enclosed",
+			mailService.send(trainer.getEmail(), "Welcome to Pentagon – Login Credentials Enclosed",
 					htmlContent);
 	    } 
 		catch (Exception e)

@@ -6,6 +6,8 @@ import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.time.LocalDateTime;
 
 @Data
@@ -16,47 +18,74 @@ public class Student {
     @Column(name = "student_id", nullable = false, unique = true)
     private String studentId;
 
-    @Column(nullable = false)
     private String name;
 
     private String gender;
 
-    @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(nullable = false)
+    @JsonIgnore
     private String password;
 
-    @Column(nullable = false, length = 10)
     private String mobile;
-
-    @Column(nullable = false)
-    private String stack;
+    
+    private String profileUrl;
+    
+    private String profilePublicId;
+    
+    private String whatsappNo;
+    
+    private String dob;
+    
+    @Column(length = 1000)
+    @Size(max = 1000, message = "Summary must be under 1000 characters")
+    private String summary;
+    
+    private String address;
+    
+    private String state;
+    
+    private String city;
+    
+    private String experience;
+    
+    private String skills;
+    
+    private String tenthSchool;
+    
+    private Integer tenthPassOutYear;
+    
+    private Double tenthPercentage;
+    
+    private String twelveSchool;
+    
+    private Integer twelvePassOutYear;
+    
+    private Double twelvePercentage;
+    
+    private String gradSchool;
+    
+    private String gradCourse;
+    
+    private String gradBranch;
+    
+    private Double gradPercentage;
+    
+    private Double gradCgpa;
+    
+    private Integer gradPassOutYear;
 
     @Column(nullable = false)
     private String typeOfAdmission; // paid or CSR
-
-    private String mode; // offline, online
-    private String address;
-    private String college;
-    private String qualification;
-    private Integer yearOfPassout;
-    private Double perecentage;
-    private String stream;
-
-    @Size(max = 50000)
-    private String objective;
-
-    @Size(max = 50000)
-    private String skills;
-
-    @Size(max = 50000)
-    private String internship;
-
-    @Size(max = 50000)
-    private String projects;
-
-    private Double mockRating;
+    
+    
+    private String studyMode;
+    
+    @JsonIgnore
+    private String passwordResetToken;
+    
+    @JsonIgnore
+    private LocalDateTime passwordTokenExpiredAt;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
@@ -80,5 +109,12 @@ public class Student {
     private LocalDateTime updatedAt;
 
     @ManyToOne
+    @JsonIgnore
+    @JoinColumn(name = "batchId")
     private Batch batch;
+    
+    @ManyToOne
+    @JsonIgnore
+    @JoinColumn(name = "stackId")
+    private Stack stack;
 }

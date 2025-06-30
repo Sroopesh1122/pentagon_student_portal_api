@@ -182,4 +182,9 @@ public class JobDescriptionServiceImp implements JobDescriptionService {
 		return jobDescriptionRepository.getTotalClosureCount();
 	}
 
+	@Override
+	public JobDescription finById(String jdId) {
+		return jobDescriptionRepository.findById(jdId).orElse(null);
+	}
+
 }

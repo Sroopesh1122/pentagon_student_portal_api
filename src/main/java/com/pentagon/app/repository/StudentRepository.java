@@ -5,7 +5,6 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.pentagon.app.entity.Student;
@@ -14,10 +13,14 @@ public interface StudentRepository extends JpaRepository<Student, String> {
 
 	public Optional<Student> findByStudentId(String studentId);
 	
-	List<Student> findByStack(String stack);
+	@Query("SELECT s FROM Student s WHERE s.stack.stackId = :stackId")
+	public List<Student> findByStack(String stackId);
 	
-	@Query("SELECT COUNT(s) FROM Student s WHERE s.stack = :stack AND FUNCTION('MONTH', s.createdAt) = :month AND FUNCTION('YEAR', s.createdAt) = :year")
-	int countByCourseAndMonthYear( String stack, int month, int year);
+	@Query("SELECT COUNT(s) FROM Student s WHERE s.stack.stackId = :stack AND FUNCTION('MONTH', s.createdAt) = :month AND FUNCTION('YEAR', s.createdAt) = :year")
+	public int countByCourseAndMonthYear( String stack, int month, int year);
 
 	public Optional<Student> findByEmail(String email);
+	
+	
+	public Student findByPasswordResetToken(String token);
 }

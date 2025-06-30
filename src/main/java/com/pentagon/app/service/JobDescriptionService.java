@@ -10,9 +10,13 @@ import org.springframework.data.domain.Pageable;
 import com.pentagon.app.Dto.ExecutiveJDStatusDTO;
 import com.pentagon.app.Dto.JdStatsDTO;
 import com.pentagon.app.entity.JobDescription;
+import com.pentagon.app.entity.StudentJdApplication;
 
 public interface JobDescriptionService {
 
+	
+	public JobDescription finById(String jdId);
+	
 	public Optional<JobDescription> findByJobDescriptionId(String jobDescriptionId);
 
 	public Page<JobDescription> findAllJobDescriptions(String companyName, String stack, String role, Boolean isClosed,
@@ -42,6 +46,8 @@ public interface JobDescriptionService {
 	public Long totalCount();
 	
 	public Long totalClosureCount();
+	
+	
 	
 
 	
