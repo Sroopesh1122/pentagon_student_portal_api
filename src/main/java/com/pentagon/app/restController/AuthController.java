@@ -1,19 +1,25 @@
 package com.pentagon.app.restController;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import com.pentagon.app.entity.ProgramHead;
+import com.pentagon.app.entity.Student;
 import com.pentagon.app.exception.*;
 import com.pentagon.app.request.*;
 import com.pentagon.app.response.ApiResponse;
 import com.pentagon.app.service.*;
 import com.pentagon.app.serviceImpl.MailService;
+import com.pentagon.app.utils.HtmlTemplates;
+import com.pentagon.app.utils.IdGeneration;
 import com.pentagon.app.utils.JwtUtil;
 
 import jakarta.validation.Valid;
@@ -36,9 +42,18 @@ public class AuthController {
     private final JwtUtil jwtUtil;
     private final ActivityLogService activityLogService;
     private final MailService mailService;
+    private final PasswordEncoder passwordEncoder;
+    private final IdGeneration idGeneration;
+    private final HtmlTemplates htmlTemplates;
+    
+    
+    @Value("${FRONTEND_URL}")
+	private String FRONTEND_URL;
 
     public AuthController(AdminService adminService, ManagerService managerService, ExecutiveService executiveService,
-                          TrainerService trainerService,StudentAdminService studentAdminService,ProgramHeadService programHeadService, StudentService studentService,OtpService otpService, JwtUtil jwtUtil, ActivityLogService activityLogService ,MailService mailService) {
+                          TrainerService trainerService,StudentAdminService studentAdminService,ProgramHeadService programHeadService, 
+                          StudentService studentService,OtpService otpService, JwtUtil jwtUtil, ActivityLogService activityLogService ,
+                          MailService mailService ,PasswordEncoder  passwordEncoder ,IdGeneration idGeneration , HtmlTemplates htmlTemplates) {
         this.adminService = adminService;
         this.managerService = managerService;
         this.executiveService = executiveService;
@@ -50,6 +65,9 @@ public class AuthController {
         this.jwtUtil = jwtUtil;
         this.activityLogService=activityLogService;
         this.mailService = mailService;
+        this.passwordEncoder = passwordEncoder;
+        this.idGeneration  = idGeneration;
+        this.htmlTemplates = htmlTemplates;
     }
 
     private ResponseEntity<?> handleLogin(String role, String result) {
@@ -171,4 +189,79 @@ public class AuthController {
     }
     
     
+  
+    
+    @PostMapping("/public/student/forgot-password")
+    public ResponseEntity<?> forgotStudentPassword(
+        @RequestBody @Valid ForgotPasswordRequest request,
+        BindingResult bindingResult
+    ) {
+        if (bindingResult.hasErrors()) {
+            throw new StudentException("Invalid data", HttpStatus.BAD_REQUEST);
+        }
+
+        Student student = studentService.findByEmail(request.getEmail());
+        if (student == null) {
+            throw new StudentException("Account Not Found", HttpStatus.NOT_FOUND);
+        }
+        
+        String passwordResetToken = idGeneration.generateRandomString();
+        
+        student.setPasswordResetToken(passwordResetToken);
+        student.setPasswordTokenExpiredAt(LocalDateTime.now().plusMinutes(15));
+        
+        student = studentService.updateStudent(student);
+		
+		String passwordResetLink = FRONTEND_URL+"/auth/student/reset-password?token="+passwordResetToken;
+        
+		String forgotPasswordHtmlTemplates = htmlTemplates.getForgotPasswordEmail(student.getName(), passwordResetLink);
+		
+		
+		try {
+			mailService.send(student.getEmail(),"Pentagon Space - Password Reset Request", forgotPasswordHtmlTemplates);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+        return ResponseEntity.ok(
+            new ApiResponse<>("success", "Password Reset Link send successfully", null)
+        );
+    }
+    
+    
+    
+    @PostMapping("/public/student/password-reset")
+    public ResponseEntity<?> resetStudentPassword(
+        @RequestBody @Valid PasswordResetRequest request,
+        BindingResult bindingResult
+    ) {
+        if (bindingResult.hasErrors()) {
+            throw new StudentException("Invalid data", HttpStatus.BAD_REQUEST);
+        }
+
+        Student student = studentService.findByPasswordResetToken(request.getResetToken());
+
+        if (student == null) {
+            throw new StudentException("Invalid or expired token", HttpStatus.NOT_FOUND);
+        }
+
+        if (student.getPasswordTokenExpiredAt() != null &&
+            LocalDateTime.now().isAfter(student.getPasswordTokenExpiredAt())) {
+            throw new StudentException("Reset token has expired", HttpStatus.BAD_REQUEST);
+        }
+
+        String hashedPassword = passwordEncoder.encode(request.getNewPassword());
+        student.setPassword(hashedPassword);
+        student.setPasswordResetToken(null);
+        student.setPasswordTokenExpiredAt(null);
+
+        studentService.updateStudent(student);
+
+        return ResponseEntity.ok(
+            new ApiResponse<>("success", "Password reset successfully", null)
+        );
+    }
+
+      
 }

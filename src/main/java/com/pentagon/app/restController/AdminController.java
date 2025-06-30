@@ -63,7 +63,7 @@ import com.pentagon.app.service.AdminService;
 import com.pentagon.app.service.CustomUserDetails;
 import com.pentagon.app.service.ExecutiveService;
 import com.pentagon.app.service.JobDescriptionService;
-import com.pentagon.app.utils.HtmlContent;
+import com.pentagon.app.utils.HtmlTemplates;
 import com.pentagon.app.utils.IdGeneration;
 import com.pentagon.app.service.ManagerService;
 import com.pentagon.app.service.OtpService;
@@ -96,7 +96,7 @@ public class AdminController {
 	@Autowired
 	private OtpService otpService;
 	@Autowired
-	private HtmlContent htmlContentService;
+	private HtmlTemplates htmlContentService;
 	@Autowired
 	private PasswordGenration passwordGenration;
 
@@ -161,7 +161,7 @@ public class AdminController {
 		String htmlContent = htmlContentService.getHtmlContent(manager.getName(), manager.getEmail(), password);
 
 		try {
-			mailService.sendPasswordEmail(manager.getEmail(), "Welcome to Pentagon – Login Credentials Enclosed",
+			mailService.send(manager.getEmail(), "Welcome to Pentagon – Login Credentials Enclosed",
 					htmlContent);
 		} catch (Exception e) {
 			throw new OtpException("Mail couldn't be sent", HttpStatus.INTERNAL_SERVER_ERROR);
@@ -203,7 +203,7 @@ public class AdminController {
 		String htmlContent = htmlContentService.getHtmlContent(executive.getName(), executive.getEmail(), password);
 
 		try {
-			mailService.sendPasswordEmail(executive.getEmail(), "Welcome to Pentagon – Login Credentials Enclosed",
+			mailService.send(executive.getEmail(), "Welcome to Pentagon – Login Credentials Enclosed",
 					htmlContent);
 		} catch (Exception e) {
 			throw new OtpException("Mail couldn't be sent", HttpStatus.INTERNAL_SERVER_ERROR);
@@ -286,7 +286,7 @@ public class AdminController {
 		String htmlContent = htmlContentService.getLoginEmailHtmlContent(newProgramHead.getName(), newProgramHead.getEmail(), password);
 
 		try {
-			mailService.sendPasswordEmail(newProgramHead.getEmail(), "Welcome to Pentagon – Login Credentials Enclosed",htmlContent);
+			mailService.send(newProgramHead.getEmail(), "Welcome to Pentagon – Login Credentials Enclosed",htmlContent);
 		} catch (Exception e) {
 			throw new OtpException("Mail couldn't be sent", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -324,7 +324,7 @@ public class AdminController {
 		String htmlContent = htmlContentService.getLoginEmailHtmlContent(studentAdmin.getName(), studentAdmin.getEmail(), password);
 
 		try {
-			mailService.sendPasswordEmail(studentAdmin.getEmail(), "Welcome to Pentagon – Login Credentials Enclosed",htmlContent);
+			mailService.send(studentAdmin.getEmail(), "Welcome to Pentagon – Login Credentials Enclosed",htmlContent);
 		} catch (Exception e) {
 			throw new OtpException("Mail couldn't be sent", HttpStatus.INTERNAL_SERVER_ERROR);
 		}

@@ -85,7 +85,7 @@ public class OtpServiceImpl implements OtpService {
 	        "</body>" +
 	        "</html>";
 	    try {
-			mailService.sendOtpToEmail(email, subject, htmlContent);
+			mailService.send(email, subject, htmlContent);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			throw new RuntimeException("Failed to send email", e);

@@ -24,7 +24,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.cloudinary.Cloudinary;
 import com.pentagon.app.service.CustomUserDetailsService;
-import com.pentagon.app.utils.AppProperties;
 import com.pentagon.app.utils.JwtFilter;
 
 import io.swagger.v3.oas.models.Components;
@@ -68,6 +67,7 @@ public class AppConfiguaration {
 						.requestMatchers("/api/stack/public/**").permitAll()
 						.requestMatchers("/api/programHead/public/**").permitAll()
 						.requestMatchers("/api/studentAdmin/public/**").permitAll()
+						.requestMatchers("/api/cloudinary/public/**").permitAll()
 						.requestMatchers(
 			                    "/v3/api-docs/**",
 			                    "/swagger-ui/**",

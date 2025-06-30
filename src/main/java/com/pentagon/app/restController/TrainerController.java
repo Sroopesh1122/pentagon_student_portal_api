@@ -116,49 +116,7 @@ public class TrainerController {
 		
 	}
 	
-	@PostMapping("/secure/addStudent")
-	@PreAuthorize("hasRole('TRAINER')")
-	public ResponseEntity<?> addStudent(@AuthenticationPrincipal CustomUserDetails trainerDetails ,
-			@Valid @RequestBody AddStudentRequest request,  BindingResult bindingResult ){
-		
-		if(bindingResult.hasErrors()) {
-			throw new TrainerException("Invaid Input Data", HttpStatus.BAD_REQUEST );
-		}
-		
-		if(trainerDetails.getTrainer() == null) {
-			throw new TrainerException("UNAUTHORIZED", HttpStatus.UNAUTHORIZED);
-		}
-		
-		Student student = new Student();
-		student.setStudentId(idGeneration.generateStudentId(request.getStack(), request.getMode(), request.getTypeOfAdmission()));
-		student.setName(request.getName());
-		student.setEmail(request.getEmail());
-		student.setMobile(request.getMobile());
-		student.setStack(request.getStack());
-//		student.setStatus(EnrollmentStatus.ACTIVE);
-		student.setTypeOfAdmission(request.getTypeOfAdmission());
-		
-		if(request.getPassword() != null && !request.getPassword().isBlank()) {
-			
-			String hashedPassword = passwordEncoder.encode(request.getPassword());
-			student.setPassword(hashedPassword);
-		}
-		
-		Map<String, Object> claims = new HashMap<>();
-		claims.put("email", student.getEmail());
-		claims.put("role", "STUDENT");
-		
-		jwtUtil.generateToken(student.getEmail(), claims);
-		
-		Student newStudent = studentService.addStudent(student);
-		
-		activityLogService.log(trainerDetails.getTrainer().getEmail(), 
-				trainerDetails.getTrainer().getTrainerId(), 
-				"TRAINER", 
-				"Trainer with ID " + trainerDetails.getTrainer().getTrainerId() + "New Student added with Id "+ newStudent.getStudentId() );
-		return ResponseEntity.ok(new ApiResponse<>("success", "Student Added Successfully", null));
-		
-	}
+	
 	
 	@GetMapping("/secure/profile")
 	@PreAuthorize("hasRole('TRAINER')")

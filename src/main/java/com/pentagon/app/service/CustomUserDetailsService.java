@@ -12,6 +12,7 @@ import com.pentagon.app.entity.Admin;
 import com.pentagon.app.entity.Executive;
 import com.pentagon.app.entity.Manager;
 import com.pentagon.app.entity.ProgramHead;
+import com.pentagon.app.entity.Student;
 import com.pentagon.app.entity.StudentAdmin;
 import com.pentagon.app.entity.Trainer;
 import com.pentagon.app.repository.AdminRepository;
@@ -19,6 +20,7 @@ import com.pentagon.app.repository.ExecutiveRepository;
 import com.pentagon.app.repository.ManagerRepository;
 import com.pentagon.app.repository.ProgramHeadRepository;
 import com.pentagon.app.repository.StudentAdminRepository;
+import com.pentagon.app.repository.StudentRepository;
 import com.pentagon.app.repository.TrainerRepository;
 
 @Service
@@ -41,6 +43,10 @@ public class CustomUserDetailsService implements UserDetailsService {
 
 	@Autowired
 	private ProgramHeadRepository programHeadRepository;
+	
+	
+	@Autowired
+	private StudentRepository studentRepository;
 
 	@Override
 	public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
@@ -104,6 +110,16 @@ public class CustomUserDetailsService implements UserDetailsService {
 			throw new UsernameNotFoundException("User Not Found");
 		}
 		return new CustomUserDetails(programHead.get());
+	}
+	
+	
+	public UserDetails loadStudent(String email) {
+		Optional<Student> student= studentRepository.findByEmail(email);
+
+		if (student.isEmpty()) {
+			throw new UsernameNotFoundException("User Not Found");
+		}
+		return new CustomUserDetails(student.get());
 	}
 
 }

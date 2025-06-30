@@ -190,5 +190,15 @@ public class GlobalExceptionHandler {
         errorResponse.put("status", programHeadException.getHttpStatus().toString());
         return new ResponseEntity<>(errorResponse, programHeadException.getHttpStatus());
     }
+    @ExceptionHandler(StudentJdApplcationException.class)
+    public ResponseEntity<Map<String, Object>> handleStudentJdApplcationException(StudentJdApplcationException studentJdApplcationException) {
+        Map<String,Object> errorResponse = new HashMap<>();
+        errorResponse.put("status", "failure");
+        errorResponse.put("type","Stuent Jd Applcation Exception");
+        errorResponse.put("error", studentJdApplcationException.getMessage());
+        errorResponse.put("localTime", LocalDateTime.now());
+        errorResponse.put("status", studentJdApplcationException.getHttpStatus().toString());
+        return new ResponseEntity<>(errorResponse, studentJdApplcationException.getHttpStatus());
+    }
     
 }

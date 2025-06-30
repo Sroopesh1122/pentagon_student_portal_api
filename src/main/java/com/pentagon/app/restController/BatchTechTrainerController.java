@@ -12,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -21,9 +23,12 @@ import com.pentagon.app.Dto.BatchTechTrainerDTO;
 import com.pentagon.app.entity.Batch;
 import com.pentagon.app.entity.BatchTechTrainer;
 import com.pentagon.app.entity.Trainer;
+import com.pentagon.app.exception.BatchTechTrainerException;
 import com.pentagon.app.exception.TrainerException;
 import com.pentagon.app.mapper.BatchMapper;
-import com.pentagon.app.mapper.BatchTechTrainerMapper;import com.pentagon.app.response.ApiResponse;
+import com.pentagon.app.mapper.BatchTechTrainerMapper;
+import com.pentagon.app.request.UpdateScheduleDetails;
+import com.pentagon.app.response.ApiResponse;
 import com.pentagon.app.service.BatchService;
 import com.pentagon.app.service.BatchTechTrainerService;
 import com.pentagon.app.service.TrainerService;
@@ -70,7 +75,7 @@ public class BatchTechTrainerController {
 	}
 	
 	@GetMapping("/secure/all")
-	@PreAuthorize("hasAnyRole('STUDENTADMIN','PROGRAMHEAD','ADMIN')")
+	@PreAuthorize("hasAnyRole('STUDENTADMIN','PROGRAMHEAD','ADMIN','TRAINER')")
 	public ResponseEntity<?> getAllBatches(
 			@RequestParam(defaultValue = "0") int page, 
 			@RequestParam(defaultValue = "10") int limit,
@@ -90,11 +95,37 @@ public class BatchTechTrainerController {
 	
 	
 	@GetMapping("/secure/{id}/details")
-	@PreAuthorize("hasAnyRole('STUDENTADMIN','PROGRAMHEAD','ADMIN')")
+	@PreAuthorize("hasAnyRole('STUDENTADMIN','PROGRAMHEAD','ADMIN','TRAINER','STUDENT')")
 	public ResponseEntity<?> getBatchScheduleInfo(@PathVariable String id)
 	{
 		List<BatchTechTrainer> batchScheduleInfo  = batchTechTrainerService.getBatchScheduleInfo(id);
 		return ResponseEntity.ok(new ApiResponse<>("success","Batch Data", batchScheduleInfo));
+	}
+	
+	
+	@PutMapping("/secure/update")
+	@PreAuthorize("hasAnyRole('STUDENTADMIN','PROGRAMHEAD')")
+	public ResponseEntity<?> updateBatchScheduleInfo(@RequestBody List<UpdateScheduleDetails> updateScheduleDetails)
+	{
+		for(UpdateScheduleDetails  updateScheduleDetail :updateScheduleDetails)
+		{
+			BatchTechTrainer batchTechTrainer =  batchTechTrainerService.getById(updateScheduleDetail.getId());
+			if(batchTechTrainer ==null)
+			{
+				throw new BatchTechTrainerException("Data not Found", HttpStatus.NOT_FOUND);
+			}
+			
+			Trainer findTrainer = trainerService.getById(updateScheduleDetail.getTrainerId());
+			if(findTrainer ==null)
+			{
+				throw new BatchTechTrainerException("Trainer not found", HttpStatus.NOT_FOUND);
+			}
+			batchTechTrainer.setTrainer(findTrainer);
+			batchTechTrainer.setStartTime(updateScheduleDetail.getStartTime());
+			batchTechTrainer.setEndTime(updateScheduleDetail.getEndTime());
+			batchTechTrainer = batchTechTrainerService.update(batchTechTrainer);
+		}	
+		return ResponseEntity.ok(new ApiResponse<>("success", "Batch Info Updated",null));
 	}
 	
 	

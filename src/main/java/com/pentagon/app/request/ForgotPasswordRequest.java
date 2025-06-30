@@ -1,14 +1,12 @@
 package com.pentagon.app.request;
 
-import jakarta.persistence.Column;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
-public class StudentLoginRequest {
+public class ForgotPasswordRequest {
 
 	@NotBlank
 	private String email;
-	@NotBlank
-	private String password;
+	
 }

@@ -11,6 +11,7 @@ import com.pentagon.app.entity.Admin;
 import com.pentagon.app.entity.Executive;
 import com.pentagon.app.entity.Manager;
 import com.pentagon.app.entity.ProgramHead;
+import com.pentagon.app.entity.Student;
 import com.pentagon.app.entity.StudentAdmin;
 import com.pentagon.app.entity.Trainer;
 
@@ -26,6 +27,7 @@ public class CustomUserDetails implements UserDetails {
 	private Trainer trainer;
 	private StudentAdmin studnetAdmin;
 	private ProgramHead programHead;
+	private Student student;
 
 	public CustomUserDetails(Admin admin) {
 		this.admin = admin;
@@ -51,6 +53,10 @@ public class CustomUserDetails implements UserDetails {
 		this.programHead = programHead;
 	}
 
+	public CustomUserDetails(Student student) {
+		this.student = student;
+	}
+
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
 		if (admin != null) {
@@ -65,6 +71,8 @@ public class CustomUserDetails implements UserDetails {
 			return List.of(new SimpleGrantedAuthority("ROLE_STUDENTADMIN"));
 		} else if (programHead != null) {
 			return List.of(new SimpleGrantedAuthority("ROLE_PROGRAMHEAD"));
+		} else if (student!= null) {
+			return List.of(new SimpleGrantedAuthority("ROLE_STUDENT"));
 		}
 		return List.of(); // Empty list if none
 	}
@@ -103,6 +111,11 @@ public class CustomUserDetails implements UserDetails {
 
 	public ProgramHead getProgramHead() {
 		return programHead;
+	}
+	
+	public Student getStudent()
+	{
+		return student;
 	}
 
 }
