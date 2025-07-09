@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import com.pentagon.app.entity.Batch;
+import com.pentagon.app.entity.Student.EnrollmentStatus;
 
 @Repository
 public interface BatchRepository extends JpaRepository<Batch, String> {
@@ -20,5 +21,9 @@ public interface BatchRepository extends JpaRepository<Batch, String> {
 			      AND (:stackId IS NULL OR b.stack.stackId = :stackId)
 			""")
 	public Page<Batch> findAll(String q, String mode, String stackId ,Pageable pageable);
+	
+	
+	@Query("SELECT COUNT(DISTINCT b) FROM Batch b JOIN b.students s WHERE s.status =:status AND b.batchId=:batchId")
+	public Long countBatchStudents(EnrollmentStatus status,String batchId);
 
 }

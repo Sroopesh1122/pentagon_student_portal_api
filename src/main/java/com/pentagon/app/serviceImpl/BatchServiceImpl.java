@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -40,4 +42,9 @@ public class BatchServiceImpl implements BatchService {
     public void deleteBatch(String batchId) {
         batchRepository.deleteById(batchId);
     }
+
+	@Override
+	public List<Batch> findAllById(List<String> ids) {
+		return batchRepository.findAllById(ids);
+	}
 }

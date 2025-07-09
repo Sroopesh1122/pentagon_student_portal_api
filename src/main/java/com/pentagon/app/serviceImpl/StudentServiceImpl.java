@@ -1,9 +1,13 @@
 package com.pentagon.app.serviceImpl;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -138,6 +142,35 @@ public class StudentServiceImpl implements StudentService {
 	public Student findById(String studentId) {
 		return studentRepository.findById(studentId).orElse(null);
 	}
+	
+	@Override
+	public Page<Student> findStudent(String q, String batchId, String stackId, Pageable pageable) {
+		return studentRepository.findStudents(q, batchId, stackId, pageable);
+	}
 
+	
+	@Override
+	public Map<String, Long> countStudent(String batchId, String stackId) {
+		
+		Map<String, Long> studentCounts = new HashMap<>();
+		studentCounts.put(EnrollmentStatus.ACTIVE.toString(), 0l);
+		studentCounts.put(EnrollmentStatus.COMPLETED.toString(), 0l);
+		studentCounts.put(EnrollmentStatus.DISABLED.toString(),0l);
+		studentCounts.put(EnrollmentStatus.DROPPED.toString(), 0l);
+		studentCounts.put(EnrollmentStatus.PENDING.toString(), 0l);
+		studentCounts.put(EnrollmentStatus.PLACED.toString(), 0l);
+		
+		
+		List<Object[]> result = studentRepository.countStudentsByStatus(batchId, stackId);
+		
+		for(Object[] row :result)
+		{
+			EnrollmentStatus status = (EnrollmentStatus) row[0];
+			Long count = (Long) row[1];
+			studentCounts.put(status.toString(), count);
+		}
+		
+		return studentCounts;
+	}
 
 }

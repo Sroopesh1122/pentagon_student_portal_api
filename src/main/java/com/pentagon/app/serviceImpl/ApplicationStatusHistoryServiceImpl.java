@@ -20,5 +20,15 @@ public class ApplicationStatusHistoryServiceImpl implements ApplicationStatusHis
 		applicationStatusHistory.setCreatedAt(LocalDateTime.now());
 		return applicationStatusHistoryRepository.save(applicationStatusHistory);
 	}
+	
+	@Override
+	public ApplicationStatusHistory findByRound(String round) {
+		return applicationStatusHistoryRepository.findByRound(round);
+	}
+	
+	@Override
+	public ApplicationStatusHistory update(ApplicationStatusHistory applicationStatusHistory) {
+		return applicationStatusHistoryRepository.save(applicationStatusHistory);
+	}
 
 }

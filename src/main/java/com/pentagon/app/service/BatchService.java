@@ -3,6 +3,8 @@ package com.pentagon.app.service;
 import com.pentagon.app.entity.Batch;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+
+import java.util.List;
 import java.util.Optional;
 
 public interface BatchService {
@@ -11,4 +13,7 @@ public interface BatchService {
     public Optional<Batch> getBatchById(String batchId);
     public Batch updateBatch(Batch batch);
     public void deleteBatch(String batchId);
+    public List<Batch> findAllById(List<String> ids);
+    
+    
 }

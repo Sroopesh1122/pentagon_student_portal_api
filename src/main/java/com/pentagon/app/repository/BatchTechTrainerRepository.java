@@ -19,5 +19,5 @@ public interface BatchTechTrainerRepository extends JpaRepository<BatchTechTrain
 
 	@Query("SELECT btt FROM BatchTechTrainer btt WHERE btt.trainer.trainerId = :trainerId AND btt.completed = false")
 	public List<BatchTechTrainer> getTrainerSchedule(String trainerId);
-
+	
 }

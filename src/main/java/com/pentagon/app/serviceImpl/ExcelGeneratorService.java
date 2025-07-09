@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.util.List;
 
 @Component
-public class ExcelGenerator {
+public class ExcelGeneratorService {
 
     public ByteArrayInputStream getAllStudentExcel(List<Student> students) throws IOException {
         String[] headers = {

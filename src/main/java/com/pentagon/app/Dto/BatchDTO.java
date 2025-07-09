@@ -17,4 +17,11 @@ public class BatchDTO {
 	private Stack stack;
 	
 	private LocalDateTime createdAt;
+	
+	private boolean completed;
+	
+	
+	private Long totalStudents;
+	
+	private Long placedStudents;
 }

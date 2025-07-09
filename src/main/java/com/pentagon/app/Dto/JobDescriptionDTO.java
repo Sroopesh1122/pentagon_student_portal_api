@@ -1,8 +1,13 @@
 package com.pentagon.app.Dto;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 
 import com.pentagon.app.entity.Executive;
+import com.pentagon.app.entity.JdRoundHistory;
+import com.pentagon.app.entity.JdStatusHistory;
 
 import lombok.Data;
 
@@ -43,5 +48,14 @@ public class JobDescriptionDTO {
 	private String acardemicGap;
 	private LocalDateTime approvedDate;
 	private String currentRound;
+	private List<JdRoundHistory> roundHistory;
+	private List<JdStatusHistory> stautsHistory;
+    private String genderPreference;
+	private String aboutCompany;
+	private LocalDate interviewDate;
+	private String rolesAndResponsibility;
+	
+	
+	private Map<String, String> studentProfileMatch;
 
 }

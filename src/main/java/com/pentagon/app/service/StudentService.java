@@ -1,6 +1,10 @@
 package com.pentagon.app.service;
 
 import java.util.List;
+import java.util.Map;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import com.pentagon.app.entity.Student;
 import com.pentagon.app.request.StudentLoginRequest;
@@ -29,5 +33,9 @@ public interface StudentService {
 	
 	
 	public Student findByPasswordResetToken(String token);
+	
+	public Page<Student> findStudent(String q,String batchId,String stackId,Pageable pageable);
+	
+	public Map<String, Long> countStudent(String batchId,String stackId);
 	
 }

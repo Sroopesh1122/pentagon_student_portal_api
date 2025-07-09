@@ -94,7 +94,7 @@ public class AppConfiguaration {
 	@Bean
 	public CorsConfigurationSource corsConfigurationSource() {
 	    CorsConfiguration corsConfiguration = new CorsConfiguration();
-	    corsConfiguration.addAllowedOriginPattern("http://localhost:5173"); // Accept requests from any origin
+	    corsConfiguration.addAllowedOriginPattern("*"); // Accept requests from any origin/device
 	    corsConfiguration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
 	    corsConfiguration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With"));
 	    corsConfiguration.setAllowCredentials(true); // Allow credentials (cookies, auth headers)
@@ -116,7 +116,7 @@ public class AppConfiguaration {
 	                            .name("Bearer Authentication")
 	                            .type(SecurityScheme.Type.HTTP)
 	                            .scheme("bearer")
-	                            .bearerFormat("JWT")        // Bearer token (JWT) support
+	                            .bearerFormat("JWT") 
 	            ));
 	}
 	

@@ -23,6 +23,7 @@ public interface ExecutiveService {
 	public ProfileResponse getProfile(Executive executive);
 	
 	public Page<Executive> getAllExecutives(String q , Pageable pageable);
+
 	
 	public void disableExecutiveByUniqueId(String executiveId);
 	
@@ -35,6 +36,7 @@ public interface ExecutiveService {
 	public Page<JobDescription> getRecentJobDescriptions(String executiveId , Integer count);
 
 	public Page<Executive> getExecutivesByManagerIdAndSearchQuery(String managerId, String q, Pageable pageable);
+	
 	
 	public List<JdStatsDTO> getExecutiveJdStats(String executiveId,String timeUnit ,Integer range);
 	

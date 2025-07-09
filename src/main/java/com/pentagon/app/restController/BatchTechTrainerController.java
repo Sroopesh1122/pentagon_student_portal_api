@@ -1,6 +1,8 @@
 package com.pentagon.app.restController;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +33,7 @@ import com.pentagon.app.request.UpdateScheduleDetails;
 import com.pentagon.app.response.ApiResponse;
 import com.pentagon.app.service.BatchService;
 import com.pentagon.app.service.BatchTechTrainerService;
+import com.pentagon.app.service.StudentService;
 import com.pentagon.app.service.TrainerService;
 
 @RestController
@@ -101,6 +104,7 @@ public class BatchTechTrainerController {
 		List<BatchTechTrainer> batchScheduleInfo  = batchTechTrainerService.getBatchScheduleInfo(id);
 		return ResponseEntity.ok(new ApiResponse<>("success","Batch Data", batchScheduleInfo));
 	}
+	
 	
 	
 	@PutMapping("/secure/update")

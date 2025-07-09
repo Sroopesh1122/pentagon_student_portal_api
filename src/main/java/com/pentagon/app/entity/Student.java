@@ -86,6 +86,17 @@ public class Student {
     
     @JsonIgnore
     private LocalDateTime passwordTokenExpiredAt;
+    
+    @Size(max = 50000)
+    private String github;
+    
+    @Size(max = 50000)
+    private String linkedin;
+    
+    @Size(max = 50000)
+    private String resumeUrl;
+    
+    private String resumePublicId; 
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)

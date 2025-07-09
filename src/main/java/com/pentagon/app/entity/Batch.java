@@ -38,6 +38,12 @@ public class Batch {
     @CreationTimestamp
     private LocalDateTime createdAt;
     
-   
+    @JsonIgnore
+    @ManyToMany(mappedBy = "batches")
+    private List<Announcement> announcements;
+    
+    
+    private boolean completed=false;
+    
     
 }

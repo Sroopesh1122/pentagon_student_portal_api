@@ -14,7 +14,7 @@ public class OtpCleanupScheduler {
 	@Autowired
     private OtpRepository otpRepository;
 
-    @Scheduled(fixedRate = 300000) // every 5 minutes
+//    @Scheduled(fixedRate = 300000) // every 5 minutes
     public void cleanupExpiredOtps() {
         LocalDateTime expiryTime = LocalDateTime.now().minusMinutes(25);
         otpRepository.deleteExpiredOtps(expiryTime);

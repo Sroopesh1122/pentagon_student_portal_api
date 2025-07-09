@@ -1,5 +1,7 @@
 package com.pentagon.app.request;
 
+import java.time.LocalDate;
+
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -53,5 +55,17 @@ public class AddJobDescriptionRequest {
 
 	@NotNull
 	private String acardemicGap;
+	
+	@NotNull
+    private String genderPreference;
+	
+	@NotNull
+	private String aboutCompany;
+	
+	@NotNull
+	private LocalDate interviewDate;
+	
+	private String rolesAndResponsibility;
+	
 
 }

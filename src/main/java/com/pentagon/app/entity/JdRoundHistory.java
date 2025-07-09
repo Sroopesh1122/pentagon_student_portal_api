@@ -13,21 +13,21 @@ import lombok.Data;
 
 @Entity
 @Data
-public class ApplicationStatusHistory {
+public class JdRoundHistory {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long applicationHistoryId;
-	
-	private String status;
-	
-	private String round;
-	
-	private String remarks;
+	private Long historyId;
 	
 	@ManyToOne
 	@JsonIgnore
-	private StudentJdApplication studentJdApplication;
+	private JobDescription jobDescription;
+	
+	private String round;
+	
+	private LocalDateTime scheduleDate;
+	
+	private String desciption;
 	
 	private LocalDateTime createdAt;
 }

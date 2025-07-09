@@ -139,6 +139,7 @@ public class ExecutiveServiceImpl implements ExecutiveService {
 		jdDetails.put("holdJd", jobDescriptionRepository.executiveTotalJdCount(executiveId, "hold"));
 		jdDetails.put("approved", jobDescriptionRepository.executiveTotalJdCount(executiveId, "approved"));
 		jdDetails.put("rejectedJd", jobDescriptionRepository.executiveTotalJdCount(executiveId, "rejected"));
+		jdDetails.put("closure", jobDescriptionRepository.getTotalClosureCountByExecutiveId(executiveId));
 		return jdDetails;
 	}
 

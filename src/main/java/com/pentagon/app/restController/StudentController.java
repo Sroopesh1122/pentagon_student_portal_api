@@ -1,7 +1,10 @@
 package com.pentagon.app.restController;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -27,6 +30,7 @@ import com.pentagon.app.entity.JobDescription;
 import com.pentagon.app.entity.Manager;
 import com.pentagon.app.entity.Student;
 import com.pentagon.app.exception.JobDescriptionException;
+import com.pentagon.app.exception.StudentException;
 import com.pentagon.app.mapper.StudentMapper;
 import com.pentagon.app.response.ApiResponse;
 import com.pentagon.app.service.CustomUserDetails;
@@ -64,6 +68,37 @@ public class StudentController {
 	}
 	
 	
+	@GetMapping("/secure/all")
+	public ResponseEntity<?> getStudent(
+			@RequestParam(required = false ,defaultValue = "0") Integer page,
+			@RequestParam(required = false,defaultValue = "10") Integer limit,
+			@RequestParam(required = false) String batchId,
+			@RequestParam(required = false) String stackId,
+			@RequestParam(required = false) String q)
+	{
+		
+		Pageable pageable = PageRequest.of(page, limit,Sort.by("createdAt").ascending());
+		
+		Page<StudentDTO> students = studentService.findStudent(q, batchId, stackId,pageable).map(student->studentMapper.toDto(student));
+		
+		
+		return ResponseEntity.ok(new ApiResponse<>("success","Student Profile data",students));
+			
+	}
+	
+	@GetMapping("/secure/counts")
+	public ResponseEntity<?> getStudentCount(
+			@RequestParam(required = false) String batchId,
+			@RequestParam(required = false) String stackId)
+	{
+		Map<String, Long> studentStats = studentService.countStudent(batchId, stackId);
+		return ResponseEntity.ok(new ApiResponse<>("success","Student Count", studentStats));
+	}
+	
+	
+	
+	
+	
 	
 	@PutMapping("/secure/update")
 	public ResponseEntity<?> updateProfile(
@@ -91,7 +126,11 @@ public class StudentController {
 		    @RequestParam(required = false) Double gradPercentage,
 		    @RequestParam(required = false) Double gradCgpa ,
 		    @RequestParam(required =  false) Integer gradPassOutYear,
-		    @RequestPart(required = false) MultipartFile profileImg)
+		    @RequestPart(required = false) MultipartFile profileImg,
+		    @RequestParam(required =  false) String github,
+		    @RequestParam(required =  false) String linkedin,
+		    @RequestPart(required = false) MultipartFile resumeFile
+		    )
 	{
 		Student student = customUserDetails.getStudent();
 		
@@ -99,12 +138,26 @@ public class StudentController {
 		{
 			if(student.getProfilePublicId()!=null)
 			{
-				cloudinaryService.deleteFile(student.getProfilePublicId());
+				cloudinaryService.deleteFile(student.getProfilePublicId(),"image");
 			}
-		  Map<String, Object>	uploadResponse  = cloudinaryService.uploadFile(profileImg);
+		  Map<String, Object>	uploadResponse  = cloudinaryService.uploadImage(profileImg);
 		  student.setProfilePublicId(uploadResponse.get("public_id").toString());
 		  student.setProfileUrl(uploadResponse.get("secure_url").toString());
 		}
+		
+		if(resumeFile !=null)
+		{
+			if(student.getResumePublicId() !=null)
+			{
+				cloudinaryService.deleteFile(student.getResumePublicId(),"raw");
+			}
+			Map<String, Object>	uploadResponse  = cloudinaryService.uploadPdf(resumeFile);
+			student.setResumePublicId(uploadResponse.get("public_id").toString());
+			student.setResumeUrl(uploadResponse.get("secure_url").toString());
+			
+		}
+		
+		
 		
 		if (name != null) student.setName(name);
 	    if (gender != null) student.setGender(gender);
@@ -129,6 +182,10 @@ public class StudentController {
 	    if (gradPercentage != null) student.setGradPercentage(gradPercentage);
 	    if (gradCgpa != null) student.setGradCgpa(gradCgpa);
 	    if (gradPassOutYear!=null) student.setGradPassOutYear(gradPassOutYear);
+	    if(github !=null) student.setGithub(github);
+	    if(linkedin!=null) student.setLinkedin(linkedin);
+	    
+	    
 	    
 	    studentService.updateStudent(student);
 		return ResponseEntity.ok(new ApiResponse<>("success","Student Profile data",student));
@@ -138,7 +195,16 @@ public class StudentController {
 	
 	@GetMapping("/secure/jd/{jobDescriptionId}")
 	@PreAuthorize("hasAnyRole('TRAINER','EXECUTIVE','MANAGER')")
-	public ResponseEntity<?> getJobDescriptionById(@PathVariable String jobDescriptionId) {
+	public ResponseEntity<?> getJobDescriptionById(@AuthenticationPrincipal CustomUserDetails customUserDetails ,@PathVariable String jobDescriptionId) {
+		
+		
+		if(customUserDetails.getStudent() == null)
+		{
+			throw new StudentException("Unauthorized", HttpStatus.UNAUTHORIZED);
+		}
+		
+		Student student = customUserDetails.getStudent();
+		
 
 		Optional<JobDescription> jobDescriptionOtp = jobDescriptionService.findByJobDescriptionId(jobDescriptionId);
 
@@ -182,7 +248,15 @@ public class StudentController {
 		jobDescriptionDTO.setApprovedDate(jobDescription.getApprovedDate());
 		jobDescriptionDTO.setManagerId(null);
 		jobDescriptionDTO.setManagerName(null);
+		jobDescriptionDTO.setAboutCompany(jobDescription.getAboutCompany());
+		jobDescriptionDTO.setInterviewDate(jobDescription.getInterviewDate());
+		jobDescriptionDTO.setGenderPreference(jobDescription.getGenderPreference());
+		jobDescriptionDTO.setRolesAndResponsibility(jobDescription.getRolesAndResponsibility());
+		
+		//Returns profile matched result
+		Map<String,String> matchResult = profileMatch(jobDescription, student);
 
+		jobDescriptionDTO.setStudentProfileMatch(matchResult);
 
 		return ResponseEntity.ok(new ApiResponse<>("success", "Job Description Fetched", jobDescriptionDTO));
 
@@ -246,11 +320,151 @@ public class StudentController {
 			jobDescriptionDTO.setApprovedDate(jobDescription.getApprovedDate());
 			jobDescriptionDTO.setManagerId(null);
 			jobDescriptionDTO.setManagerName(null);
+			jobDescriptionDTO.setAboutCompany(jobDescription.getAboutCompany());
+			jobDescriptionDTO.setInterviewDate(jobDescription.getInterviewDate());
+			jobDescriptionDTO.setGenderPreference(jobDescription.getGenderPreference());
+			jobDescriptionDTO.setRolesAndResponsibility(jobDescription.getRolesAndResponsibility());
 			return jobDescriptionDTO;
+			
 		});
 		return ResponseEntity.ok(new ApiResponse<>("success", "Job Descriptions fetched successfully", JobDescriptionDTOResponse));
 	}
 	
+	
+	
+	private Map<String, String> profileMatch(JobDescription jobDescription, Student student) {
+	    Map<String, String> matchResult = new HashMap<>();
+
+	    // Check for nulls in required student fields
+	    if (
+	        student.getGender() == null ||
+	        student.getGradCourse() == null ||
+	        student.getGradBranch() == null ||
+	        student.getStack() == null || student.getStack().getName() == null ||
+	        student.getGradPassOutYear() == null ||
+	        student.getTenthPercentage() == null ||
+	        student.getGradPercentage() == null ||
+	        student.getGradCgpa() == null ||
+	        student.getTwelvePercentage() == null
+	    ) {
+	        matchResult.put("error", "Please complete your profile to apply for this job.");
+	        return matchResult;
+	    }
+
+	    boolean allMatched = true;
+
+	    // Gender
+	    if (
+	        jobDescription.getGenderPreference().equalsIgnoreCase("any") ||
+	        jobDescription.getGenderPreference().equalsIgnoreCase(student.getGender())
+	    ) {
+	        matchResult.put("gender", "Eligible");
+	    } else {
+	        matchResult.put("gender", "Not Eligible");
+	        allMatched = false;
+	    }
+
+	    // Qualification
+	    if (
+	        jobDescription.getQualification().toLowerCase().contains("any") ||
+	        jobDescription.getQualification().toLowerCase().contains(student.getGradCourse().toLowerCase())
+	    ) {
+	        matchResult.put("qualification", "Eligible");
+	    } else {
+	        matchResult.put("qualification", "Not Eligible");
+	        allMatched = false;
+	    }
+
+	    // Stream
+	    if (
+	        jobDescription.getStream().toLowerCase().contains("any") ||
+	        jobDescription.getStream().toLowerCase().contains(student.getGradBranch().toLowerCase())
+	    ) {
+	        matchResult.put("stream", "Eligible");
+	    } else {
+	        matchResult.put("stream", "Not Eligible");
+	        allMatched = false;
+	    }
+
+	    // Stack
+	    if (
+	        jobDescription.getStack().toLowerCase().contains("any") ||
+	        jobDescription.getStack().toLowerCase().equals(student.getStack().getName().toLowerCase())
+	    ) {
+	        matchResult.put("stack", "Eligible");
+	    } else {
+	        matchResult.put("stack", "Not Eligible");
+	        allMatched = false;
+	    }
+
+	    // Passing Year
+	    Integer maxYearOfPassout = jobDescription.getMaxYearOfPassing();
+	    Integer minYearOfPassout = jobDescription.getMinYearOfPassing();
+	    Integer studentPassingYear = student.getGradPassOutYear();
+
+	    if (
+	        (maxYearOfPassout == -1 && minYearOfPassout == -1) ||
+	        (minYearOfPassout <= studentPassingYear && studentPassingYear <= maxYearOfPassout)
+	    ) {
+	        matchResult.put("passingYear", "Eligible");
+	    } else {
+	        matchResult.put("passingYear", "Not Eligible");
+	        allMatched = false;
+	    }
+
+	    // Percentages
+	    Double _10thPercentage = student.getTenthPercentage();
+	    Double _12thPercentage = student.getTwelvePercentage();
+	    Double _gradPercentage = student.getGradPercentage();
+
+	    if (_10thPercentage >= jobDescription.getPercentage() &&
+	        _12thPercentage >= jobDescription.getPercentage() &&
+	        _gradPercentage >= jobDescription.getPercentage()) {
+	        matchResult.put("percentage", "Eligible");
+	    } else {
+	        matchResult.put("percentage", "Not Eligible");
+	        allMatched = false;
+	    }
+	    
+	    
+	    //Skills 
+	   
+	    String[] jobSkills = jobDescription.getSkills().toLowerCase().split(",");
+	    String[] profileSkills = student.getSkills().toLowerCase().split(",");
+
+	    // Trim spaces
+	    Set<String> profileSkillSet = new HashSet<>();
+	    for (String skill : profileSkills) {
+	        profileSkillSet.add(skill.trim());
+	    }
+
+	    int matchedSkills = 0;
+	    for (String skill : jobSkills) {
+	        if (profileSkillSet.contains(skill.trim())) {
+	            matchedSkills++;
+	        }
+	    }
+	    int totalJobSkills = jobSkills.length;
+	    matchResult.put("skillsMatched", matchedSkills + " out of " + totalJobSkills + " job skills matched");
+	    matchResult.put("matchedSkillsCount",matchedSkills+"");
+	    matchResult.put("totalSkills", totalJobSkills+"");
+
+	    // CGPA (uncomment if needed)
+	    // Double _gradeCgpa = student.getGradCgpa();
+	    // if (jobDescription.getCgpaRequirement() != null) {
+	    //     if (_gradeCgpa >= jobDescription.getCgpaRequirement()) {
+	    //         matchResult.put("cgpa", "Eligible");
+	    //     } else {
+	    //         matchResult.put("cgpa", "Not Eligible");
+	    //         allMatched = false;
+	    //     }
+	    // }
+
+	    // Set allMatched
+	    matchResult.put("allMatched", allMatched ? "Eligible" : "Not Eligible");
+
+	    return matchResult;
+	}
 	
 	
 }

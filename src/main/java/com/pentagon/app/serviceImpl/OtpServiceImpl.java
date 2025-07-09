@@ -96,6 +96,7 @@ public class OtpServiceImpl implements OtpService {
 	@Override
 	public boolean verifyOtp(OtpVerificationRequest request) {
         Optional<Otp> otpOpt = otpRepository.findByEmail(request.getEmail());
+        
         if (otpOpt.isEmpty()) {
             throw new OtpException("OTP not found or expired.", HttpStatus.NOT_FOUND);
         }
@@ -109,6 +110,7 @@ public class OtpServiceImpl implements OtpService {
         
         if(LocalDateTime.now().isAfter(otp.getExpiredAt()))
         {
+        	otpRepository.deleteByEmail(request.getEmail());
         	throw new OtpException("OTP expired, Please Try Again", HttpStatus.BAD_REQUEST);
         }
 
@@ -121,7 +123,6 @@ public class OtpServiceImpl implements OtpService {
             otp.setWrongAttemptCount(wrongAttempts);
 
             if (wrongAttempts >= MAX_WRONG_ATTEMPTS) {
-                // Block for 30 minutes
                 otp.setBlockUntil(LocalDateTime.now().plusMinutes(BLOCK_DURATION_MINUTES));
             }
 

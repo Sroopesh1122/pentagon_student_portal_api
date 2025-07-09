@@ -1,9 +1,12 @@
 package com.pentagon.app.restController;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,7 +16,9 @@ import org.springframework.web.bind.annotation.*;
 
 import com.pentagon.app.entity.ProgramHead;
 import com.pentagon.app.entity.Student;
+import com.pentagon.app.entity.StudentJdApplication;
 import com.pentagon.app.exception.*;
+import com.pentagon.app.repository.StudentJdApplcationRepository;
 import com.pentagon.app.request.*;
 import com.pentagon.app.response.ApiResponse;
 import com.pentagon.app.service.*;
@@ -45,6 +50,9 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
     private final IdGeneration idGeneration;
     private final HtmlTemplates htmlTemplates;
+    
+    @Autowired
+    private StudentJdApplcationRepository studentJdApplcationRepository;
     
     
     @Value("${FRONTEND_URL}")
@@ -188,6 +196,15 @@ public class AuthController {
         return handleLogin("PROGRAMHEAD", programHeadService.loginwithPassword(request));
     }
     
+    
+    @PostMapping("/public/hello")
+    public ResponseEntity<?> forgotStu5ntPassword(@RequestParam String studentId){
+    	
+    	List<StudentJdApplication> application = studentJdApplcationRepository.getUpcomingJdRound(studentId,"Rejected", LocalDateTime.now());
+    	
+    	return ResponseEntity.ok(new ApiResponse<>("success","data", application));
+    	
+    }
     
   
     

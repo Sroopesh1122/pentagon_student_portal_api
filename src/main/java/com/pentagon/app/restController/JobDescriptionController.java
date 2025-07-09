@@ -1,5 +1,6 @@
 package com.pentagon.app.restController;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,20 +12,29 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.pentagon.app.Dto.JobDescriptionDTO;
+import com.pentagon.app.entity.JdRoundHistory;
 import com.pentagon.app.entity.JobDescription;
 import com.pentagon.app.entity.Manager;
 import com.pentagon.app.exception.JobDescriptionException;
+import com.pentagon.app.request.ScheduleRoundRequest;
 import com.pentagon.app.response.ApiResponse;
 import com.pentagon.app.service.CustomUserDetails;
+import com.pentagon.app.service.JdStatusRoundHistoryService;
 import com.pentagon.app.service.JobDescriptionService;
 import com.pentagon.app.service.ManagerService;
+
+import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/jd")
@@ -37,6 +47,10 @@ public class JobDescriptionController {
 	
 	@Autowired
 	private ManagerService managerService;
+	
+	
+	@Autowired
+	private JdStatusRoundHistoryService jdStatusRoundHistoryService;
 	
 	@GetMapping("/secure/{jobDescriptionId}")
 	@PreAuthorize("hasAnyRole('TRAINER','EXECUTIVE','MANAGER')")
@@ -81,6 +95,12 @@ public class JobDescriptionController {
 		jobDescriptionDTO.setBacklogs(jobDescription.getBacklogs());
 		jobDescriptionDTO.setBondDetails(jobDescription.getBondDetails());
 		jobDescriptionDTO.setSalaryDetails(jobDescription.getSalaryDetails());
+		jobDescriptionDTO.setStautsHistory(jobDescription.getStautsHistory());
+		jobDescriptionDTO.setRoundHistory(jobDescription.getRoundHistory());
+		jobDescriptionDTO.setAboutCompany(jobDescription.getAboutCompany());
+		jobDescriptionDTO.setInterviewDate(jobDescription.getInterviewDate());
+		jobDescriptionDTO.setGenderPreference(jobDescription.getGenderPreference());
+		jobDescriptionDTO.setRolesAndResponsibility(jobDescription.getRolesAndResponsibility());
 
 		Manager manager = managerService.getManagerById(jobDescription.getManagerId());
 		if (manager != null) {
@@ -149,6 +169,12 @@ public class JobDescriptionController {
 			jobDescriptionDTO.setBacklogs(jobDescription.getBacklogs());
 			jobDescriptionDTO.setBondDetails(jobDescription.getBondDetails());
 			jobDescriptionDTO.setSalaryDetails(jobDescription.getSalaryDetails());
+			jobDescriptionDTO.setStautsHistory(jobDescription.getStautsHistory());
+			jobDescriptionDTO.setRoundHistory(jobDescription.getRoundHistory());
+			jobDescriptionDTO.setAboutCompany(jobDescription.getAboutCompany());
+			jobDescriptionDTO.setInterviewDate(jobDescription.getInterviewDate());
+			jobDescriptionDTO.setGenderPreference(jobDescription.getGenderPreference());
+			jobDescriptionDTO.setRolesAndResponsibility(jobDescription.getRolesAndResponsibility());
 
 			Manager jdManager = managerService.getManagerById(jobDescription.getManagerId());
 			if (jdManager != null) {
@@ -164,4 +190,57 @@ public class JobDescriptionController {
 	}
 
 
+	@Transactional
+	@PostMapping("/secure/schedule-round")
+	public ResponseEntity<?> scheduleNewRound(@RequestBody @Valid ScheduleRoundRequest request,BindingResult bindingResult)
+	{
+		if(bindingResult.hasErrors())
+		{
+			throw new JobDescriptionException("Invalid Data", HttpStatus.BAD_REQUEST);
+		}
+		
+		JobDescription jobDescription = jobDescriptionService.finById(request.getJdId());
+		
+		if(jobDescription==null)
+		{
+			throw new JobDescriptionException("Jd not found", HttpStatus.NOT_FOUND);
+		}
+		
+		
+		JdRoundHistory jdRoundHistory =  jdStatusRoundHistoryService.findRound(request.getRoundName(), request.getJdId());
+		
+		if(jdRoundHistory!=null)
+		{
+			throw new JobDescriptionException("Round Already exists", HttpStatus.CONFLICT);
+		}
+		
+		//Adding New ROund for the JD
+		JdRoundHistory createRound = new JdRoundHistory();
+		createRound.setJobDescription(jobDescription);
+		createRound.setRound(request.getRoundName());
+		String isoDate = request.getDate(); // "2025-07-01T06:39:03.000Z"
+		if (isoDate.endsWith("Z")) {
+		    isoDate = isoDate.substring(0, isoDate.length() - 1);
+		}
+		if (isoDate.contains(".")) {
+		    isoDate = isoDate.substring(0, isoDate.indexOf("."));
+		}
+		createRound.setScheduleDate(LocalDateTime.parse(isoDate));
+		
+		//updating current Round for JD
+		jobDescription.setCurrentRound(request.getRoundName());
+		jobDescriptionService.updateJobDescription(jobDescription);
+		
+		jdStatusRoundHistoryService.addRound(createRound);
+		
+		
+		return ResponseEntity.ok( new ApiResponse<>("success","New Round Created and Jd Updated", null));
+		
+		
+		
+		
+		
+		
+	}
+	
 }

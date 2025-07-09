@@ -13,6 +13,30 @@ import io.jsonwebtoken.ExpiredJwtException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+	
+	
+	 @ExceptionHandler(InvalidDataException.class)
+	    public ResponseEntity<Map<String, Object>> handleInvalidDataException(InvalidDataException invalidDataException) {
+	        Map<String,Object> errorResponse = new HashMap<>();
+	        errorResponse.put("status", "failure");
+	        errorResponse.put("type","Invalid Input Exception");
+	        errorResponse.put("error", invalidDataException.getMessage());
+	        errorResponse.put("localTime", LocalDateTime.now());
+	        errorResponse.put("status", invalidDataException.getHttpStatus().toString());
+	        return new ResponseEntity<Map<String,Object>>(errorResponse, invalidDataException.getHttpStatus());
+	    }
+	 
+	 @ExceptionHandler(AnnouncementExpection.class)
+	    public ResponseEntity<Map<String, Object>> handleAnnouncementExpection(AnnouncementExpection announcementExpection) {
+	        Map<String,Object> errorResponse = new HashMap<>();
+	        errorResponse.put("status", "failure");
+	        errorResponse.put("type","Announcement Exception");
+	        errorResponse.put("error", announcementExpection.getMessage());
+	        errorResponse.put("localTime", LocalDateTime.now());
+	        errorResponse.put("status", announcementExpection.getHttpStatus().toString());
+	        return new ResponseEntity<Map<String,Object>>(errorResponse, announcementExpection.getHttpStatus());
+	    }
+
 
     @ExceptionHandler(AdminException.class)
     public ResponseEntity<Map<String, Object>> handleAdminException(AdminException adminException) {

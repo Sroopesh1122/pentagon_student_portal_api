@@ -1,6 +1,8 @@
 package com.pentagon.app.entity;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -11,6 +13,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
@@ -25,12 +28,15 @@ public class JobDescription {
 	private String jobDescriptionId;
     
     @Column( nullable = false )
+    @Size(max = 50000)
    	private String companyLogo = "https://cdn-icons-png.flaticon.com/512/4537/4537992.png";
 	
     @Column(name = "company_name", nullable = false)
+    @Size(max = 50000)
 	private String companyName;
 	
     @Column(name = "website", nullable = false)
+    @Size(max = 50000)
 	private String website;
 	
     @Column(name="description",nullable = false)
@@ -41,12 +47,15 @@ public class JobDescription {
     private String role;
     
     @Column(nullable = false)
+    @Size(max = 50000)
 	private String qualification;
 	
     @Column(nullable = false)
+    @Size(max = 50000)
 	private String stream;
     
     @Column(nullable = false)
+    @Size(max = 100000)
     private String skills;
     
     @Column(nullable = false)
@@ -59,6 +68,7 @@ public class JobDescription {
 	private Integer maxYearOfPassing;
 	
 	@Column(name="stack")
+	@Size(max = 50000)
 	private String stack;
 	
 	@Column(name="package",nullable = false)
@@ -101,22 +111,41 @@ public class JobDescription {
 	
 	private String location;
 	
+	@Size(max = 100000)
 	private String jdActionReason;
 	
 	private String managerId;
 	
 	private LocalDateTime approvedDate;
 	
-	
+	@Size(max = 100000)
 	private String bondDetails;
 	
+	@Size(max = 100000)
 	private String salaryDetails;
 	
 	private String backlogs;
 	
 	private String acardemicGap;
 	
-	private String currentRound = "Not Scheduled";
+	private String currentRound = "Pending Scheduling";
+	
+	private String genderPreference;
+	
+	@Size(max = 50000)
+	private String aboutCompany;
+	
+	private LocalDate interviewDate;
+	
+	@Size(max = 100000)
+	private String rolesAndResponsibility;
+	
+	
+	@OneToMany(mappedBy = "jobDescription")
+	private List<JdRoundHistory> roundHistory;
+	
+	@OneToMany(mappedBy = "jobDescription")
+	private List<JdStatusHistory> stautsHistory;
 	
 	//update current registration count
 	public void updateCurrentRegistrations(int newCount) {

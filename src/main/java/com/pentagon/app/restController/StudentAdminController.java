@@ -288,10 +288,8 @@ public class StudentAdminController {
 		}
 		
 		
-		
-		
 		Student newStudent = new Student();
-		newStudent.setStudentId(idGeneration.generateStudentId(stackCode, request.getMode(), request.getAdmissionMode()));
+		newStudent.setStudentId(idGeneration.generateStudentId(stackCode, request.getMode(), request.getAdmissionMode(),findBatch));
 		newStudent.setName(request.getFullName());
 		newStudent.setStack(findStack);
 		newStudent.setBatch(findBatch);

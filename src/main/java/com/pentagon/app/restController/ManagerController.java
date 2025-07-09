@@ -1,10 +1,14 @@
 package com.pentagon.app.restController;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -13,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,6 +32,8 @@ import com.pentagon.app.Dto.ExecutiveJDStatusDTO;
 import com.pentagon.app.Dto.JobDescriptionDTO;
 import com.pentagon.app.Dto.TrainerDTO;
 import com.pentagon.app.entity.Executive;
+import com.pentagon.app.entity.JdRoundHistory;
+import com.pentagon.app.entity.JdStatusHistory;
 import com.pentagon.app.entity.JobDescription;
 import com.pentagon.app.entity.Manager;
 import com.pentagon.app.entity.Trainer;
@@ -35,6 +42,7 @@ import com.pentagon.app.exception.ExecutiveException;
 import com.pentagon.app.exception.JobDescriptionException;
 import com.pentagon.app.exception.ManagerException;
 import com.pentagon.app.exception.OtpException;
+import com.pentagon.app.mapper.JobDescriptionMapper;
 import com.pentagon.app.request.AddExecutiveRequest;
 import com.pentagon.app.request.AddTrainerRequest;
 import com.pentagon.app.request.MangerJdStatusUpdateRequest;
@@ -45,6 +53,7 @@ import com.pentagon.app.response.ProfileResponse;
 import com.pentagon.app.service.ActivityLogService;
 import com.pentagon.app.service.CustomUserDetails;
 import com.pentagon.app.service.ExecutiveService;
+import com.pentagon.app.service.JdStatusRoundHistoryService;
 import com.pentagon.app.service.JobDescriptionService;
 import com.pentagon.app.service.ManagerService;
 import com.pentagon.app.service.TrainerService;
@@ -92,6 +101,20 @@ public class ManagerController {
 
 	@Autowired
 	private TrainerService trainerService;
+	
+	@Autowired
+	private JdStatusRoundHistoryService jdStatusRoundHistoryService;
+	
+	
+	@Autowired
+	private HtmlTemplates htmlTemplates;
+	
+	@Autowired
+	private JobDescriptionMapper jobDescriptionMapper;
+	
+	
+	@Value("${FRONTEND_URL}")
+	private String FRONTEND_URL;
 
 	@PostMapping("/secure/updateManager")
 	@PreAuthorize("hasRole('MANAGER')")
@@ -167,48 +190,6 @@ public class ManagerController {
 		return ResponseEntity.ok(new ApiResponse<>("success", "Executive Added Successfully", null));
 	}
 
-//	@PostMapping("secure/addTrainer")
-//	@PreAuthorize("hasRole('MANAGER')")
-//	public ResponseEntity<?> addTrainer(@AuthenticationPrincipal CustomUserDetails managerDetails,
-//			@Valid @RequestBody AddTrainerRequest request, BindingResult bindingResult) {
-//
-//		if (bindingResult.hasErrors()) {
-//			throw new ManagerException("Invalid Input Data", HttpStatus.BAD_REQUEST);
-//		}
-//
-//		if (trainerService.checkExistsByEmail(request.getEmail())) {
-//			throw new ExecutiveException("Email already in use by another trainer", HttpStatus.CONFLICT);
-//		}
-//
-//		Trainer trainer = new Trainer();
-//		trainer.setTrainerId(idGeneration.generateId("TRAINER"));
-//		trainer.setName(request.getName());
-//		trainer.setEmail(request.getEmail());
-//		trainer.setMobile(request.getMobile());
-//		trainer.setYearOfExperiences(request.getYearOfExperiences());
-//		trainer.setQualification(request.getQualification());
-//		trainer.setAcitve(true);
-//
-//		String password = passwordGenration.generateRandomPassword();
-//		trainer.setPassword(passwordEncoder.encode(password));
-//
-//		Trainer newTrainer = trainerService.addTrainer(trainer);
-//
-//		String htmlContent = htmlContentService.getHtmlContent(trainer.getName(), trainer.getEmail(), password);
-//
-//		try {
-//			mailService.sendPasswordEmail(trainer.getEmail(), "Welcome to Pentagon – Login Credentials Enclosed",
-//					htmlContent);
-//		} catch (Exception e) {
-//			throw new OtpException("Mail couldn't be sent", HttpStatus.INTERNAL_SERVER_ERROR);
-//		}
-//
-//		activityLogService.log(managerDetails.getManager().getEmail(), managerDetails.getManager().getManagerId(),
-//				"MANAGER", "Manager with ID " + managerDetails.getManager().getManagerId()
-//						+ " added a new Trainer with ID " + newTrainer.getTrainerId());
-//
-//		return ResponseEntity.ok(new ApiResponse<>("success", "Trainer Added Successfully", null));
-//	}
 
 	@GetMapping("/secure/viewAllTrainers")
 	@PreAuthorize("hasRole('MANAGER')")
@@ -240,7 +221,10 @@ public class ManagerController {
 
 		return ResponseEntity.ok(new ApiResponse<>("success", "Trainers fetched successfully", TrainerDTOResponse));
 	}
-
+	
+	
+	
+     // To Approved or Hold or Reject JD
 	@PostMapping("/secure/jd/status")
 	@PreAuthorize("hasRole('MANAGER')")
 	public ResponseEntity<?> updateJdStatus(@AuthenticationPrincipal CustomUserDetails managerDetails,
@@ -248,6 +232,11 @@ public class ManagerController {
 
 		JobDescription findJobDescription = jobDescriptionService.findByJobDescriptionId(request.getJdId())
 				.orElseThrow(() -> new JobDescriptionException("Job Description not found", HttpStatus.NOT_FOUND));
+		
+		if(!request.getStatus().equals("approved")&& !request.getStatus().equals("hold") && !request.getStatus().equals("rejected") )
+		{
+			throw new ManagerException("Invalid  Status", HttpStatus.BAD_REQUEST);
+		}
 
 		findJobDescription.setJdStatus(request.getStatus());
 		findJobDescription.setManagerApproval(request.getStatus().toLowerCase().equals("approved") ? true : false);
@@ -255,14 +244,48 @@ public class ManagerController {
 
 		if ("approved".equalsIgnoreCase(request.getStatus())) {
 			jdActionReason = "JD approved by " + managerDetails.getManager().getName() + ", on "
-					+ LocalDateTime.now().toString();
+					+ LocalDateTime.now().toLocalDate()+LocalDateTime.now().toLocalTime();
 			findJobDescription.setApprovedDate(LocalDateTime.now());
 		} else {
 			jdActionReason = request.getActionReason();
 		}
 
 		findJobDescription.setJdActionReason(jdActionReason);
+		
+		findJobDescription.setCurrentRound("Pending Scheduling");
 		findJobDescription = jobDescriptionService.updateJobDescription(findJobDescription);
+		
+		//Adding Status History
+		JdStatusHistory jdStatusHistory= new JdStatusHistory();
+		jdStatusHistory.setStatus("Approved");
+		jdStatusHistory.setDescription("JD approved by " + managerDetails.getManager().getName() + ", on "
+				+ LocalDateTime.now().toLocalDate()+LocalDateTime.now().toLocalTime());
+		jdStatusHistory.setJobDescription(findJobDescription);
+		
+		jdStatusRoundHistoryService.addStatus(jdStatusHistory);
+		
+		
+		//Adding Round History
+		JdRoundHistory jdRoundHistory = new JdRoundHistory();
+		jdRoundHistory.setRound("Pending Scheduling");
+		jdRoundHistory.setJobDescription(findJobDescription);
+		jdStatusRoundHistoryService.addRound(jdRoundHistory);
+		
+		Executive executive = executiveService.getExecutiveById(findJobDescription.getPostedBy());
+		
+		if(executive!=null)
+		{
+			String applicationLink = FRONTEND_URL+"/executive/jd?id="+findJobDescription.getJobDescriptionId();
+			String approvedEmailTemplate = htmlTemplates.generateJDApprovedEmail(executive.getName(), findJobDescription.getRole(),findJobDescription.getCompanyName(), managerDetails.getManager().getName(), findJobDescription.getCompanyLogo(),applicationLink);
+			
+			try {
+				mailService.send(executive.getEmail(),"JD Approved", approvedEmailTemplate);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
 		return ResponseEntity.ok(new ApiResponse<>("success", "JD stauts updated", null));
 	}
 
@@ -288,35 +311,42 @@ public class ManagerController {
 		}
 
 		JobDescription jobDescription = jobDescriptionOtp.get();
-		JobDescriptionDTO jobDescriptionDTO = new JobDescriptionDTO();
-		jobDescriptionDTO.setJobDescriptionId(jobDescription.getJobDescriptionId());
-		jobDescriptionDTO.setCompanyName(jobDescription.getCompanyName());
-		jobDescriptionDTO.setCompanyLogo(jobDescription.getCompanyLogo());
-		jobDescriptionDTO.setWebsite(jobDescription.getWebsite());
-		jobDescriptionDTO.setRole(jobDescription.getRole());
-		jobDescriptionDTO.setStack(jobDescription.getStack());
-		jobDescriptionDTO.setQualification(jobDescription.getQualification());
-		jobDescriptionDTO.setStream(jobDescription.getStream());
-		jobDescriptionDTO.setPercentage(jobDescription.getPercentage());
-		jobDescriptionDTO.setMinYearOfPassing(jobDescription.getMinYearOfPassing());
-		jobDescriptionDTO.setMaxYearOfPassing(jobDescription.getMaxYearOfPassing());
-		jobDescriptionDTO.setSalaryPackage(jobDescription.getSalaryPackage());
-		jobDescriptionDTO.setNumberOfRegistrations(jobDescription.getNumberOfRegistrations());
-		jobDescriptionDTO.setCurrentRegistrations(jobDescription.getCurrentRegistrations());
-		jobDescriptionDTO.setMockRating(jobDescription.getMockRating());
-		jobDescriptionDTO.setJdStatus(jobDescription.getJdStatus());
-		jobDescriptionDTO.setManagerApproval(jobDescription.isManagerApproval());
-		jobDescriptionDTO.setNumberOfClosures(jobDescription.getNumberOfClosures());
-		jobDescriptionDTO.setClosed(jobDescription.isClosed());
-		jobDescriptionDTO.setCreatedAt(jobDescription.getCreatedAt());
-		jobDescriptionDTO.setUpdatedAt(jobDescription.getUpdatedAt());
-		jobDescriptionDTO.setLocation(jobDescription.getLocation());
-		jobDescriptionDTO.setExecutive(jobDescription.getExecutive());
-		jobDescriptionDTO.setPostedBy(jobDescription.getPostedBy());
-		jobDescriptionDTO.setDescription(jobDescription.getDescription());
-		jobDescriptionDTO.setSkills(jobDescription.getSkills());
-		jobDescriptionDTO.setJdActionReason(jobDescription.getJdActionReason());
-		//jobDescriptionDTO.setManagerId(jobDescription.getManagerId());
+		JobDescriptionDTO jobDescriptionDTO = jobDescriptionMapper.toDTO(jobDescription);
+//		jobDescriptionDTO.setJobDescriptionId(jobDescription.getJobDescriptionId());
+//		jobDescriptionDTO.setCompanyName(jobDescription.getCompanyName());
+//		jobDescriptionDTO.setCompanyLogo(jobDescription.getCompanyLogo());
+//		jobDescriptionDTO.setWebsite(jobDescription.getWebsite());
+//		jobDescriptionDTO.setRole(jobDescription.getRole());
+//		jobDescriptionDTO.setStack(jobDescription.getStack());
+//		jobDescriptionDTO.setQualification(jobDescription.getQualification());
+//		jobDescriptionDTO.setStream(jobDescription.getStream());
+//		jobDescriptionDTO.setPercentage(jobDescription.getPercentage());
+//		jobDescriptionDTO.setMinYearOfPassing(jobDescription.getMinYearOfPassing());
+//		jobDescriptionDTO.setMaxYearOfPassing(jobDescription.getMaxYearOfPassing());
+//		jobDescriptionDTO.setSalaryPackage(jobDescription.getSalaryPackage());
+//		jobDescriptionDTO.setNumberOfRegistrations(jobDescription.getNumberOfRegistrations());
+//		jobDescriptionDTO.setCurrentRegistrations(jobDescription.getCurrentRegistrations());
+//		jobDescriptionDTO.setMockRating(jobDescription.getMockRating());
+//		jobDescriptionDTO.setJdStatus(jobDescription.getJdStatus());
+//		jobDescriptionDTO.setManagerApproval(jobDescription.isManagerApproval());
+//		jobDescriptionDTO.setNumberOfClosures(jobDescription.getNumberOfClosures());
+//		jobDescriptionDTO.setClosed(jobDescription.isClosed());
+//		jobDescriptionDTO.setCreatedAt(jobDescription.getCreatedAt());
+//		jobDescriptionDTO.setUpdatedAt(jobDescription.getUpdatedAt());
+//		jobDescriptionDTO.setLocation(jobDescription.getLocation());
+//		jobDescriptionDTO.setExecutive(jobDescription.getExecutive());
+//		jobDescriptionDTO.setPostedBy(jobDescription.getPostedBy());
+//		jobDescriptionDTO.setDescription(jobDescription.getDescription());
+//		jobDescriptionDTO.setSkills(jobDescription.getSkills());
+//		jobDescriptionDTO.setJdActionReason(jobDescription.getJdActionReason());
+//		jobDescriptionDTO.setBondDetails(jobDescription.getBondDetails());
+//		jobDescriptionDTO.setSalaryDetails(jobDescription.getSalaryDetails());
+//		jobDescriptionDTO.setStautsHistory(jobDescription.getStautsHistory());
+//		jobDescriptionDTO.setRoundHistory(jobDescription.getRoundHistory());
+//		jobDescriptionDTO.setAboutCompany(jobDescription.getAboutCompany());
+//		jobDescriptionDTO.setInterviewDate(jobDescription.getInterviewDate());
+//		jobDescriptionDTO.setGenderPreference(jobDescription.getGenderPreference());
+//		jobDescriptionDTO.setRolesAndResposilibity(jobDescription.getRolesAndResposilibity());
 		return ResponseEntity.ok(new ApiResponse<>("success", "Job Description Fetched", jobDescriptionDTO));
 
 	}
@@ -345,29 +375,37 @@ public class ManagerController {
 				status, startDate, endDate, pageable);
 
 		Page<JobDescriptionDTO> JobDescriptionDTOResponse = jobDescriptions.map(jobDescription -> {
-			JobDescriptionDTO jobDescriptionDTO = new JobDescriptionDTO();
-			jobDescriptionDTO.setJobDescriptionId(jobDescription.getJobDescriptionId());
-			jobDescriptionDTO.setCompanyName(jobDescription.getCompanyName());
-			jobDescriptionDTO.setCompanyLogo(jobDescription.getCompanyLogo());
-			jobDescriptionDTO.setWebsite(jobDescription.getWebsite());
-			jobDescriptionDTO.setRole(jobDescription.getRole());
-			jobDescriptionDTO.setStack(jobDescription.getStack());
-			jobDescriptionDTO.setQualification(jobDescription.getQualification());
-			jobDescriptionDTO.setStream(jobDescription.getStream());
-			jobDescriptionDTO.setPercentage(jobDescription.getPercentage());
-			jobDescriptionDTO.setMinYearOfPassing(jobDescription.getMinYearOfPassing());
-			jobDescriptionDTO.setMaxYearOfPassing(jobDescription.getMaxYearOfPassing());
-			jobDescriptionDTO.setSalaryPackage(jobDescription.getSalaryPackage());
-			jobDescriptionDTO.setNumberOfRegistrations(jobDescription.getNumberOfRegistrations());
-			jobDescriptionDTO.setCurrentRegistrations(jobDescription.getCurrentRegistrations());
-			jobDescriptionDTO.setMockRating(jobDescription.getMockRating());
-			jobDescriptionDTO.setJdStatus(jobDescription.getJdStatus());
-			jobDescriptionDTO.setManagerApproval(jobDescription.isManagerApproval());
-			jobDescriptionDTO.setNumberOfClosures(jobDescription.getNumberOfClosures());
-			jobDescriptionDTO.setClosed(jobDescription.isClosed());
-			jobDescriptionDTO.setCreatedAt(jobDescription.getCreatedAt());
-			jobDescriptionDTO.setUpdatedAt(jobDescription.getUpdatedAt());
-			jobDescriptionDTO.setLocation(jobDescription.getLocation());
+			JobDescriptionDTO jobDescriptionDTO = jobDescriptionMapper.toDTO(jobDescription);
+//			jobDescriptionDTO.setJobDescriptionId(jobDescription.getJobDescriptionId());
+//			jobDescriptionDTO.setCompanyName(jobDescription.getCompanyName());
+//			jobDescriptionDTO.setCompanyLogo(jobDescription.getCompanyLogo());
+//			jobDescriptionDTO.setWebsite(jobDescription.getWebsite());
+//			jobDescriptionDTO.setRole(jobDescription.getRole());
+//			jobDescriptionDTO.setStack(jobDescription.getStack());
+//			jobDescriptionDTO.setQualification(jobDescription.getQualification());
+//			jobDescriptionDTO.setStream(jobDescription.getStream());
+//			jobDescriptionDTO.setPercentage(jobDescription.getPercentage());
+//			jobDescriptionDTO.setMinYearOfPassing(jobDescription.getMinYearOfPassing());
+//			jobDescriptionDTO.setMaxYearOfPassing(jobDescription.getMaxYearOfPassing());
+//			jobDescriptionDTO.setSalaryPackage(jobDescription.getSalaryPackage());
+//			jobDescriptionDTO.setNumberOfRegistrations(jobDescription.getNumberOfRegistrations());
+//			jobDescriptionDTO.setCurrentRegistrations(jobDescription.getCurrentRegistrations());
+//			jobDescriptionDTO.setMockRating(jobDescription.getMockRating());
+//			jobDescriptionDTO.setJdStatus(jobDescription.getJdStatus());
+//			jobDescriptionDTO.setManagerApproval(jobDescription.isManagerApproval());
+//			jobDescriptionDTO.setNumberOfClosures(jobDescription.getNumberOfClosures());
+//			jobDescriptionDTO.setClosed(jobDescription.isClosed());
+//			jobDescriptionDTO.setCreatedAt(jobDescription.getCreatedAt());
+//			jobDescriptionDTO.setUpdatedAt(jobDescription.getUpdatedAt());
+//			jobDescriptionDTO.setLocation(jobDescription.getLocation());
+//			jobDescriptionDTO.setStautsHistory(jobDescription.getStautsHistory());
+//			jobDescriptionDTO.setRoundHistory(jobDescription.getRoundHistory());
+//			jobDescriptionDTO.setAboutCompany(jobDescription.getAboutCompany());
+//			jobDescriptionDTO.setInterviewDate(jobDescription.getInterviewDate());
+//			jobDescriptionDTO.setGenderPreference(jobDescription.getGenderPreference());
+//			jobDescriptionDTO.setRolesAndResposilibity(jobDescription.getRolesAndResposilibity());
+//			jobDescriptionDTO.setBondDetails(jobDescription.getBondDetails());
+//			jobDescriptionDTO.setSalaryDetails(jobDescription.getSalaryDetails());
 			return jobDescriptionDTO;
 		});
 
@@ -391,13 +429,59 @@ public class ManagerController {
 
 	
 	
-	//based on ex id - number of jds posted , and number of openings and number of closures
 	@GetMapping("/secure/executive/jd-stats/{executiveId}")
 	@PreAuthorize("hasAnyRole('MANAGER','ADMIN')")
 	public ResponseEntity<?> getjobDescriptionStatusByExecutive(@PathVariable String executiveId) {
 	    ExecutiveJDStatusDTO stats = jobDescriptionService.getExecutiveJobDescriptionStats(executiveId);
 	    return ResponseEntity.ok(new ApiResponse<>("success", "Executive JD stats", stats));
 	}
+	
+	@GetMapping("/secure/jd-stats")
+	@PreAuthorize("hasAnyRole('MANAGER','ADMIN')")
+	public ResponseEntity<?> getManagerJdStats(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
+		Manager manager = customUserDetails.getManager();
+		if(manager ==null)
+		{
+			throw new UsernameNotFoundException("Unauthorized");
+		}
+	   Map<String, Long> jdDetails = (Map)managerService.getManagersJdDetails(manager.getManagerId());
+	    return ResponseEntity.ok(new ApiResponse<>("success", "Manager JD stats", jdDetails ));
+	}
+	
+	
+	
+	// return executive name and their js count details 
+	
+	@GetMapping("/secure/executives/jd-metrics")
+	@PreAuthorize("hasAnyRole('MANAGER','ADMIN')")
+	public ResponseEntity<?> getJdMetricsByExecutive(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
+		Manager manager = customUserDetails.getManager();
+		if(manager ==null)
+		{
+			throw new UsernameNotFoundException("Unauthorized");
+		}
+		
+		Pageable pageable = PageRequest.of(0, Integer.MAX_VALUE,Sort.by("createdAt").descending());
+			
+		
+		List<Map<String, Object>> executivesJdMetricsByName =
+			    executiveService.getExecutivesByManagerIdAndSearchQuery(manager.getManagerId(), null, pageable)
+			        .stream()
+			        .map(e -> (Executive) e)
+			        .map(executive -> {
+			            Map<String, Object> map = new HashMap<>();
+			            map.put("name", executive.getName());
+			            map.put("executiveId", executive.getExecutiveId());
+			            map.put("details", executiveService.getExecutiveJdDetails(executive.getExecutiveId()));
+			            return map;
+			        })
+			        .collect(Collectors.toList());
+		
+	    return ResponseEntity.ok(new ApiResponse<>("success", "Manager JD stats", executivesJdMetricsByName ));
+	}
+	
+	
+	
 	
 	@GetMapping("/secure/executive/{id}")
 	@PreAuthorize("hasRole('MANAGER')")
@@ -425,5 +509,11 @@ public class ManagerController {
 		executiveDetails.setManagerName(manager.getName());
 		return ResponseEntity.ok(new ApiResponse<>("success", "Executive Data", executiveDetails));
 	}
+	
+	
+	
+	
+	
+	
 
 }

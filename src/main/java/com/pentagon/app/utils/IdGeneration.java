@@ -1,6 +1,7 @@
 package com.pentagon.app.utils;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.UUID;
@@ -8,6 +9,8 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+
+import com.pentagon.app.entity.Batch;
 import com.pentagon.app.exception.IdGenerationException;
 import com.pentagon.app.repository.AdminRepository;
 import com.pentagon.app.repository.ExecutiveRepository;
@@ -41,7 +44,7 @@ public class IdGeneration {
 	// PS19MAY25ONJFS#001 CSR-online
 
 	// CSR, paid and offline, online
-	public String generateStudentId(String stack, String mode, String typeOfAdmission) {
+	public String generateStudentId(String stack, String mode, String typeOfAdmission ,Batch batch) {
 	    Map<String, String> stackCodeMap = Map.of(
 	        "java full stack", "JFS",
 	        "python full stack", "PFS",
@@ -54,7 +57,9 @@ public class IdGeneration {
 	        throw new IdGenerationException("Invalid input for ID generation. Please check stack, mode, or admission type.", HttpStatus.BAD_REQUEST);
 	    }
 
-	    LocalDate now = LocalDate.now();
+	    
+	    //Based on batch created date student id will be generated
+	    LocalDateTime now = batch.getCreatedAt();
 	    int month = now.getMonthValue();
 	    int year = now.getYear();
 

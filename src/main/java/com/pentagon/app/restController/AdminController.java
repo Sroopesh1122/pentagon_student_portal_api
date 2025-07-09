@@ -53,7 +53,6 @@ import com.pentagon.app.request.AddExecutiveRequest;
 import com.pentagon.app.request.AddManagerRequest;
 import com.pentagon.app.request.AddProgramHeadRequest;
 import com.pentagon.app.request.AddStudentAdminRequest;
-import com.pentagon.app.request.AddTrainerRequest;
 import com.pentagon.app.response.ApiResponse;
 import com.pentagon.app.response.ExecutiveDetails;
 import com.pentagon.app.response.ManagerDetails;
@@ -488,6 +487,14 @@ public class AdminController {
 		jobDescriptionDTO.setManagerId(jobDescription.getManagerId());
 		jobDescriptionDTO.setSkills(jobDescription.getSkills());
 		jobDescriptionDTO.setJdActionReason(jobDescription.getJdActionReason());
+		jobDescriptionDTO.setBondDetails(jobDescription.getBondDetails());
+		jobDescriptionDTO.setSalaryDetails(jobDescription.getSalaryDetails());
+		jobDescriptionDTO.setStautsHistory(jobDescription.getStautsHistory());
+		jobDescriptionDTO.setRoundHistory(jobDescription.getRoundHistory());
+		jobDescriptionDTO.setAboutCompany(jobDescription.getAboutCompany());
+		jobDescriptionDTO.setInterviewDate(jobDescription.getInterviewDate());
+		jobDescriptionDTO.setGenderPreference(jobDescription.getGenderPreference());
+		jobDescriptionDTO.setRolesAndResponsibility(jobDescription.getRolesAndResponsibility());
 		Manager manager = managerService.getManagerById(jobDescription.getManagerId());
 		if(manager !=null)
 		{

@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -26,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.pentagon.app.Dto.JdStatsDTO;
 import com.pentagon.app.Dto.JobDescriptionDTO;
 import com.pentagon.app.entity.Executive;
+import com.pentagon.app.entity.JdStatusHistory;
 import com.pentagon.app.entity.JobDescription;
 import com.pentagon.app.entity.Manager;
 import com.pentagon.app.exception.AdminException;
@@ -40,8 +42,11 @@ import com.pentagon.app.response.ProfileResponse;
 import com.pentagon.app.service.ActivityLogService;
 import com.pentagon.app.service.CustomUserDetails;
 import com.pentagon.app.service.ExecutiveService;
+import com.pentagon.app.service.JdStatusRoundHistoryService;
 import com.pentagon.app.service.JobDescriptionService;
 import com.pentagon.app.service.ManagerService;
+import com.pentagon.app.serviceImpl.MailService;
+import com.pentagon.app.utils.HtmlTemplates;
 import com.pentagon.app.utils.IdGeneration;
 
 import jakarta.validation.Valid;
@@ -63,6 +68,19 @@ public class ExecutiveController {
 
 	@Autowired
 	private IdGeneration idGenerator;
+	
+	@Autowired
+	private JdStatusRoundHistoryService jdStatusRoundHistoryService;
+	
+	@Autowired
+	private HtmlTemplates htmlTemplates;
+	
+	@Autowired
+	private MailService mailService;
+	
+	
+	@Value("${FRONTEND_URL}")
+	private String FRONTEND_URL;
 
 	// not working
 	@PostMapping("/secure/addJobDescription")
@@ -100,7 +118,7 @@ public class ExecutiveController {
 		jd.setLocation(newJd.getLocation());
 		jd.setExecutive(executiveDetails.getExecutive());
 		jd.setPostedBy(executiveDetails.getExecutive().getExecutiveId());
-		jd.setJdStatus("pending");
+		jd.setJdStatus("pending");	
 		jd.setManagerId(executiveDetails.getExecutive().getManagerId());
 		jd.setSkills(newJd.getSkills());
 		jd.setAcardemicGap(newJd.getAcardemicGap());
@@ -114,7 +132,41 @@ public class ExecutiveController {
 			jd.setSalaryDetails(newJd.getSalaryDetails());
 		}
 		
-		jobDescriptionService.addJobDescription(jd);
+		jd.setGenderPreference(newJd.getGenderPreference());
+		jd.setAboutCompany(newJd.getAboutCompany());
+		jd.setInterviewDate(newJd.getInterviewDate());
+		jd.setRolesAndResponsibility(newJd.getRolesAndResponsibility());		
+		jd = jobDescriptionService.addJobDescription(jd);
+		
+		JdStatusHistory jdStatusHistory=new JdStatusHistory();
+		jdStatusHistory.setJobDescription(jd);
+		jdStatusHistory.setStatus("Pending");
+		
+		//updated Status here 
+		jdStatusHistory.setDescription(null);
+		jdStatusRoundHistoryService.addStatus(jdStatusHistory);
+		
+		Manager manager = managerService.getManagerById(jd.getManagerId());
+		
+		
+		String jdApplicationLink = FRONTEND_URL+"/manager/jd?id="+jd.getJobDescriptionId(); 
+		
+		String emailTemplate = htmlTemplates.generateJDApprovalEmail(manager.getName(),
+				executiveDetails.getExecutive().getName(),
+				executiveDetails.getExecutive().getEmail() ,
+				executiveDetails.getExecutive().getMobile(),
+				jd.getRole(), jd.getCompanyName(), 
+				jd.getCompanyLogo(), jdApplicationLink);
+		
+		
+		try {
+			mailService.send(manager.getEmail(),"Jd Approval Pending", emailTemplate);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
 		activityLogService.log(executiveDetails.getExecutive().getEmail(),
 				executiveDetails.getExecutive().getExecutiveId(), "EXECUTIVE", "Executive with ID "
 						+ executiveDetails.getExecutive().getExecutiveId() + " Added new job Description ");
@@ -226,6 +278,13 @@ public class ExecutiveController {
 		jobDescriptionDTO.setBacklogs(jobDescription.getBacklogs());
 		jobDescriptionDTO.setBondDetails(jobDescription.getBondDetails());
 		jobDescriptionDTO.setSalaryDetails(jobDescription.getSalaryDetails());
+		jobDescriptionDTO.setCurrentRound(jobDescription.getCurrentRound());
+		jobDescriptionDTO.setStautsHistory(jobDescription.getStautsHistory());
+		jobDescriptionDTO.setRoundHistory(jobDescription.getRoundHistory());
+		jobDescriptionDTO.setAboutCompany(jobDescription.getAboutCompany());
+		jobDescriptionDTO.setInterviewDate(jobDescription.getInterviewDate());
+		jobDescriptionDTO.setGenderPreference(jobDescription.getGenderPreference());
+		jobDescriptionDTO.setRolesAndResponsibility(jobDescription.getRolesAndResponsibility());
 
 		Manager manager = managerService.getManagerById(jobDescription.getManagerId());
 		if (manager != null) {
@@ -292,6 +351,14 @@ public class ExecutiveController {
 			jobDescriptionDTO.setPostedBy(jobDescription.getPostedBy());
 			jobDescriptionDTO.setJdStatus(jobDescription.getJdStatus());
 			jobDescriptionDTO.setJdActionReason(jobDescription.getJdActionReason());
+			jobDescriptionDTO.setStautsHistory(jobDescription.getStautsHistory());
+			jobDescriptionDTO.setRoundHistory(jobDescription.getRoundHistory());
+			jobDescriptionDTO.setBondDetails(jobDescription.getBondDetails());
+			jobDescriptionDTO.setSalaryDetails(jobDescription.getSalaryDetails());
+			jobDescriptionDTO.setAboutCompany(jobDescription.getAboutCompany());
+			jobDescriptionDTO.setInterviewDate(jobDescription.getInterviewDate());
+			jobDescriptionDTO.setGenderPreference(jobDescription.getGenderPreference());
+			jobDescriptionDTO.setRolesAndResponsibility(jobDescription.getRolesAndResponsibility());
 
 			Manager jdManager = managerService.getManagerById(jobDescription.getManagerId());
 			if (jdManager != null) {
@@ -363,7 +430,7 @@ public class ExecutiveController {
 		executiveDetails.setManagerId(findExecutive.getManagerId());
 		executiveDetails.setMobile(findExecutive.getMobile());
 		executiveDetails.setName(findExecutive.getName());
-		Map<String, Long> jdDetails = (Map) executiveService.getExecutiveJdDetails(findExecutive.getExecutiveId());
+		Map<String, Long> jdDetails =(Map) executiveService.getExecutiveJdDetails(findExecutive.getExecutiveId());
 		executiveDetails.setJdsCount(jdDetails);
 		Manager manager = managerService.getManagerById(findExecutive.getManagerId());
 		executiveDetails.setManagerEmail(manager.getEmail());
@@ -390,6 +457,7 @@ public class ExecutiveController {
 	}
 	
 	
+	
 	@GetMapping("/secure/{id}/jd/stats")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<?> getJdStatsOfExecutive(
@@ -401,6 +469,14 @@ public class ExecutiveController {
 		
 		return ResponseEntity.ok(new ApiResponse<>("success", "JD Stats", jdStats));
 	}
+	
+	
+	
+	//Return total Jd counts , total jd Pending ,total Jd rejected , total Closures achieved
+	
+
+	
+	
 	
 	//vieW ALL JDS BY EXECU ID
 	//after jd closed, fetch count of clousers
