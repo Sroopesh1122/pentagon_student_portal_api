@@ -135,7 +135,8 @@ public class ExecutiveController {
 		jd.setGenderPreference(newJd.getGenderPreference());
 		jd.setAboutCompany(newJd.getAboutCompany());
 		jd.setInterviewDate(newJd.getInterviewDate());
-		jd.setRolesAndResponsibility(newJd.getRolesAndResponsibility());		
+		jd.setRolesAndResponsibility(newJd.getRolesAndResponsibility());
+		jd.setGeneric(newJd.getIsGeneric());
 		jd = jobDescriptionService.addJobDescription(jd);
 		
 		JdStatusHistory jdStatusHistory=new JdStatusHistory();
@@ -285,6 +286,7 @@ public class ExecutiveController {
 		jobDescriptionDTO.setInterviewDate(jobDescription.getInterviewDate());
 		jobDescriptionDTO.setGenderPreference(jobDescription.getGenderPreference());
 		jobDescriptionDTO.setRolesAndResponsibility(jobDescription.getRolesAndResponsibility());
+		jobDescriptionDTO.setGeneric(jobDescription.getGeneric());
 
 		Manager manager = managerService.getManagerById(jobDescription.getManagerId());
 		if (manager != null) {
@@ -359,6 +361,7 @@ public class ExecutiveController {
 			jobDescriptionDTO.setInterviewDate(jobDescription.getInterviewDate());
 			jobDescriptionDTO.setGenderPreference(jobDescription.getGenderPreference());
 			jobDescriptionDTO.setRolesAndResponsibility(jobDescription.getRolesAndResponsibility());
+			jobDescriptionDTO.setGeneric(jobDescription.getGeneric());
 
 			Manager jdManager = managerService.getManagerById(jobDescription.getManagerId());
 			if (jdManager != null) {

@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -34,9 +35,11 @@ public class Batch {
     @CreationTimestamp
     private LocalDateTime startDate;
     
-    
     @CreationTimestamp
     private LocalDateTime createdAt;
+    
+    @UpdateTimestamp
+    private LocalDateTime updateddAt;
     
     @JsonIgnore
     @ManyToMany(mappedBy = "batches")

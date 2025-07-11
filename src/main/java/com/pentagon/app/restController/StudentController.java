@@ -2,6 +2,9 @@ package com.pentagon.app.restController;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -29,14 +32,20 @@ import com.pentagon.app.Dto.StudentDTO;
 import com.pentagon.app.entity.JobDescription;
 import com.pentagon.app.entity.Manager;
 import com.pentagon.app.entity.Student;
+import com.pentagon.app.entity.Technology;
 import com.pentagon.app.exception.JobDescriptionException;
 import com.pentagon.app.exception.StudentException;
 import com.pentagon.app.mapper.StudentMapper;
 import com.pentagon.app.response.ApiResponse;
 import com.pentagon.app.service.CustomUserDetails;
 import com.pentagon.app.service.JobDescriptionService;
+import com.pentagon.app.service.MockTestService;
+import com.pentagon.app.service.StackService;
 import com.pentagon.app.service.StudentService;
+import com.pentagon.app.service.TechnologyService;
 import com.pentagon.app.serviceImpl.CloudinaryServiceImp;
+
+import jakarta.transaction.Transactional;
 
 @RestController
 @RequestMapping("/api/student")
@@ -54,6 +63,16 @@ public class StudentController {
 	
 	@Autowired
 	private StudentMapper studentMapper;
+	
+	@Autowired
+	private MockTestService mockTestService;
+	
+	
+	@Autowired
+	private TechnologyService technologyService;
+	
+	@Autowired
+	private StackService stackService;
 	
 	
 	@GetMapping("/secure/profile")
@@ -252,9 +271,11 @@ public class StudentController {
 		jobDescriptionDTO.setInterviewDate(jobDescription.getInterviewDate());
 		jobDescriptionDTO.setGenderPreference(jobDescription.getGenderPreference());
 		jobDescriptionDTO.setRolesAndResponsibility(jobDescription.getRolesAndResponsibility());
+		jobDescriptionDTO.setGeneric(jobDescription.getGeneric());
 		
 		//Returns profile matched result
 		Map<String,String> matchResult = profileMatch(jobDescription, student);
+	
 
 		jobDescriptionDTO.setStudentProfileMatch(matchResult);
 
@@ -324,6 +345,7 @@ public class StudentController {
 			jobDescriptionDTO.setInterviewDate(jobDescription.getInterviewDate());
 			jobDescriptionDTO.setGenderPreference(jobDescription.getGenderPreference());
 			jobDescriptionDTO.setRolesAndResponsibility(jobDescription.getRolesAndResponsibility());
+			jobDescriptionDTO.setGeneric(jobDescription.getGeneric());
 			return jobDescriptionDTO;
 			
 		});
@@ -331,9 +353,19 @@ public class StudentController {
 	}
 	
 	
-	
+	@Transactional
 	private Map<String, String> profileMatch(JobDescription jobDescription, Student student) {
-	    Map<String, String> matchResult = new HashMap<>();
+	    Map<String, String> matchResult = new LinkedHashMap<>();
+	    
+	    if(jobDescription.getGeneric()!=null)
+	    {
+	    	if(jobDescription.getGeneric().toLowerCase().equals("yes"))
+	    	{
+	    		matchResult.put("allMatched","Eligible");
+	    		return matchResult;
+	    	}
+	    }
+	    
 
 	    // Check for nulls in required student fields
 	    if (
@@ -459,7 +491,36 @@ public class StudentController {
 	    //         allMatched = false;
 	    //     }
 	    // }
-
+	    
+	    List<Technology> technologies = technologyService.findTechnologiesByStack(student.getStack().getStackId());
+	    
+	    String studentId = student.getStudentId();
+	    
+	    for (Technology technology : technologies) {
+	        List<Double> ratings = mockTestService.getRatingOfStudent(studentId, technology.getTechId());
+	        if (ratings != null && !ratings.isEmpty()) {
+	            // Calculate average using streams
+	            double avgRating = ratings.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+	            
+	            System.out.println(technology.getName()+"  "+ avgRating);
+	            
+	            if(avgRating >= jobDescription.getMockRating())
+	            {
+	            	 matchResult.put(technology.getName()+" Rating", "Eligible");
+	            }else {
+	            	allMatched=false;
+	            	matchResult.put(technology.getName()+" Rating", "Not Eligible");
+	            }
+	           
+	        } else {
+	        	allMatched=false;
+	        	matchResult.put(technology.getName()+" Rating","Not Eligible"); // or null, depending on your use case
+	        }
+	        
+	    }
+	    
+	    
+	 
 	    // Set allMatched
 	    matchResult.put("allMatched", allMatched ? "Eligible" : "Not Eligible");
 

@@ -1,5 +1,6 @@
 package com.pentagon.app.entity;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
@@ -29,11 +30,16 @@ public class BatchTechTrainer {
     @CreationTimestamp
     private LocalDateTime createdAt;
     
-    private Double startTime;
+    private Double startTime= 0.0;
     
-    private Double endTime;
-    
+    private Double endTime= 0.0;
     
     private boolean completed = false;
+    
+    private String status = "Not Started";// "Not Started","Started","Completed"
+    
+    private LocalDateTime startDate;
+    
+    private LocalDate completedDate;
     
 }

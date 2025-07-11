@@ -1,6 +1,6 @@
 package com.pentagon.app.restController;
 
-import java.util.HashMap;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -13,37 +13,28 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.pentagon.app.Dto.TrainerDTO;
-import com.pentagon.app.entity.Admin;
 import com.pentagon.app.entity.BatchTechTrainer;
-import com.pentagon.app.entity.Student;
-import com.pentagon.app.entity.Student.EnrollmentStatus;
 import com.pentagon.app.entity.Trainer;
 import com.pentagon.app.exception.TrainerException;
 import com.pentagon.app.mapper.TrainerMapper;
-import com.pentagon.app.request.AddStudentRequest;
-import com.pentagon.app.request.TrainerUpdateRequest;
 import com.pentagon.app.response.ApiResponse;
-import com.pentagon.app.response.ProfileResponse;
 import com.pentagon.app.service.ActivityLogService;
 import com.pentagon.app.service.BatchTechTrainerService;
 import com.pentagon.app.service.CustomUserDetails;
-import com.pentagon.app.service.StudentService;
 import com.pentagon.app.service.TrainerService;
-import com.pentagon.app.utils.IdGeneration;
-import com.pentagon.app.utils.JwtUtil;
+import com.pentagon.app.serviceImpl.CloudinaryServiceImp;
 
-import jakarta.validation.Valid;
+import jakarta.transaction.Transactional;
 
 
 @RestController
@@ -53,20 +44,10 @@ public class TrainerController {
 	@Autowired
 	private TrainerService trainerService;
 	
-	@Autowired
-	private PasswordEncoder passwordEncoder;
-	
-	@Autowired
-	private JwtUtil jwtUtil;
 	
 	@Autowired
 	private ActivityLogService activityLogService;
 	
-	@Autowired
-	private IdGeneration idGeneration;
-	
-	@Autowired
-	private StudentService studentService;
 	
 	
 	@Autowired
@@ -75,16 +56,24 @@ public class TrainerController {
 	@Autowired
 	private TrainerMapper trainerMapper;
 	
+	@Autowired
+	private CloudinaryServiceImp cloudinaryService;
 	
-	@PostMapping("/secure/updateTrainer")
+	
+	@PutMapping("/secure/update")
 	@PreAuthorize("hasRole('TRAINER')")
-	public ResponseEntity<?> updateTrainer( @AuthenticationPrincipal CustomUserDetails trainerDetails,
-            @Valid @RequestBody  TrainerUpdateRequest request,
-            BindingResult bindingResult){
+	public ResponseEntity<?> updateTrainer( 
+			@AuthenticationPrincipal CustomUserDetails trainerDetails,
+			@RequestParam(required = false) String name,
+		    @RequestParam(required = false) String mobile,
+		    @RequestParam(required = false) String qualification,
+		    @RequestParam(required = false) Integer yearOfExperiences,
+		    @RequestParam(required = false) String gender,
+		    @RequestParam(required = false) String bio,
+		    @RequestPart(required = false) MultipartFile profileFile,
+		    @RequestParam(required=false) LocalDate dob
+			){
 		
-		if (bindingResult.hasErrors()) {
-            throw new TrainerException("Invalid input data", HttpStatus.BAD_REQUEST);
-        }
 		
 		if(trainerDetails.getTrainer() == null) {
 			throw new TrainerException("UNAUTHORIZED", HttpStatus.UNAUTHORIZED);
@@ -96,15 +85,42 @@ public class TrainerController {
             throw new TrainerException("Trainer not found", HttpStatus.NOT_FOUND);
         }
 
-		trainer.setName(request.getName());
-		trainer.setEmail(request.getEmail());
-		trainer.setMobile(request.getMobile());
-		
-		if (request.getPassword() != null && !request.getPassword().isBlank()) {
-			
-            String hashedPassword = passwordEncoder.encode(request.getPassword());
-            trainer.setPassword(hashedPassword);    
-        }
+		if(name!=null)
+		{
+			trainer.setName(name);
+		}
+		if (mobile != null) {
+	        trainer.setMobile(mobile);
+	    }
+		if (qualification != null) {
+	        trainer.setQualification(qualification);
+	    }
+	    if (yearOfExperiences != null) {
+	        trainer.setYearOfExperiences(yearOfExperiences);
+	    }
+	    if (gender != null) {
+	        trainer.setGender(gender);
+	    }
+	    if (bio != null) {
+	        trainer.setBio(bio);
+	    }
+	    if(dob!=null)
+	    {
+	    	trainer.setDob(dob);
+	    }
+	    
+	    if(profileFile!=null)
+	    {
+	    	if(trainer.getProfilePublicId()!=null)
+	    	{
+	    		cloudinaryService.deleteFile(trainer.getProfilePublicId(), "image");
+	    	}
+	    	Map<String, Object>	uploadResponse  = cloudinaryService.uploadImage(profileFile);
+			trainer.setProfilePublicId(uploadResponse.get("public_id").toString());
+			trainer.setProfileImgUrl(uploadResponse.get("secure_url").toString());
+	    	
+	    }
+	    
 		 
 		Trainer updatedTrainer = trainerService.updateTrainer(trainer);
 		
@@ -117,16 +133,16 @@ public class TrainerController {
 	}
 	
 	
-	
+	@Transactional
 	@GetMapping("/secure/profile")
 	@PreAuthorize("hasRole('TRAINER')")
 	public ResponseEntity<?> getAdminProfile(@AuthenticationPrincipal CustomUserDetails trainerDetails) {
 		if(trainerDetails.getTrainer() == null) {
 			throw new TrainerException("UNAUTHORIZED", HttpStatus.UNAUTHORIZED);
 		}
-	    Trainer trainer = trainerDetails.getTrainer();
-	    ProfileResponse details = trainerService.getProfile(trainer);
-	    return ResponseEntity.ok(new ApiResponse<>("success", "Trainer Profile", details));
+		Trainer trainer = trainerDetails.getTrainer();
+	    
+	    return ResponseEntity.ok(new ApiResponse<>("success", "Trainer Profile", trainer));
 	}
 	
 	
@@ -168,6 +184,7 @@ public class TrainerController {
 	}
 	
 	//individual trainers
+	@Transactional
 	@GetMapping("/secure/{id}")
 	@PreAuthorize("hasAnyRole('STUDENTADMIN','ADMIN','PROGRAMHEAD')")
 	public ResponseEntity<?> getTrainerById(@PathVariable String id){
@@ -178,10 +195,10 @@ public class TrainerController {
 		{
 			throw new TrainerException("Trainer not found", HttpStatus.NOT_FOUND);
 		}
-		
-		TrainerDTO trainer = trainerMapper.toDTO(findTrainer);
-
-		return ResponseEntity.ok(new ApiResponse<>("success", "Trainer data", trainer));
+	     
+		TrainerDTO trainerDTO=  trainerMapper.toDTO(findTrainer);
+	
+		return ResponseEntity.ok(new ApiResponse<>("success", "Trainer data", trainerDTO));
 	}
 	
 	

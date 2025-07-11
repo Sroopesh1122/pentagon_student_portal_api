@@ -40,5 +40,7 @@ public interface ManagerService {
     public List<JdStatsDTO> getManagerJdStats(String managerId,String timeUnit ,Integer range);
     
     public Page<Executive> getAllExecutives(String managerId,String q , Pageable pageable);
+    
+    public Manager  findByPasswordResetToken(String token);
 
 }

@@ -140,6 +140,8 @@ public class JobDescription {
 	@Size(max = 100000)
 	private String rolesAndResponsibility;
 	
+	private String generic="no";
+	
 	
 	@OneToMany(mappedBy = "jobDescription")
 	private List<JdRoundHistory> roundHistory;

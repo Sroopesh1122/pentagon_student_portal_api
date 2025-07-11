@@ -2,11 +2,13 @@ package com.pentagon.app.configuaration;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Executor;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -118,6 +120,17 @@ public class AppConfiguaration {
 	                            .scheme("bearer")
 	                            .bearerFormat("JWT") 
 	            ));
+	}
+	
+	
+	@Bean
+	public Executor taskExecutor() {
+	    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+	    executor.setCorePoolSize(10);    // The minimum number of threads to keep alive
+	    executor.setMaxPoolSize(50);     // The maximum number of threads allowed
+	    executor.setQueueCapacity(2000); // The number of tasks that can be queued up
+	    executor.initialize();
+	    return executor;
 	}
 	
 

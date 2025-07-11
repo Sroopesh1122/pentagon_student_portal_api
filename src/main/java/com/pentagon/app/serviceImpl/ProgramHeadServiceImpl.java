@@ -84,4 +84,9 @@ public class ProgramHeadServiceImpl implements ProgramHeadService {
 			return result;
 	}
 
+	@Override
+	public ProgramHead findByPasswordResetToken(String token) {
+		return programHeadRepository.findByPasswordResetToken(token);
+	}
+
 }

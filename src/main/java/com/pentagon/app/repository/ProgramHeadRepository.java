@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import com.pentagon.app.entity.ProgramHead;
+import com.pentagon.app.entity.Student;
 
 @Repository
 public interface ProgramHeadRepository extends JpaRepository<ProgramHead, String> {
@@ -18,4 +19,5 @@ public interface ProgramHeadRepository extends JpaRepository<ProgramHead, String
 	@Query("SELECT ph FROM ProgramHead ph WHERE (:q IS NULL OR :q= '' OR ph.id LIKE CONCAT(:q,'%') OR ph.email LIKE CONCAT(:q,'%' ) OR ph.name LIKE CONCAT(:q,'%') )")
 	public Page<ProgramHead> getAll(String q ,Pageable pageable);
 
+	public ProgramHead findByPasswordResetToken(String token);
 }

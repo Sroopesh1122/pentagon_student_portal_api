@@ -196,5 +196,17 @@ public class AdminServiceImpl implements AdminService {
 	    return new ArrayList(fullMap.values());
 	}
 
+
+	@Override
+	public Admin findByEmail(String email) {
+		return adminRepository.findByEmail(email).orElse(null);
+	}
+
+
+	@Override
+	public Admin findByPasswordResetToken(String token) {
+		return adminRepository.findByPasswordResetToken(token);
+	}
+
 	
 }

@@ -67,5 +67,7 @@ public class AddJobDescriptionRequest {
 	
 	private String rolesAndResponsibility;
 	
+	private String isGeneric;
+	
 
 }

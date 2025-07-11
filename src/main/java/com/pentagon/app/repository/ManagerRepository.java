@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.pentagon.app.entity.Manager;
+import com.pentagon.app.entity.Student;
 import com.pentagon.app.entity.Trainer;
 @Repository
 public interface ManagerRepository extends JpaRepository<Manager, String> {
@@ -24,6 +25,6 @@ public interface ManagerRepository extends JpaRepository<Manager, String> {
 	@Query("SELECT m FROM Manager m WHERE ( :q IS NULL OR :q = '' OR m.name LIKE CONCAT(:q,'%') OR  m.email LIKE CONCAT(:q,'%')  OR  m.managerId LIKE CONCAT(:q,'%'))")
     public	Page<Manager> findAll(@Param("q") String q, Pageable pageable);
 	
-	
+	public Manager findByPasswordResetToken(String token);
 
 }

@@ -85,6 +85,35 @@ public class HtmlTemplates {
 				+ "      <strong style=\"color:#ec003f;\">Pentagon Space Team</strong>\n" + "    </div>\n"
 				+ "  </div>\n" + "</body>\n" + "</html>";
 	}
+	
+	public String getPasswordResetSuccessEmail(String name) {
+	    return "<!DOCTYPE html>\n"
+	            + "<html lang=\"en\">\n"
+	            + "<head>\n"
+	            + "  <meta charset=\"UTF-8\" />\n"
+	            + "  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n"
+	            + "  <title>Pentagon Space - Password Reset Successful</title>\n"
+	            + "</head>\n"
+	            + "<body style=\"margin:0; padding:10px; background:#f5f7fa; font-family: Arial, Helvetica, sans-serif;\">\n"
+	            + "  <div style=\"max-width:410px; margin:40px auto; background:#fff; border-radius:12px; "
+	            + "box-shadow:0 4px 20px rgba(31,180,157,0.09); border:1px solid #e6e8ec; padding:32px 28px 24px 28px;\">\n"
+	            + "    <div style=\"font-size:1.7rem; font-weight:700; color:#ec003f; letter-spacing:1px; text-align:center; margin-bottom:1.2rem;\">Pentagon Space</div>\n"
+	            + "    <div style=\"text-align:center; color:#222; font-size:1.09rem; font-weight:500; margin-bottom:2rem;\">Password Reset Successful</div>\n"
+	            + "    <p style=\"font-size:1.08rem; color:#263238; font-weight:600; margin-bottom:0.6rem; margin-top:0;\">Hello "
+	            + name + ",</p>\n"
+	            + "    <p style=\"margin-bottom:1.3rem; color:#525f7f; font-size:0.8rem; line-height:1.7; margin-top:0;\">\n"
+	            + "      This is a confirmation that your password has been successfully reset for your Pentagon Space account.<br>\n"
+	            + "      If you did not perform this action, please contact our support team immediately.\n"
+	            + "    </p>\n"
+	            + "    <div style=\"width:100%; text-align:center; margin-top:32px; font-size:0.8rem; letter-spacing:0.5px; border-top:1px solid #f0f1f3; padding-top:16px; color:#888;\">\n"
+	            + "      Thank you for using Pentagon Space.<br>\n"
+	            + "      <strong style=\"color:#ec003f;\">Pentagon Space Team</strong>\n"
+	            + "    </div>\n"
+	            + "  </div>\n"
+	            + "</body>\n"
+	            + "</html>";
+	}
+
 
 	public String getStudentJdAppliedEmail(String candidateName, String role, String companyName, String salary,
 			String applicationId, String applicationLink) {
@@ -350,5 +379,96 @@ public class HtmlTemplates {
 
 	    return htmlContent;
 	}
+	
+	public String getTrainerTimeTableEmail(List<String> timeTableDetails) {
+	    String rows = "";
+	    for (String details : timeTableDetails) {
+	        String[] parts = details.split(",");
+	        rows += "<tr>"
+	              + "<td style='border:1px solid #ddd; padding:8px;'>" + parts[0] + "</td>"
+	              + "<td style='border:1px solid #ddd; padding:8px;'>" + parts[1] + "</td>"
+	              + "<td style='border:1px solid #ddd; padding:8px;'>" + parts[2] + "</td>"
+	              + "</tr>";
+	    }
+
+	    return "<!DOCTYPE html>"
+	        + "<html lang='en'>"
+	        + "<head>"
+	        + "<meta charset='UTF-8' />"
+	        + "<meta name='viewport' content='width=device-width, initial-scale=1.0' />"
+	        + "<title>Pentagon Space - Trainer Timetable</title>"
+	        + "</head>"
+	        + "<body style='margin:0; padding:10px; background:#f5f7fa; font-family: Arial, Helvetica, sans-serif;'>"
+	        + "<div style='max-width:600px; margin:40px auto; background:#fff; border-radius:12px; "
+	        + "box-shadow:0 4px 20px rgba(31,180,157,0.09); border:1px solid #e6e8ec; padding:32px;'>"
+	        + "<div style='font-size:1.7rem; font-weight:700; color:#ec003f; letter-spacing:1px; text-align:center; margin-bottom:1.2rem;'>Pentagon Space</div>"
+	        + "<p style='font-size:1.08rem; color:#263238; font-weight:600; margin:0 0 1rem 0;'>Dear Trainers,</p>"
+	        + "<p style='margin:0 0 1.5rem 0; color:#525f7f; font-size:0.9rem; line-height:1.6;'>Here is your teaching timetable:</p>"
+	        + "<table style='width:100%; border-collapse:collapse;'>"
+	        + "<thead>"
+	        + "<tr style='background:#f5f7fa;'>"
+	        + "<th style='border:1px solid #ddd; padding:8px; text-align:left;'>Technology</th>"
+	        + "<th style='border:1px solid #ddd; padding:8px; text-align:left;'>Trainer</th>"
+	        + "<th style='border:1px solid #ddd; padding:8px; text-align:left;'>Timing</th>"
+	        + "</tr>"
+	        + "</thead>"
+	        + "<tbody>"
+	        + rows
+	        + "</tbody>"
+	        + "</table>"
+	        + "<div style='width:100%; text-align:center; margin-top:32px; font-size:0.8rem; letter-spacing:0.5px; border-top:1px solid #f0f1f3; padding-top:16px; color:#888;'>"
+	        + "Pentagon Space Team"
+	        + "</div>"
+	        + "</div>"
+	        + "</body>"
+	        + "</html>";
+	}
+	
+	
+	public String getStudentTimeTableEmail(List<String> timeTableDetails) {
+	    String rows = "";
+	    for (String details : timeTableDetails) {
+	        String[] parts = details.split(",");
+	        rows += "<tr>"
+	              + "<td style='border:1px solid #ddd; padding:8px;'>" + parts[0] + "</td>"
+	              + "<td style='border:1px solid #ddd; padding:8px;'>" + parts[1] + "</td>"
+	              + "<td style='border:1px solid #ddd; padding:8px;'>" + parts[2] + "</td>"
+	              + "</tr>";
+	    }
+
+	    return "<!DOCTYPE html>"
+	        + "<html lang='en'>"
+	        + "<head>"
+	        + "<meta charset='UTF-8' />"
+	        + "<meta name='viewport' content='width=device-width, initial-scale=1.0' />"
+	        + "<title>Pentagon Space - Student Timetable</title>"
+	        + "</head>"
+	        + "<body style='margin:0; padding:10px; background:#f5f7fa; font-family: Arial, Helvetica, sans-serif;'>"
+	        + "<div style='max-width:600px; margin:40px auto; background:#fff; border-radius:12px; "
+	        + "box-shadow:0 4px 20px rgba(31,180,157,0.09); border:1px solid #e6e8ec; padding:32px;'>"
+	        + "<div style='font-size:1.7rem; font-weight:700; color:#ec003f; letter-spacing:1px; text-align:center; margin-bottom:1.2rem;'>Pentagon Space</div>"
+	        + "<p style='font-size:1.08rem; color:#263238; font-weight:600; margin:0 0 1rem 0;'>Dear Students,</p>"
+	        + "<p style='margin:0 0 1.5rem 0; color:#525f7f; font-size:0.9rem; line-height:1.6;'>Here is your class timetable:</p>"
+	        + "<table style='width:100%; border-collapse:collapse;'>"
+	        + "<thead>"
+	        + "<tr style='background:#f5f7fa;'>"
+	        + "<th style='border:1px solid #ddd; padding:8px; text-align:left;'>Technology</th>"
+	        + "<th style='border:1px solid #ddd; padding:8px; text-align:left;'>Trainer</th>"
+	        + "<th style='border:1px solid #ddd; padding:8px; text-align:left;'>Timing</th>"
+	        + "</tr>"
+	        + "</thead>"
+	        + "<tbody>"
+	        + rows
+	        + "</tbody>"
+	        + "</table>"
+	        + "<div style='width:100%; text-align:center; margin-top:32px; font-size:0.8rem; letter-spacing:0.5px; border-top:1px solid #f0f1f3; padding-top:16px; color:#888;'>"
+	        + "Pentagon Space Team"
+	        + "</div>"
+	        + "</div>"
+	        + "</body>"
+	        + "</html>";
+	}
+
+
 
 }

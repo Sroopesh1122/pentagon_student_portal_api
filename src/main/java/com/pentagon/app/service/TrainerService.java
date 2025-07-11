@@ -32,5 +32,7 @@ public interface TrainerService {
 	
 	public Page<Trainer> getAllTrainers(String programHeadId, String q, Pageable pageable);
 	
+	public Trainer findByPasswordResetToken(String token);
+	
 	
 }

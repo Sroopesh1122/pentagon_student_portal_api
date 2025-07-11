@@ -14,4 +14,5 @@ public interface TechnologyService {
     public Optional<Technology> getTechnologyById(String techId);
     public Technology updateTechnology(Technology technology);
     public void deleteTechnology(String techId);
+    public List<Technology> findTechnologiesByStack(String stackId);
 }

@@ -26,6 +26,17 @@ public class GlobalExceptionHandler {
 	        return new ResponseEntity<Map<String,Object>>(errorResponse, invalidDataException.getHttpStatus());
 	    }
 	 
+	 @ExceptionHandler(MockException.class)
+	    public ResponseEntity<Map<String, Object>> handleMockException(MockException mockException) {
+	        Map<String,Object> errorResponse = new HashMap<>();
+	        errorResponse.put("status", "failure");
+	        errorResponse.put("type","Mock Exception");
+	        errorResponse.put("error", mockException.getMessage());
+	        errorResponse.put("localTime", LocalDateTime.now());
+	        errorResponse.put("status", mockException.getHttpStatus().toString());
+	        return new ResponseEntity<Map<String,Object>>(errorResponse, mockException.getHttpStatus());
+	    }
+	 
 	 @ExceptionHandler(AnnouncementExpection.class)
 	    public ResponseEntity<Map<String, Object>> handleAnnouncementExpection(AnnouncementExpection announcementExpection) {
 	        Map<String,Object> errorResponse = new HashMap<>();

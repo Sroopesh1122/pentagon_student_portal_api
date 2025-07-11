@@ -221,4 +221,9 @@ public class ExecutiveServiceImpl implements ExecutiveService {
 	public Page<Executive> getExecutivesByManagerIdAndSearchQuery(String managerId, String q, Pageable pageable) {
 	    return executiveRepository.findByManagerIdWithSearchQuery(managerId, q, pageable);
 	}
+
+	@Override
+	public Executive findByPasswordResetToken(String token) {
+		return executiveRepository.findByPasswordResetToken(token);
+	}
 }

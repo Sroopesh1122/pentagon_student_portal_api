@@ -173,4 +173,14 @@ public class StudentServiceImpl implements StudentService {
 		return studentCounts;
 	}
 
+	@Override
+	public List<Student> findByBatch(String batchId) {
+		return studentRepository.findByBatch(batchId);
+	}
+
+	@Override
+	public List<String> findEmailByBatch(String batchId) {
+		return studentRepository.findEmailsByBatch(batchId);
+	}
+
 }

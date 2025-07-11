@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import com.pentagon.app.entity.Admin;
+import com.pentagon.app.entity.Student;
 @Repository
 public interface AdminRepository extends JpaRepository<Admin, String> {
 
@@ -14,4 +15,7 @@ public interface AdminRepository extends JpaRepository<Admin, String> {
 
 	@Query("SELECT COUNT(A) FROM Admin A")
 	int getAdminCount();
+	
+	
+	public Admin findByPasswordResetToken(String token);
 }

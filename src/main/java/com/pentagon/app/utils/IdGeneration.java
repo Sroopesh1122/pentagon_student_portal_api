@@ -127,8 +127,10 @@ public class IdGeneration {
 	
 	}
     
-	public  String generateRandomString() {
-        return UUID.randomUUID().toString().replace("-", "");
-    }
+	public String generateRandomString() {
+	    String uuid = UUID.randomUUID().toString().replace("-", "");
+	    long timestamp = System.currentTimeMillis();
+	    return uuid + timestamp;
+	}
 
 }

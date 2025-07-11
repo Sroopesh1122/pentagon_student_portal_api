@@ -19,6 +19,12 @@ public interface StudentRepository extends JpaRepository<Student, String> {
 	@Query("SELECT s FROM Student s WHERE s.stack.stackId = :stackId")
 	public List<Student> findByStack(String stackId);
 	
+	@Query("SELECT s FROM Student s WHERE s.batch.batchId = :batchId")
+	public List<Student> findByBatch(String batchId);
+	
+	@Query("SELECT s.email FROM Student s WHERE s.batch.batchId = :batchId")
+	public List<String> findEmailsByBatch(String batchId);
+	
 	@Query("SELECT COUNT(s) FROM Student s WHERE s.stack.stackId = :stack AND FUNCTION('MONTH', s.createdAt) = :month AND FUNCTION('YEAR', s.createdAt) = :year")
 	public int countByCourseAndMonthYear( String stack, int month, int year);
 

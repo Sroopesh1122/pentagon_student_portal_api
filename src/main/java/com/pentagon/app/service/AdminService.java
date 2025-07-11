@@ -23,4 +23,9 @@ public interface AdminService {
 	
 	public List<JdVsClosureStatsDTO> getJdVsClosureStats(String timeUnit , int range);
 	
+	
+	public Admin findByEmail(String email);
+	
+	public Admin findByPasswordResetToken(String token);
+	
 }

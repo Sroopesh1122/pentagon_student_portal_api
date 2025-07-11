@@ -18,4 +18,6 @@ public interface BatchTechTrainerService {
     public List<BatchTechTrainer> getBatchScheduleInfo(String batchId);
     public List<BatchTechTrainer> getTrainerSchedule(String trainerId);
     public BatchTechTrainer getById(Integer id);
+    
+    public BatchTechTrainer findByBatchTechnology(String batchId,String techId);
 }

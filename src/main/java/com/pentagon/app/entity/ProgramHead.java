@@ -41,6 +41,12 @@ public class ProgramHead {
     )
 	@JsonIgnore
 	private List<Stack> stacks;
+	
+	@JsonIgnore
+	private String passwordResetToken;
+
+	@JsonIgnore
+	private LocalDateTime passwordTokenExpiredAt;
 
 	@CreationTimestamp
 	@Column(name = "created_at", updatable = false)

@@ -38,4 +38,8 @@ public interface StudentService {
 	
 	public Map<String, Long> countStudent(String batchId,String stackId);
 	
+	public List<Student> findByBatch(String batchId);
+	
+	public List<String> findEmailByBatch(String batchId);
+	
 }

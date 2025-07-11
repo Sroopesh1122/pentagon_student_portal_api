@@ -137,6 +137,12 @@ public class TrainerServiceImpl implements TrainerService {
 		// TODO Auto-generated method stub
 		return trainerRepository.getAllTrainers(programHeadId,q, pageable);
 	}
+
+
+	@Override
+	public Trainer findByPasswordResetToken(String token) {
+		return trainerRepository.findByPasswordResetToken(token);
+	}
 	
 	
 	

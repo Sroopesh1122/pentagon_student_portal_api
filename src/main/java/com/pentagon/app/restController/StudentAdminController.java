@@ -206,31 +206,45 @@ public class StudentAdminController {
 		newBatch.setMode(request.getBatchMode());
 		newBatch.setStack(findStack);
 		Batch createdBatch = batchService.addBatch(newBatch);
-		request.getScheduleDetails().forEach(schedule->{
-			boolean available = batchTechTrainerService.checkTrainerAvailabality(schedule.getTrainerId(), schedule.getStartTime(), schedule.getEndTime());
-			if(!available)
-			{
-				throw new StudentAdminException("Trainer unavailable between "+schedule.getStartTime()+" to "+schedule.getEndTime(), HttpStatus.CONFLICT);
-			}
-			Technology findTechnology = technologyService.getTechnologyById(schedule.getTechId()).orElse(null);
-			Trainer findTrainer = trainerService.getById(schedule.getTrainerId());
-			if(findTechnology==null)
-			{
-				throw new StudentAdminException("Technology Not Found", HttpStatus.CONFLICT);
-			}
-			if(findTrainer ==  null)
-			{
-				throw new StudentAdminException("Trainer Not Found", HttpStatus.CONFLICT);
-			}
+		
+		
+		findStack.getTechnologies().forEach(technology->{
 			BatchTechTrainer batchTechTrainer  = new BatchTechTrainer();
 			batchTechTrainer.setBatch(createdBatch);
 			batchTechTrainer.setCreatedAt(LocalDateTime.now());
-			batchTechTrainer.setEndTime(schedule.getEndTime());
-			batchTechTrainer.setStartTime(schedule.getStartTime());
-			batchTechTrainer.setTechnology(findTechnology);
-			batchTechTrainer.setTrainer(findTrainer);
+			batchTechTrainer.setTechnology(technology);
+			batchTechTrainer.setStatus("Not Started");
 			batchTechTrainer = batchTechTrainerService.assignTrainer(batchTechTrainer);
-		});	
+		});
+		
+		
+//		request.getScheduleDetails().forEach(schedule->{
+//			boolean available = batchTechTrainerService.checkTrainerAvailabality(schedule.getTrainerId(), schedule.getStartTime(), schedule.getEndTime());
+//			if(!available)
+//			{
+//				throw new StudentAdminException("Trainer unavailable between "+schedule.getStartTime()+" to "+schedule.getEndTime(), HttpStatus.CONFLICT);
+//			}
+//			Technology findTechnology = technologyService.getTechnologyById(schedule.getTechId()).orElse(null);
+//			Trainer findTrainer = trainerService.getById(schedule.getTrainerId());
+//			if(findTechnology==null)
+//			{
+//				throw new StudentAdminException("Technology Not Found", HttpStatus.CONFLICT);
+//			}
+//			if(findTrainer ==  null)
+//			{
+//				throw new StudentAdminException("Trainer Not Found", HttpStatus.CONFLICT);
+//			}
+//			BatchTechTrainer batchTechTrainer  = new BatchTechTrainer();
+//			batchTechTrainer.setBatch(createdBatch);
+//			batchTechTrainer.setCreatedAt(LocalDateTime.now());
+//			batchTechTrainer.setEndTime(schedule.getEndTime());
+//			batchTechTrainer.setStartTime(schedule.getStartTime());
+//			batchTechTrainer.setTechnology(findTechnology);
+//			batchTechTrainer.setTrainer(findTrainer);
+//			batchTechTrainer = batchTechTrainerService.assignTrainer(batchTechTrainer);
+//		});	
+		
+		
 		return ResponseEntity.ok(new ApiResponse<>("success","Batch Created Successfully", null));
 	
 	}

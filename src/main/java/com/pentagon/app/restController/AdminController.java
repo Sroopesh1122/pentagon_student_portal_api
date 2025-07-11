@@ -495,6 +495,7 @@ public class AdminController {
 		jobDescriptionDTO.setInterviewDate(jobDescription.getInterviewDate());
 		jobDescriptionDTO.setGenderPreference(jobDescription.getGenderPreference());
 		jobDescriptionDTO.setRolesAndResponsibility(jobDescription.getRolesAndResponsibility());
+		jobDescriptionDTO.setGeneric(jobDescription.getGeneric());
 		Manager manager = managerService.getManagerById(jobDescription.getManagerId());
 		if(manager !=null)
 		{

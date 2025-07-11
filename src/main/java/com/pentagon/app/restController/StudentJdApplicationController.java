@@ -134,28 +134,31 @@ public class StudentJdApplicationController {
 		}
 		
 		
-		// Looking for match
-		//later need to check for mock rating also
-		String profileStack  = student.getStack().getName();
-		String profileQualification = student.getGradCourse();
-		String profileStream = student.getGradBranch();
-		Double profile10thPercantage = student.getTenthPercentage();
-		Double profile12thPercentage = student.getTwelvePercentage();
-		Double profileGradPercentage = student.getGradPercentage();
-		String gender = student.getGender();
-		
-		if(profileQualification == null|| gender == null || profileStream ==null || profile10thPercantage ==null || profile12thPercentage ==null || profileGradPercentage ==null)
+		if(jobDescription.getGeneric() !=null && jobDescription.getGeneric().toLowerCase().equals("no"))
 		{
-			throw new StudentJdApplcationException("Please Complete your profile to apply", HttpStatus.BAD_REQUEST);
-		}
-		
-		
-		Boolean isProfileMatchedJd = jdAndProfileMatch(student, jobDescription);
-		
-		
-		if(!isProfileMatchedJd)
-		{
-			throw new StudentJdApplcationException("Your Profile Not Matched for this Jd", HttpStatus.BAD_REQUEST);
+			// Looking for match
+			//later need to check for mock rating also
+			String profileStack  = student.getStack().getName();
+			String profileQualification = student.getGradCourse();
+			String profileStream = student.getGradBranch();
+			Double profile10thPercantage = student.getTenthPercentage();
+			Double profile12thPercentage = student.getTwelvePercentage();
+			Double profileGradPercentage = student.getGradPercentage();
+			String gender = student.getGender();
+			
+			if(profileQualification == null|| gender == null || profileStream ==null || profile10thPercantage ==null || profile12thPercentage ==null || profileGradPercentage ==null)
+			{
+				throw new StudentJdApplcationException("Please Complete your profile to apply", HttpStatus.BAD_REQUEST);
+			}
+			
+			
+			Boolean isProfileMatchedJd =  jdAndProfileMatch(student, jobDescription);
+			
+			
+			if(!isProfileMatchedJd)
+			{
+				throw new StudentJdApplcationException("Your Profile Not Matched for this Jd", HttpStatus.BAD_REQUEST);
+			}
 		}
 		
 		
@@ -454,13 +457,6 @@ public class StudentJdApplicationController {
 	        throw new StudentJdApplcationException("Failed to download Excel", HttpStatus.INTERNAL_SERVER_ERROR);
 	    }
 	}
-	
-	
-	
-	
-	
-	
-	
 	
 	
 	//CHeck for jd and student profile match

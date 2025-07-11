@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.pentagon.app.entity.Executive;
+import com.pentagon.app.entity.Student;
 @Repository
 public interface ExecutiveRepository extends JpaRepository<Executive, String>{
 
@@ -50,4 +51,6 @@ public interface ExecutiveRepository extends JpaRepository<Executive, String>{
 			+ "OR LOWER(e.name) LIKE LOWER(CONCAT(:q,'%')) OR e.executiveId = :q)")
 	public Page<Executive> getAllExecutives(@Param("managerId") String managerId,@Param("q") String q,  Pageable pageable);
 
+	public Executive findByPasswordResetToken(String token);
+	
 }

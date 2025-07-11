@@ -47,4 +47,9 @@ public class TechnologyServiceImpl implements TechnologyService {
     public List<Technology> getAllTechnologies() {
     	return technologyRepository.findAll();
     }
+    
+    @Override
+    public List<Technology> findTechnologiesByStack(String stackId) {
+    	return technologyRepository.getAllTechnologiesByStack(stackId);
+    }
 }

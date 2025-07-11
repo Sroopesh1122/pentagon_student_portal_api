@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import com.pentagon.app.entity.ProgramHead;
+import com.pentagon.app.entity.Student;
 import com.pentagon.app.entity.StudentAdmin;
 import java.util.Optional;
 
@@ -19,4 +20,5 @@ public interface StudentAdminRepository extends JpaRepository<StudentAdmin, Stri
 	@Query("SELECT sa FROM StudentAdmin sa WHERE (:q IS NULL OR :q= '' OR sa.id LIKE CONCAT(:q,'%') OR sa.email LIKE CONCAT(:q,'%' ) OR sa.name LIKE CONCAT(:q,'%') )")
 	public Page<StudentAdmin> getAll(String q ,Pageable pageable);
 	
+	public StudentAdmin findByPasswordResetToken(String token);
 }

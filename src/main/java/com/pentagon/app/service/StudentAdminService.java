@@ -17,5 +17,7 @@ public interface StudentAdminService
   
   public StudentAdmin getByEmail(String email);
   public String loginWithPassword(@Valid StudentAdminLoginRequest request);
+  
+  public StudentAdmin findByPasswordResetToken(String token);
 
 }

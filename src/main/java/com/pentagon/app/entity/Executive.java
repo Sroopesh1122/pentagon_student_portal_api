@@ -19,43 +19,46 @@ import lombok.Data;
 @Data
 
 @Entity
-@Table(name="executive")
+@Table(name = "executive")
 public class Executive {
-	
-    @Id
+
+	@Id
 	@Column(name = "executive_id", nullable = false, unique = true)
 	private String executiveId;
-	
+
 	@Column(nullable = false)
 	private String name;
-	
+
 	@Column(nullable = false, unique = true)
 	private String email;
-	
+
 	@Column(nullable = false, length = 10)
 	private String mobile;
-	
-    @Column(nullable = false)
+
+	@Column(nullable = false)
 	private String password;
-	
+
 	@Column(name = "is_active")
-	private boolean  active;
-	
+	private boolean active;
+
 	@CreationTimestamp
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
-	
-	
+	@Column(name = "created_at", updatable = false)
+	private LocalDateTime createdAt;
+
 	private String managerId;
-	 
+
+	@JsonIgnore
+	private String passwordResetToken;
+
+	@JsonIgnore
+	private LocalDateTime passwordTokenExpiredAt;
+
 	@UpdateTimestamp
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-	
-	
+	@Column(name = "updated_at")
+	private LocalDateTime updatedAt;
+
 	@OneToMany(mappedBy = "executive", cascade = CascadeType.ALL)
 	@JsonIgnore
-    private List<JobDescription> jobDescription;
-	
-	
+	private List<JobDescription> jobDescription;
+
 }

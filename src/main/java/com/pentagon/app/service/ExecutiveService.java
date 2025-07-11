@@ -42,4 +42,6 @@ public interface ExecutiveService {
 	
 	
 	public Long getTotalCount();
+	
+	public Executive findByPasswordResetToken(String token);
 }

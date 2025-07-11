@@ -225,4 +225,9 @@ public class ManagerServiceImpl implements ManagerService {
 		return managerRepository.count();
 	}
 
+	@Override
+	public Manager findByPasswordResetToken(String token) {
+		return managerRepository.findByPasswordResetToken(token);
+	}
+
 }

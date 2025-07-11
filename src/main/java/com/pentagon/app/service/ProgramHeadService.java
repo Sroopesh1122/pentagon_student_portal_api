@@ -26,4 +26,6 @@ public interface ProgramHeadService {
 	public String loginwithPassword(@Valid ProgramheadLoginRequest request);
 	
 	public ProfileResponse getProfile(ProgramHead programHead);
+	
+	public ProgramHead findByPasswordResetToken(String token);
 }

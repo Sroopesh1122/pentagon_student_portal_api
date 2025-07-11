@@ -55,6 +55,8 @@ public class JobDescriptionDTO {
 	private LocalDate interviewDate;
 	private String rolesAndResponsibility;
 	
+	private String generic;
+	
 	
 	private Map<String, String> studentProfileMatch;
 

@@ -16,7 +16,7 @@ public class CreateBatchRequest {
 	@NotBlank
 	private String stackId;
 	
-	private List<ScheduleDetails> scheduleDetails;
+//	private List<ScheduleDetails> scheduleDetails;
 	
 }
 

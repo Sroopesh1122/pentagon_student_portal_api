@@ -1,5 +1,8 @@
 package com.pentagon.app.restController;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +38,8 @@ import com.pentagon.app.service.BatchService;
 import com.pentagon.app.service.BatchTechTrainerService;
 import com.pentagon.app.service.StudentService;
 import com.pentagon.app.service.TrainerService;
+import com.pentagon.app.serviceImpl.MailService;
+import com.pentagon.app.utils.HtmlTemplates;
 
 @RestController
 @RequestMapping("/api/batch")
@@ -56,9 +61,18 @@ public class BatchTechTrainerController {
 	private BatchMapper batchMapper;
 	
 	
+	@Autowired
+	private StudentService studentService;
+	
+	@Autowired
+	private HtmlTemplates htmlTemplates;
 	
 	@Autowired
 	private BatchService batchService;
+	
+	
+	@Autowired
+	private MailService mailService;
 	
 	
 	@GetMapping("/secure/trainer/{id}/schedule")
@@ -76,6 +90,54 @@ public class BatchTechTrainerController {
 		return ResponseEntity.ok(new ApiResponse<>("success","ScheduleData", scheduleInfo));
 		
 	}
+	
+	
+	@GetMapping("/secure/timetabel/send-email")
+	@PreAuthorize("hasAnyRole('STUDENTADMIN','PROGRAMHEAD','ADMIN','TRAINER')")
+	public ResponseEntity<?> getSendTimeTableNotificationBatches(@RequestParam String batchId)
+	{
+		
+		List<BatchTechTrainer> batchTechTrainers = batchTechTrainerService.getBatchScheduleInfo(batchId)
+			    .stream()
+			    .filter(data -> !data.getStatus().equalsIgnoreCase("Not Started") && !data.getStatus().equalsIgnoreCase("Completed"))
+			    .collect(Collectors.toList());
+
+			List<String> trainerEmails = batchTechTrainers.stream()
+			    .map(data -> data.getTrainer().getEmail())
+			    .collect(Collectors.toList());
+
+			List<String> studentsEmail = studentService.findEmailByBatch(batchId);
+
+			// Combine trainer and student emails into a new list
+			List<String> recipientsEmails = new ArrayList<>(trainerEmails);
+			recipientsEmails.addAll(studentsEmail);
+
+			// If you want to build timetable details:
+			List<String> timeTableDetails = new ArrayList<>();
+			for (BatchTechTrainer batchTechTrainer : batchTechTrainers) {
+			    String details = batchTechTrainer.getTechnology().getName() + "," +
+			                     batchTechTrainer.getTrainer().getName() + "," +
+			                     doubleTimeRangeToReadable(batchTechTrainer.getStartTime(), batchTechTrainer.getEndTime());
+			    timeTableDetails.add(details);
+			}
+			
+			
+			String trainerEmailTemplate = htmlTemplates.getTrainerTimeTableEmail(timeTableDetails);
+			String studentEmailTemplate = htmlTemplates.getStudentTimeTableEmail(timeTableDetails);
+			
+			try {
+				mailService.sendWithBcc(null, "Time Table", studentEmailTemplate, studentsEmail);
+				mailService.sendWithBcc(null, "Time Table", trainerEmailTemplate, trainerEmails);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		
+		return ResponseEntity.ok(new ApiResponse<>("success","Emails Sent Successfully",null));
+	}
+	
+	
+	
 	
 	@GetMapping("/secure/all")
 	@PreAuthorize("hasAnyRole('STUDENTADMIN','PROGRAMHEAD','ADMIN','TRAINER')")
@@ -106,8 +168,36 @@ public class BatchTechTrainerController {
 	}
 	
 	
+	@GetMapping("/secure/schedule/details/{id}")
+	@PreAuthorize("hasAnyRole('STUDENTADMIN','PROGRAMHEAD','ADMIN','TRAINER','STUDENT')")
+	public ResponseEntity<?> getScheduleInfoById(@PathVariable Integer id)
+	{
+		BatchTechTrainer batchScheduleInfo  = batchTechTrainerService.getById(id);
+		return ResponseEntity.ok(new ApiResponse<>("success","Schedule Info", batchScheduleInfo));
+	}
 	
-	@PutMapping("/secure/update")
+	
+	@PutMapping("/secure/class/complete/{id}")
+	@PreAuthorize("hasAnyRole('STUDENTADMIN','PROGRAMHEAD','ADMIN','TRAINER','STUDENT')")
+	public ResponseEntity<?> markClassAsComplete(@PathVariable Integer id)
+	{
+		BatchTechTrainer batchScheduleInfo  = batchTechTrainerService.getById(id);
+		
+		if(batchScheduleInfo==null)
+		{
+			throw new BatchTechTrainerException("Class Not Found", null);
+		}
+		
+		batchScheduleInfo.setCompleted(true);
+		batchScheduleInfo.setStatus("Completed");
+		batchScheduleInfo.setCompletedDate(LocalDate.now());
+		batchTechTrainerService.update(batchScheduleInfo);
+		return ResponseEntity.ok(new ApiResponse<>("success","Successfully marked as completed", null));
+	}
+	
+	
+	
+	@PutMapping("/secure/schedule/update")
 	@PreAuthorize("hasAnyRole('STUDENTADMIN','PROGRAMHEAD')")
 	public ResponseEntity<?> updateBatchScheduleInfo(@RequestBody List<UpdateScheduleDetails> updateScheduleDetails)
 	{
@@ -124,13 +214,50 @@ public class BatchTechTrainerController {
 			{
 				throw new BatchTechTrainerException("Trainer not found", HttpStatus.NOT_FOUND);
 			}
+			
+			boolean available = batchTechTrainerService.checkTrainerAvailabality(findTrainer.getTrainerId(), updateScheduleDetail.getStartTime(), updateScheduleDetail.getEndTime());
+			
+			if(!available)
+			{
+				throw new BatchTechTrainerException("Trainer Not Available", HttpStatus.NOT_FOUND);	
+			}
+			
 			batchTechTrainer.setTrainer(findTrainer);
 			batchTechTrainer.setStartTime(updateScheduleDetail.getStartTime());
 			batchTechTrainer.setEndTime(updateScheduleDetail.getEndTime());
+			if(batchTechTrainer.getStatus().toLowerCase().equals("not started"))
+			{
+				batchTechTrainer.setStatus("In Progress");
+				batchTechTrainer.setStartDate(LocalDateTime.now());
+			}
 			batchTechTrainer = batchTechTrainerService.update(batchTechTrainer);
 		}	
 		return ResponseEntity.ok(new ApiResponse<>("success", "Batch Info Updated",null));
 	}
+	
+	
+	
+	
+	private String doubleTimeRangeToReadable(double start, double end) {
+        return doubleTimeToString(start) + " - " + doubleTimeToString(end);
+    }
+
+	private String doubleTimeToString(double time) {
+        int hours = (int) time;
+        int minutes = (int) Math.round((time - hours) * 60);
+
+        // Handle rounding up to 60 minutes
+        if (minutes == 60) {
+            hours += 1;
+            minutes = 0;
+        }
+
+        String ampm = (hours >= 12) ? "PM" : "AM";
+        int displayHours = hours % 12;
+        if (displayHours == 0) displayHours = 12;
+
+        return String.format("%02d:%02d %s", displayHours, minutes, ampm);
+    }
 	
 	
 }

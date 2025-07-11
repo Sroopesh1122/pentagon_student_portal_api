@@ -70,4 +70,9 @@ public class StudentAdminServiceimpl implements StudentAdminService {
 		return "OTP sent to registered email";
 	}
 
+	@Override
+	public StudentAdmin findByPasswordResetToken(String token) {
+		return studentAdminRepository.findByPasswordResetToken(token);
+	}
+
 }

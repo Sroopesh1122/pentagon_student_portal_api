@@ -1,6 +1,7 @@
 package com.pentagon.app.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,6 +10,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -39,7 +41,27 @@ public class Trainer {
     private boolean isActive;
 
     private String qualification;
+    
     private Integer yearOfExperiences;
+    
+    private String gender;
+    
+    @Size(max = 5000)
+    private String bio;
+    
+    private String profileImgUrl = "https://img.freepik.com/premium-vector/vector-flat-illustration-grayscale-avatar-user-profile-person-icon-gender-neutral-silhouette-profile-picture-suitable-social-media-profiles-icons-screensavers-as-templatex9xa_719432-2210.jpg?semt=ais_hybrid&w=740";
+    
+    private String profilePublicId;
+    
+    private LocalDate dob;
+    
+    
+    @JsonIgnore
+    private String passwordResetToken;
+    
+    @JsonIgnore
+    private LocalDateTime passwordTokenExpiredAt;
+    
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
@@ -60,7 +82,6 @@ public class Trainer {
     @JsonIgnore
     @OneToMany(mappedBy = "trainer")
     private List<BatchTechTrainer> batchTechTrainer;
-    
     
     
 }

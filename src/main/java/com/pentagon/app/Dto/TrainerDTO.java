@@ -1,5 +1,6 @@
 package com.pentagon.app.Dto;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -22,5 +23,10 @@ public class TrainerDTO {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private String programHeadId;
+    private String gender;
+    private String bio;
+    private String profileImgUrl;
+    private String profilePublicId;
+    private LocalDate dob;
     
 }

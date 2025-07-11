@@ -62,4 +62,9 @@ public class BatchTechTrainerServiceImpl implements BatchTechTrainerService {
     	
     	return batchTechTrainerRepository.findById(id).orElse(null);
     }
+
+	@Override
+	public BatchTechTrainer findByBatchTechnology(String batchId, String techId) {
+		return batchTechTrainerRepository.findByBatchTechnology(batchId, techId);
+	}
 }
