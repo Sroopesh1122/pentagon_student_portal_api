@@ -15,4 +15,6 @@ public interface StackService {
     public void deleteStack(String stackId);
     
     public List<Stack> getAll();
+    
+    public Stack getByName(String stackName);
 }

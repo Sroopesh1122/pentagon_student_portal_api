@@ -26,16 +26,12 @@ public class ActivityLogController {
         return activityLogServiceImp.getAllLogs();
     }
 
-    @GetMapping("/by-email")
-	@PreAuthorize("hasRole('ADMIN')")
-    public List<ActivityLog> getLogsByEmail(@RequestParam String email) {
-        return activityLogServiceImp.getLogsByEmail(email);
-    }
+   
 
-    @GetMapping("/by-role")	
+    @GetMapping("/user")	
     @PreAuthorize("hasRole('ADMIN')")
-    public List<ActivityLog> getLogsByRole(@RequestParam String role) {
-        return activityLogServiceImp.getLogsByRole(role);
+    public List<ActivityLog> getLogsByRole(@RequestParam String userId) {
+        return activityLogServiceImp.getLogsByUserId(userId);
     }
 
     @GetMapping("/by-date")

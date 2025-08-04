@@ -1,5 +1,6 @@
 package com.pentagon.app.Dto;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import com.pentagon.app.entity.Batch;
@@ -48,5 +49,7 @@ public class StudentDTO {
 	private LocalDateTime updatedAt;
 	private Batch batch;
 	private Stack stack;
+	private LocalDate validUpto;
+	private Boolean educationUpdate;
 
 }

@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public interface TechnologyService {
@@ -15,4 +16,5 @@ public interface TechnologyService {
     public Technology updateTechnology(Technology technology);
     public void deleteTechnology(String techId);
     public List<Technology> findTechnologiesByStack(String stackId);
+   
 }

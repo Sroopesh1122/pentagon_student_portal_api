@@ -1,9 +1,16 @@
 package com.pentagon.app.serviceImpl;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.TextStyle;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -110,11 +117,11 @@ public class StudentServiceImpl implements StudentService {
 		Student student = studentRepository.findByStudentId(studentId)
 				.orElseThrow(()->new StudentException("Student not found with id: " + studentId, HttpStatus.NOT_FOUND));
 		
-		if (student.getStatus() == EnrollmentStatus.DISABLED) {
+		if (student.getStatus() == EnrollmentStatus.BLOCKED) {
 	        throw new StudentException("Student is already disabled", HttpStatus.CONFLICT);
 	    }
 		
-		student.setStatus(EnrollmentStatus.DISABLED);
+		student.setStatus(EnrollmentStatus.BLOCKED);
 		student.setUpdatedAt(LocalDateTime.now());
 		studentRepository.save(student);
 	}
@@ -140,12 +147,12 @@ public class StudentServiceImpl implements StudentService {
 
 	@Override
 	public Student findById(String studentId) {
-		return studentRepository.findById(studentId).orElse(null);
+		return studentRepository.findByStudentId(studentId).orElse(null);
 	}
 	
 	@Override
-	public Page<Student> findStudent(String q, String batchId, String stackId, Pageable pageable) {
-		return studentRepository.findStudents(q, batchId, stackId, pageable);
+	public Page<Student> findStudent(String q, String batchId, String stackId,EnrollmentStatus status, Pageable pageable) {
+		return studentRepository.findStudents(q, batchId, stackId,status, pageable);
 	}
 
 	
@@ -155,9 +162,8 @@ public class StudentServiceImpl implements StudentService {
 		Map<String, Long> studentCounts = new HashMap<>();
 		studentCounts.put(EnrollmentStatus.ACTIVE.toString(), 0l);
 		studentCounts.put(EnrollmentStatus.COMPLETED.toString(), 0l);
-		studentCounts.put(EnrollmentStatus.DISABLED.toString(),0l);
-		studentCounts.put(EnrollmentStatus.DROPPED.toString(), 0l);
-		studentCounts.put(EnrollmentStatus.PENDING.toString(), 0l);
+		studentCounts.put(EnrollmentStatus.BLOCKED.toString(),0l);
+		studentCounts.put(EnrollmentStatus.PLACED.toString(), 0l);
 		studentCounts.put(EnrollmentStatus.PLACED.toString(), 0l);
 		
 		
@@ -179,8 +185,49 @@ public class StudentServiceImpl implements StudentService {
 	}
 
 	@Override
-	public List<String> findEmailByBatch(String batchId) {
-		return studentRepository.findEmailsByBatch(batchId);
+	public List<String> getEmailByBatch(String batchId) {
+		return studentRepository.getEmailsByBatch(batchId);
 	}
+
+	@Override
+	public Long countStudents(EnrollmentStatus status) {
+		return studentRepository.countStudents(status);
+	}
+
+	@Override
+	public Map<String, Object> countStudentByStack(String stackId) {
+		
+		Map<String, Object> studentCounts = new HashMap<>();
+		studentCounts.put(EnrollmentStatus.ACTIVE.toString() ,studentRepository.countStudentsByBatch(EnrollmentStatus.ACTIVE,stackId));
+		studentCounts.put(EnrollmentStatus.COMPLETED.toString(), studentRepository.countStudentsByBatch(EnrollmentStatus.COMPLETED,stackId));
+		studentCounts.put(EnrollmentStatus.BLOCKED.toString(),studentRepository.countStudentsByBatch(EnrollmentStatus.BLOCKED,stackId));
+		studentCounts.put(EnrollmentStatus.PLACED.toString(),studentRepository.countStudentsByBatch(EnrollmentStatus.PLACED,stackId));
+		
+		
+		return studentCounts;
+	}
+
+	public Map<String, Long> getStudentCountsForPastMonths(int noOfMonths) {
+		Map<String, Long> monthCountMap = new LinkedHashMap<>();
+
+		LocalDate currentDate = LocalDate.now();
+
+		for (int i = 0; i < noOfMonths; i++) {
+		    LocalDate date = currentDate.minusMonths(i);
+		    int month = date.getMonthValue();
+		    int year = date.getYear();
+
+		    long count = studentRepository.countByCreatedAtMonthAndYear(month, year);
+
+		    String monthYear = date.getMonth().getDisplayName(TextStyle.SHORT, Locale.ENGLISH) + " " + year;
+
+		    monthCountMap.put(monthYear, count);
+		}
+
+		return monthCountMap;
+
+    }
+
+   
 
 }

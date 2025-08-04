@@ -93,8 +93,19 @@ public class ManagerServiceImpl implements ManagerService {
 	
 	
 	@Override
-	public Page<Manager> findAll(String q , Pageable pageable) {
-		return managerRepository.findAll(q, pageable);
+	public Page<Manager> findAll(String q,String status , Pageable pageable) {
+		
+		Boolean active =null;
+		if(status!=null &&   status.equalsIgnoreCase("active"))
+		{
+			active = true;
+		}
+		else if (status !=null && status.equalsIgnoreCase("inactive"))
+		{
+			active = false;
+		}
+		
+		return managerRepository.findAll(q,active, pageable);
 	}
 
 	
@@ -148,6 +159,8 @@ public class ManagerServiceImpl implements ManagerService {
 		jdDetails.put("holdJd", jobDescriptionRepository.managerTotalJdCount(managetId,"hold"));
 		jdDetails.put("approved", jobDescriptionRepository.managerTotalJdCount(managetId,"approved"));
 		jdDetails.put("rejectedJd", jobDescriptionRepository.managerTotalJdCount(managetId, "rejected"));
+		jdDetails.put("closed", jobDescriptionRepository.managerTotalJdCount(managetId,"closed"));
+		jdDetails.put("closure", jobDescriptionRepository.getTotalClosureCountByManagerId(managetId));
 		return jdDetails;
 	}
 	

@@ -25,5 +25,14 @@ public interface BatchRepository extends JpaRepository<Batch, String> {
 	
 	@Query("SELECT COUNT(DISTINCT b) FROM Batch b JOIN b.students s WHERE s.status =:status AND b.batchId=:batchId")
 	public Long countBatchStudents(EnrollmentStatus status,String batchId);
+	
+	@Query("SELECT COUNT(b) FROM Batch b WHERE b.completed = :isCompleted")
+	public Long countBatch(Boolean isCompleted);
+	
+	
+	@Query("SELECT COUNT(b) FROM Batch b WHERE b.stack.stackId =:stackId AND b.completed = :isCompleted")
+	public Long countBatchByStack(String stackId ,Boolean isCompleted);
+	
+	
 
 }

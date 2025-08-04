@@ -1,5 +1,6 @@
 package com.pentagon.app.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -36,6 +37,9 @@ public interface ExecutiveRepository extends JpaRepository<Executive, String>{
 	
 	@Query("SELECT e FROM Executive e WHERE e.managerId = :managerId")
 	public Page<Executive> getAllExecutives(@Param("managerId") String managerId , Pageable pageable);
+	
+	@Query("SELECT e FROM Executive e WHERE e.managerId = :managerId")
+	public List<Executive> getAllExecutives(@Param("managerId") String managerId);
 	
 	@Query("SELECT e FROM Executive e WHERE "
 		     + "e.managerId = :managerId AND ("

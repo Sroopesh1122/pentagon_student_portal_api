@@ -67,6 +67,12 @@ public class ExecutiveServiceImpl implements ExecutiveService {
 	public String loginWithPassword(ExecutiveLoginRequest executiveLoginRequest) {
 		Executive executive = executiveRepository.findByEmail(executiveLoginRequest.getEmail())
 				.orElseThrow(() -> new ExecutiveException("Executive not found", HttpStatus.NOT_FOUND));
+		
+		if(!executive.isActive())
+		{
+			throw new ExecutiveException("Your Account is Blocked,Please contact Manager", HttpStatus.BAD_REQUEST);
+		}
+		
 		if (!passwordEncoder.matches(executiveLoginRequest.getPassword(), executive.getPassword())) {
 			throw new ExecutiveException("Inavlid password", HttpStatus.UNAUTHORIZED);
 		}
@@ -139,6 +145,7 @@ public class ExecutiveServiceImpl implements ExecutiveService {
 		jdDetails.put("holdJd", jobDescriptionRepository.executiveTotalJdCount(executiveId, "hold"));
 		jdDetails.put("approved", jobDescriptionRepository.executiveTotalJdCount(executiveId, "approved"));
 		jdDetails.put("rejectedJd", jobDescriptionRepository.executiveTotalJdCount(executiveId, "rejected"));
+		jdDetails.put("closed", jobDescriptionRepository.executiveTotalJdCount(executiveId, "closed"));
 		jdDetails.put("closure", jobDescriptionRepository.getTotalClosureCountByExecutiveId(executiveId));
 		return jdDetails;
 	}
@@ -147,9 +154,8 @@ public class ExecutiveServiceImpl implements ExecutiveService {
 	//Passing only executive value to get Jd of specific executive
 	@Override
 	public Page<JobDescription> getRecentJobDescriptions(String executiveId, Integer count) {
-		Pageable pageable = PageRequest.of(0, count, Sort.by("created_at").descending());
-		return jobDescriptionRepository.findWithFiltersUsingRegex(null, null, null, null, null,
-				null,null, null, null, executiveId,null, null, null,null, pageable);
+		Pageable pageable = PageRequest.of(0, count, Sort.by("createdAt").descending());
+		return jobDescriptionRepository.getRecentJd(executiveId, pageable);
 	}
 	
 	@Override
@@ -225,5 +231,10 @@ public class ExecutiveServiceImpl implements ExecutiveService {
 	@Override
 	public Executive findByPasswordResetToken(String token) {
 		return executiveRepository.findByPasswordResetToken(token);
+	}
+	
+	@Override
+	public List<Executive> getAllManagerExecutive(String managerId) {
+		return executiveRepository.getAllExecutives(managerId);
 	}
 }

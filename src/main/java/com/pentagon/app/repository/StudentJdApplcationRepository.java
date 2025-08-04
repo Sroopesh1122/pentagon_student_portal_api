@@ -48,7 +48,7 @@ public interface StudentJdApplcationRepository extends JpaRepository<StudentJdAp
 	@Query("SELECT COUNT(s) FROM StudentJdApplication s WHERE s.student.studentId = :studentId AND LOWER(s.currentStatus) = 'rejected'")
 	public Long countRejectApplicationByStudent(String studentId);
 
-	@Query("SELECT COUNT(s) FROM StudentJdApplication s WHERE s.student.studentId = :studentId AND LOWER(s.currentStatus) != 'rejected'")
+	@Query("SELECT COUNT(s) FROM StudentJdApplication s WHERE s.student.studentId = :studentId AND LOWER(s.currentStatus) = 'selected'")
 	public Long countScheduledApplicationByStudent(String studentId);
 	
 	

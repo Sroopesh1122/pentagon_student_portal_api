@@ -25,4 +25,7 @@ public class Technology {
     @ManyToMany(mappedBy = "technologies")
     @JsonIgnore
     private List<Trainer> trainers;
+    
+    private String logo;
+    
 }

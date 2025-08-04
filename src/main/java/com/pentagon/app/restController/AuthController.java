@@ -119,8 +119,7 @@ public class AuthController {
 		response.put("token", token);
 		response.put("Role", request.getRole());
 		response.put("message", "LOGIN SUCCESSFULLY");
-		activityLogService.log(request.getEmail(), null, request.getRole(),
-				request.getRole() + " Logged In Successfully");
+		
 		return ResponseEntity.ok(new ApiResponse<>("success", "Login Successfully", response));
 	}
 

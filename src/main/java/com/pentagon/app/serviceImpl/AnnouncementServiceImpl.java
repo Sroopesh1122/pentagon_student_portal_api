@@ -1,5 +1,6 @@
 package com.pentagon.app.serviceImpl;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -24,7 +25,8 @@ public class AnnouncementServiceImpl implements AnnouncementService {
 
 	@Override
 	public List<Announcement> getAnnouncementByBatch(String batchId) {
-		return announcementRepository.getAllAnnouncementByBatch(batchId);
+		LocalDateTime startDate = LocalDate.now().minusDays(7).atStartOfDay();
+		return announcementRepository.getAnnouncementsFromLast7DaysByBatch(batchId,startDate);
 	}
 
 	@Override

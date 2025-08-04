@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import com.pentagon.app.entity.Student;
+import com.pentagon.app.entity.Student.EnrollmentStatus;
 import com.pentagon.app.request.StudentLoginRequest;
 
 
@@ -34,12 +35,18 @@ public interface StudentService {
 	
 	public Student findByPasswordResetToken(String token);
 	
-	public Page<Student> findStudent(String q,String batchId,String stackId,Pageable pageable);
+	public Page<Student> findStudent(String q,String batchId,String stackId,EnrollmentStatus status ,Pageable pageable);
 	
 	public Map<String, Long> countStudent(String batchId,String stackId);
 	
+	public Map<String, Object> countStudentByStack(String stackId);
+	
 	public List<Student> findByBatch(String batchId);
 	
-	public List<String> findEmailByBatch(String batchId);
+	public List<String> getEmailByBatch(String batchId);
+	
+	public Long countStudents(EnrollmentStatus status);
+	
+	public Map<String, Long> getStudentCountsForPastMonths(int noOfMonths);
 	
 }

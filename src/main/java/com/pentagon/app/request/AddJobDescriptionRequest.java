@@ -1,6 +1,7 @@
 package com.pentagon.app.request;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -32,10 +33,12 @@ public class AddJobDescriptionRequest {
 	private String qualification;
 	@NotBlank
 	private String stream;
-	@NotBlank
+	
 	private String stack;
+	
 	@NotBlank
 	private String salaryPackage;
+	
 	@NotNull
 	@Min(value = 1)
 	private Integer noOfRegistrations;
@@ -67,7 +70,10 @@ public class AddJobDescriptionRequest {
 	
 	private String rolesAndResponsibility;
 	
-	private String isGeneric;
+	
+	private List<String> technologies;
+	
+	
 	
 
 }

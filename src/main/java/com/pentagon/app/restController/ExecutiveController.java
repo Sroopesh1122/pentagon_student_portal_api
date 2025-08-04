@@ -1,5 +1,7 @@
 package com.pentagon.app.restController;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -19,22 +21,34 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.pentagon.app.Dto.JdStatsDTO;
 import com.pentagon.app.Dto.JobDescriptionDTO;
+import com.pentagon.app.entity.Admin;
 import com.pentagon.app.entity.Executive;
 import com.pentagon.app.entity.JdStatusHistory;
 import com.pentagon.app.entity.JobDescription;
 import com.pentagon.app.entity.Manager;
+import com.pentagon.app.entity.Stack;
+import com.pentagon.app.entity.Technology;
 import com.pentagon.app.exception.AdminException;
+import com.pentagon.app.exception.BlockedException;
 import com.pentagon.app.exception.ExecutiveException;
 import com.pentagon.app.exception.JobDescriptionException;
+import com.pentagon.app.exception.ManagerException;
 import com.pentagon.app.request.AddJobDescriptionRequest;
+import com.pentagon.app.request.BlockUserRequest;
+import com.pentagon.app.request.CloseJdRequest;
+import com.pentagon.app.request.UnblockUserRequest;
 import com.pentagon.app.request.UpdateClosuresRequest;
+import com.pentagon.app.request.UpdateExecutiveManager;
 import com.pentagon.app.request.UpdateJobDescriptionRequest;
 import com.pentagon.app.response.ApiResponse;
 import com.pentagon.app.response.ExecutiveDetails;
@@ -45,10 +59,14 @@ import com.pentagon.app.service.ExecutiveService;
 import com.pentagon.app.service.JdStatusRoundHistoryService;
 import com.pentagon.app.service.JobDescriptionService;
 import com.pentagon.app.service.ManagerService;
+import com.pentagon.app.service.StackService;
+import com.pentagon.app.service.TechnologyService;
+import com.pentagon.app.serviceImpl.CloudinaryServiceImp;
 import com.pentagon.app.serviceImpl.MailService;
 import com.pentagon.app.utils.HtmlTemplates;
 import com.pentagon.app.utils.IdGeneration;
 
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 
 @RestController
@@ -68,17 +86,25 @@ public class ExecutiveController {
 
 	@Autowired
 	private IdGeneration idGenerator;
-	
+
+	@Autowired
+	private StackService stackService;
+
+	@Autowired
+	private CloudinaryServiceImp cloudinaryService;
+
+	@Autowired
+	private TechnologyService technologyService;
+
 	@Autowired
 	private JdStatusRoundHistoryService jdStatusRoundHistoryService;
-	
+
 	@Autowired
 	private HtmlTemplates htmlTemplates;
-	
+
 	@Autowired
 	private MailService mailService;
-	
-	
+
 	@Value("${FRONTEND_URL}")
 	private String FRONTEND_URL;
 
@@ -88,15 +114,31 @@ public class ExecutiveController {
 	public ResponseEntity<?> addJobDescription(@AuthenticationPrincipal CustomUserDetails executiveDetails,
 			@Valid @RequestBody AddJobDescriptionRequest newJd, BindingResult bindingResult) {
 		if (bindingResult.hasErrors()) {
-		    List<String> errorMessages = bindingResult.getFieldErrors().stream()
-		        .map(error -> error.getField() + ": " + error.getDefaultMessage())
-		        .collect(Collectors.toList());
+			List<String> errorMessages = bindingResult.getFieldErrors().stream()
+					.map(error -> error.getField() + ": " + error.getDefaultMessage()).collect(Collectors.toList());
 
-		    throw new ExecutiveException("Invalid input data: " + String.join(", ", errorMessages), HttpStatus.BAD_REQUEST);
+			throw new ExecutiveException("Invalid input data: " + String.join(", ", errorMessages),
+					HttpStatus.BAD_REQUEST);
 		}
-		if (executiveDetails.getExecutive() == null) {
+		Executive executive = executiveDetails.getExecutive();
+		if (executive == null) {
 			throw new ExecutiveException("UNAUTHORIZED", HttpStatus.UNAUTHORIZED);
 		}
+
+		if (!executive.isActive()) {
+			throw new BlockedException("Your Account is Blocked", HttpStatus.UNAUTHORIZED);
+		}
+
+		Stack findStack = null;
+
+		if (newJd.getStack() != null) {
+			findStack = stackService.getStackById(newJd.getStack()).orElse(null);
+
+			if (findStack == null) {
+				throw new JobDescriptionException("Stack Not Found", HttpStatus.NOT_FOUND);
+			}
+		}
+
 		JobDescription jd = new JobDescription();
 		jd.setJobDescriptionId(idGenerator.generateId("JD"));
 		jd.setCompanyLogo(newJd.getCompanyLogoUrl());
@@ -109,7 +151,7 @@ public class ExecutiveController {
 		jd.setPercentage(newJd.getPercentage());
 		jd.setMinYearOfPassing(newJd.getMinYearOfPassing());
 		jd.setMaxYearOfPassing(newJd.getMaxYearOfPassing());
-		jd.setStack(newJd.getStack());
+		jd.setJdStack(findStack);
 		jd.setSalaryPackage(newJd.getSalaryPackage());
 		jd.setNumberOfRegistrations(newJd.getNoOfRegistrations());
 		jd.setMockRating(newJd.getMockRating());
@@ -118,123 +160,273 @@ public class ExecutiveController {
 		jd.setLocation(newJd.getLocation());
 		jd.setExecutive(executiveDetails.getExecutive());
 		jd.setPostedBy(executiveDetails.getExecutive().getExecutiveId());
-		jd.setJdStatus("pending");	
+		jd.setJdStatus("pending");
 		jd.setManagerId(executiveDetails.getExecutive().getManagerId());
 		jd.setSkills(newJd.getSkills());
 		jd.setAcardemicGap(newJd.getAcardemicGap());
 		jd.setBacklogs(newJd.getBacklogs());
-		if(newJd.getBondDetails()!=null)
-		{
+		if (newJd.getBondDetails() != null) {
 			jd.setBondDetails(newJd.getBondDetails());
 		}
-		if(newJd.getSalaryDetails()!=null)
-		{
+		if (newJd.getSalaryDetails() != null) {
 			jd.setSalaryDetails(newJd.getSalaryDetails());
 		}
-		
+
+		List<Technology> technologiesToCheckMockRating = new ArrayList<>();
+
+		if (newJd.getTechnologies() != null && newJd.getTechnologies().size() > 0) {
+			for (String techId : newJd.getTechnologies()) {
+				Technology technology = technologyService.getTechnologyById(techId).orElse(null);
+				if (technology != null) {
+					technologiesToCheckMockRating.add(technology);
+				}
+			}
+		}
+
+		jd.setMockRatingTechnologies(technologiesToCheckMockRating);
+
 		jd.setGenderPreference(newJd.getGenderPreference());
 		jd.setAboutCompany(newJd.getAboutCompany());
 		jd.setInterviewDate(newJd.getInterviewDate());
 		jd.setRolesAndResponsibility(newJd.getRolesAndResponsibility());
-		jd.setGeneric(newJd.getIsGeneric());
 		jd = jobDescriptionService.addJobDescription(jd);
-		
-		JdStatusHistory jdStatusHistory=new JdStatusHistory();
+
+		JdStatusHistory jdStatusHistory = new JdStatusHistory();
 		jdStatusHistory.setJobDescription(jd);
 		jdStatusHistory.setStatus("Pending");
-		
-		//updated Status here 
+
+		// updated Status here
 		jdStatusHistory.setDescription(null);
 		jdStatusRoundHistoryService.addStatus(jdStatusHistory);
-		
+
 		Manager manager = managerService.getManagerById(jd.getManagerId());
-		
-		
-		String jdApplicationLink = FRONTEND_URL+"/manager/jd?id="+jd.getJobDescriptionId(); 
-		
+
+		String jdApplicationLink = FRONTEND_URL + "/manager/jd?id=" + jd.getJobDescriptionId();
+
 		String emailTemplate = htmlTemplates.generateJDApprovalEmail(manager.getName(),
-				executiveDetails.getExecutive().getName(),
-				executiveDetails.getExecutive().getEmail() ,
-				executiveDetails.getExecutive().getMobile(),
-				jd.getRole(), jd.getCompanyName(), 
-				jd.getCompanyLogo(), jdApplicationLink);
-		
-		
+				executiveDetails.getExecutive().getName(), executiveDetails.getExecutive().getEmail(),
+				executiveDetails.getExecutive().getMobile(), jd.getRole(), jd.getCompanyName(), jd.getCompanyLogo(),
+				jdApplicationLink);
+
 		try {
-			mailService.send(manager.getEmail(),"Jd Approval Pending", emailTemplate);
+			mailService.send(manager.getEmail(), "Jd Approval Pending", emailTemplate);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+
+	
+		String logDetails = "<strong>New Job Description Added</strong><br>" +
+                "• <strong>Company:</strong> " + jd.getCompanyName() + "<br>" +
+                "• <strong>Role:</strong> " + jd.getRole() + "<br>" +
+                "• <strong>Location:</strong> " + jd.getLocation() + "<br>" +
+                "• <strong>Qualification:</strong> " + jd.getQualification() + "<br>" +
+                "• <strong>Posted By:</strong> " + executiveDetails.getExecutive().getName() + " (" + executiveDetails.getExecutive().getEmail() + ")";
+
 		
-		
-		activityLogService.log(executiveDetails.getExecutive().getEmail(),
-				executiveDetails.getExecutive().getExecutiveId(), "EXECUTIVE", "Executive with ID "
-						+ executiveDetails.getExecutive().getExecutiveId() + " Added new job Description ");
+		activityLogService.log(executive.getExecutiveId(),"New JD addeed", logDetails);
 		return ResponseEntity.ok(new ApiResponse<>("status", "JobDescription added successfully", null));
 	}
 
-	@PostMapping("/secure/updateJobDescription")
+	@PutMapping("/secure/{id}/manager/change")
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<?> changeExecutiveManager(
+			@PathVariable String id,
+			@RequestBody @Valid UpdateExecutiveManager request, 
+			BindingResult bindingResult) {
+
+		if (bindingResult.hasErrors()) {
+			throw new ExecutiveException("Invalid data Input", HttpStatus.BAD_REQUEST);
+		}
+
+		Executive executive = executiveService.getExecutiveById(id);
+
+		if (executive == null) {
+			throw new ExecutiveException("Executive Not Found", HttpStatus.NOT_FOUND);
+		}
+
+		if (!executive.isActive()) {
+			throw new ExecutiveException("This Executive Account is Blocked", HttpStatus.BAD_REQUEST);
+		}
+
+		Manager manager = managerService.getManagerById(request.getManagerId());
+
+		if (manager == null) {
+			throw new ExecutiveException("Manager Not Found", HttpStatus.NOT_FOUND);
+		}
+
+		if (!manager.isActive()) {
+			throw new ExecutiveException("Manager account is blocked", HttpStatus.BAD_REQUEST);
+		}
+
+		executive.setManagerId(manager.getManagerId());
+
+		executiveService.updateExecutive(executive);
+
+		String emailMessage = htmlTemplates.getManagerChangeNotificationEmail(executive.getName(), executive.getEmail(),
+				manager.getName(), manager.getEmail());
+
+		List<String> emails = new ArrayList<>();
+		emails.add(executive.getEmail());
+		emails.add(manager.getEmail());
+		mailService.sendWithBccAsync(null, "Pentagon Space - Manager Change Notification", emailMessage, emails);
+
+		return ResponseEntity.ok(new ApiResponse<>("success", "Manager Chnaged Successfully", null));
+	}
+
+	@PutMapping("/secure/all/manager/{oldManagerId}/change")
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<?> changeAllExecutiveManager(@PathVariable String oldManagerId,
+			@RequestBody @Valid UpdateExecutiveManager request, BindingResult bindingResult) {
+
+		if (bindingResult.hasErrors()) {
+			throw new ExecutiveException("Invalid data Input", HttpStatus.BAD_REQUEST);
+		}
+
+		Manager newManager = managerService.getManagerById(request.getManagerId());
+		Manager oldManager = managerService.getManagerById(oldManagerId);
+
+		if (newManager == null || oldManager == null) {
+			throw new ExecutiveException("Manager Not Found", HttpStatus.NOT_FOUND);
+		}
+
+		if (!newManager.isActive()) {
+			throw new ExecutiveException("Manager account is blocked", HttpStatus.BAD_REQUEST);
+		}
+
+		List<String> emails = new ArrayList<>();
+		emails.add(newManager.getEmail());
+		List<String> executiveNames = new ArrayList<>();
+
+		executiveService.getAllManagerExecutive(oldManagerId).forEach(executive -> {
+			if (executive.isActive()) {
+				emails.add(executive.getEmail());
+				executiveNames.add(executive.getName());
+				executive.setManagerId(newManager.getManagerId());
+				executiveService.updateExecutive(executive);
+			}
+		});
+
+		if (emails.size() > 0) {
+			String emailMessage = htmlTemplates.getBulkManagerAssignmentEmail(newManager.getName(), executiveNames);
+			mailService.sendWithBccAsync(null, "Manager Assignment Notification - Pentagon Space", emailMessage,
+					emails);
+
+		}
+
+		return ResponseEntity.ok(new ApiResponse<>("success", "Manager Chnaged Successfully", null));
+	}
+
+	@PutMapping("/secure")
 	@PreAuthorize("hasRole('EXECUTIVE')")
-	public ResponseEntity<?> updateJobDescriptionBasedOnRegistrations(
-			@AuthenticationPrincipal CustomUserDetails executiveDetails,
+	public ResponseEntity<?> updateJobDescription(@AuthenticationPrincipal CustomUserDetails userDetails,
 			@Valid @RequestBody UpdateJobDescriptionRequest request, BindingResult bindingResult) {
 
 		if (bindingResult.hasErrors()) {
 			throw new ExecutiveException("Invaid Input Data", HttpStatus.BAD_REQUEST);
 		}
 
-		if (executiveDetails == null) {
+		Executive executive = userDetails.getExecutive();
+
+		if (executive == null) {
 			throw new ExecutiveException("UNAUTORIZED", HttpStatus.UNAUTHORIZED);
+		}
+
+		if (!executive.isActive()) {
+			throw new BlockedException("Your Account is Blocked", HttpStatus.UNAUTHORIZED);
 		}
 
 		JobDescription jobDescription = jobDescriptionService.findByJobDescriptionId(request.getJobDescriptionId())
 				.orElseThrow(() -> new JobDescriptionException("Job Description not found", HttpStatus.NOT_FOUND));
 
-		// both update and auto-closing - not working
-		jobDescription.updateCurrentRegistrations(request.getCurrentRegistrations());
+		if (!jobDescription.getPostedBy().equals(executive.getExecutiveId())) {
+			throw new JobDescriptionException("You are not allowed to update this jd", HttpStatus.BAD_REQUEST);
+		}
 
+		if (request.getNoOfRegistration() != null) {
+			jobDescription.setNumberOfRegistrations(request.getNoOfRegistration());
+		}
 		jobDescriptionService.updateJobDescription(jobDescription);
-
-		String message = jobDescription.isClosed() ? "Registrations updated and JD auto-closed"
-				: "Registrations updated successfully";
-
-		return ResponseEntity.ok(new ApiResponse<>("success", message, null));
+		return ResponseEntity.ok(new ApiResponse<>("success", "Jd Updated Successfully", null));
 	}
 
-	@PostMapping("/secure/updateClosures")
+	@PutMapping("/secure/jd/{id}/close")
 	@PreAuthorize("hasRole('EXECUTIVE')")
-	public ResponseEntity<?> updateClosures(@AuthenticationPrincipal CustomUserDetails executiveDetails,
-			@Valid @RequestBody UpdateClosuresRequest request, BindingResult bindingResult) {
-
+	@Transactional
+	public ResponseEntity<?> closeJd(@AuthenticationPrincipal CustomUserDetails userDetails, @PathVariable String id,
+			@Valid @RequestBody CloseJdRequest request, BindingResult bindingResult) {
 		if (bindingResult.hasErrors()) {
-			throw new ExecutiveException("Invaid Input Data", HttpStatus.BAD_REQUEST);
+			throw new JobDescriptionException("Invalid Input Data", HttpStatus.BAD_REQUEST);
 		}
 
-		if (executiveDetails == null) {
+		Executive executive = userDetails.getExecutive();
+
+		if (executive == null) {
 			throw new ExecutiveException("UNAUTORIZED", HttpStatus.UNAUTHORIZED);
 		}
 
-		JobDescription jobDescription = jobDescriptionService.findByJobDescriptionId(request.getJobDescriptionId())
+		if (!executive.isActive()) {
+			throw new BlockedException("Your Account is Blocked", HttpStatus.UNAUTHORIZED);
+		}
+
+		JobDescription jobDescription = jobDescriptionService.findByJobDescriptionId(id)
 				.orElseThrow(() -> new JobDescriptionException("Job Description not found", HttpStatus.NOT_FOUND));
 
-		if (!jobDescription.isClosed()) {
-			throw new IllegalStateException("Job Description must be closed first");
+		if (!jobDescription.getPostedBy().equals(executive.getExecutiveId())) {
+			throw new JobDescriptionException("You are not allowed to update this jd", HttpStatus.BAD_REQUEST);
 		}
 
-		if (request.getNumberOfClosures() < 0
-				|| request.getNumberOfClosures() > jobDescription.getCurrentRegistrations()) {
-			throw new IllegalArgumentException("Invalid closure count");
-		}
+		jobDescription.setNumberOfClosures(request.getNoOfClosure());
+		jobDescription.setClosed(true);
+		jobDescription.setJdStatus("Closed");
 
-		// Update closure data
-		jobDescription.setNumberOfClosures(request.getNumberOfClosures());
-//	    jobDescription.setJdStatus(request.getNumberOfClosures() >= 0); // true if any closures
+		JdStatusHistory jdStatusHistory = new JdStatusHistory();
+		jdStatusHistory.setStatus("Closed");
+		jdStatusHistory.setJobDescription(jobDescription);
+		jdStatusHistory
+				.setDescription("Jd is closed by " + executive.getName() + " on" + LocalDateTime.now().toString());
+
+		jdStatusRoundHistoryService.addStatus(jdStatusHistory);
 
 		jobDescriptionService.updateJobDescription(jobDescription);
 
-		return ResponseEntity.ok(new ApiResponse<>("success", "Closures updated successfully", null));
+		return ResponseEntity.ok(new ApiResponse<>("success", "JdClosed Successfully", null));
+
 	}
+
+//	@PostMapping("/secure/updateClosures")
+//	@PreAuthorize("hasRole('EXECUTIVE')")
+//	public ResponseEntity<?> updateClosures(@AuthenticationPrincipal CustomUserDetails executiveDetails,
+//			@Valid @RequestBody UpdateClosuresRequest request, BindingResult bindingResult) {
+//
+//		if (bindingResult.hasErrors()) {
+//			throw new ExecutiveException("Invaid Input Data", HttpStatus.BAD_REQUEST);
+//		}
+//
+//		if (executiveDetails == null) {
+//			throw new ExecutiveException("UNAUTORIZED", HttpStatus.UNAUTHORIZED);
+//		}
+//
+//		JobDescription jobDescription = jobDescriptionService.findByJobDescriptionId(request.getJobDescriptionId())
+//				.orElseThrow(() -> new JobDescriptionException("Job Description not found", HttpStatus.NOT_FOUND));
+//
+//		if (!jobDescription.isClosed()) {
+//			throw new IllegalStateException("Job Description must be closed first");
+//		}
+//
+//		if (request.getNumberOfClosures() < 0
+//				|| request.getNumberOfClosures() > jobDescription.getCurrentRegistrations()) {
+//			throw new IllegalArgumentException("Invalid closure count");
+//		}
+//
+//		// Update closure data
+//		jobDescription.setNumberOfClosures(request.getNumberOfClosures());
+////	    jobDescription.setJdStatus(request.getNumberOfClosures() >= 0); // true if any closures
+//
+//		jobDescriptionService.updateJobDescription(jobDescription);
+//
+//		return ResponseEntity.ok(new ApiResponse<>("success", "Closures updated successfully", null));
+//	}
 
 	@GetMapping("/secure/jd/{jobDescriptionId}")
 	@PreAuthorize("hasRole('EXECUTIVE')")
@@ -253,7 +445,7 @@ public class ExecutiveController {
 		jobDescriptionDTO.setCompanyName(jobDescription.getCompanyName());
 		jobDescriptionDTO.setWebsite(jobDescription.getWebsite());
 		jobDescriptionDTO.setRole(jobDescription.getRole());
-		jobDescriptionDTO.setStack(jobDescription.getStack());
+		jobDescriptionDTO.setStack(jobDescription.getJdStack());
 		jobDescriptionDTO.setQualification(jobDescription.getQualification());
 		jobDescriptionDTO.setStream(jobDescription.getStream());
 		jobDescriptionDTO.setPercentage(jobDescription.getPercentage());
@@ -286,7 +478,7 @@ public class ExecutiveController {
 		jobDescriptionDTO.setInterviewDate(jobDescription.getInterviewDate());
 		jobDescriptionDTO.setGenderPreference(jobDescription.getGenderPreference());
 		jobDescriptionDTO.setRolesAndResponsibility(jobDescription.getRolesAndResponsibility());
-		jobDescriptionDTO.setGeneric(jobDescription.getGeneric());
+//		jobDescriptionDTO.setGeneric(jobDescription.getGeneric());
 
 		Manager manager = managerService.getManagerById(jobDescription.getManagerId());
 		if (manager != null) {
@@ -332,7 +524,7 @@ public class ExecutiveController {
 			jobDescriptionDTO.setCompanyName(jobDescription.getCompanyName());
 			jobDescriptionDTO.setWebsite(jobDescription.getWebsite());
 			jobDescriptionDTO.setRole(jobDescription.getRole());
-			jobDescriptionDTO.setStack(jobDescription.getStack());
+			jobDescriptionDTO.setStack(jobDescription.getJdStack());
 			jobDescriptionDTO.setQualification(jobDescription.getQualification());
 			jobDescriptionDTO.setStream(jobDescription.getStream());
 			jobDescriptionDTO.setPercentage(jobDescription.getPercentage());
@@ -361,7 +553,7 @@ public class ExecutiveController {
 			jobDescriptionDTO.setInterviewDate(jobDescription.getInterviewDate());
 			jobDescriptionDTO.setGenderPreference(jobDescription.getGenderPreference());
 			jobDescriptionDTO.setRolesAndResponsibility(jobDescription.getRolesAndResponsibility());
-			jobDescriptionDTO.setGeneric(jobDescription.getGeneric());
+//			jobDescriptionDTO.setGeneric(jobDescription.getGeneric());
 
 			Manager jdManager = managerService.getManagerById(jobDescription.getManagerId());
 			if (jdManager != null) {
@@ -383,48 +575,88 @@ public class ExecutiveController {
 			throw new ExecutiveException("UNAUTHORIZED", HttpStatus.UNAUTHORIZED);
 		}
 		Executive executive = executiveDetails.getExecutive();
-		ProfileResponse details = executiveService.getProfile(executive);
-		return ResponseEntity.ok(new ApiResponse<>("success", "Executive Profile", details));
+		return ResponseEntity.ok(new ApiResponse<>("success", "Executive Profile", executive));
 	}
-	
-	@GetMapping("/secure/jd/stats")
+
+	@PutMapping("/secure/")
 	@PreAuthorize("hasRole('EXECUTIVE')")
-	public ResponseEntity<?> getJdStats(
-			@AuthenticationPrincipal CustomUserDetails executiveDetails,
-			@RequestParam("timeUnit") String timeUnit,
-			@RequestParam("range") int range) {
-		
-		String executiveId = executiveDetails.getExecutive().getExecutiveId(); 
-		
+	public ResponseEntity<?> updateExecutive(@AuthenticationPrincipal CustomUserDetails managerDetails,
+			@RequestParam(required = false) String executiveId, @RequestParam(required = false) String mobile,
+			@RequestPart(required = false) MultipartFile profileImg) {
+		Executive executive = executiveService.getExecutiveById(executiveId);
+
+		if (executive == null) {
+			throw new ExecutiveException("Executive Not Found", HttpStatus.NOT_FOUND);
+		}
+
+		if (profileImg != null) {
+			if (executive.getProfileImgPublicId() != null) {
+				cloudinaryService.deleteFile(executive.getProfileImgPublicId(), "image");
+			}
+			Map<String, Object> uploadResponse = cloudinaryService.uploadImage(profileImg);
+			executive.setProfileImgPublicId(uploadResponse.get("public_id").toString());
+			executive.setProfileImgUrl(uploadResponse.get("secure_url").toString());
+		}
+
+		if (mobile != null) {
+			executive.setMobile(mobile);
+		}
+
+		executiveService.updateExecutive(executive);
+		return ResponseEntity.ok(new ApiResponse<>("success", "Executive Profile Updated Successfully", null));
+
+	}
+
+	@GetMapping("/secure/jd/stats")
+	@PreAuthorize("hasAnyRole('EXECUTIVE','MANAGER','ADMIN')")
+	public ResponseEntity<?> getJdStats(@AuthenticationPrincipal CustomUserDetails executiveDetails,
+			@RequestParam("timeUnit") String timeUnit, @RequestParam("range") int range) {
+
+		String executiveId = executiveDetails.getExecutive().getExecutiveId();
+
 		List<JdStatsDTO> jdStats = executiveService.getExecutiveJdStats(executiveId, timeUnit, range);
-		
+
 		return ResponseEntity.ok(new ApiResponse<>("success", "JD Stats", jdStats));
 	}
-	
-	
-	@GetMapping("/secure/jd/status/stats")
-	@PreAuthorize("hasRole('EXECUTIVE')")
-	public ResponseEntity<?> getJdStats(
-			@AuthenticationPrincipal CustomUserDetails executiveDetails) {
-		
-		String executiveId = executiveDetails.getExecutive().getExecutiveId(); 
-		
-		Map<String,Long> jdStatusStats = (Map) executiveService.getExecutiveJdDetails(executiveId);
-		
+
+	@GetMapping("/secure/{id}/jd/status/stats")
+	@PreAuthorize("hasAnyRole('EXECUTIVE','MANAGER','ADMIN')")
+	public ResponseEntity<?> getJdStats(@PathVariable String id) {
+
+		Executive executive = executiveService.getExecutiveById(id);
+
+		if (executive == null) {
+			throw new ExecutiveException("User not FOund", HttpStatus.NOT_FOUND);
+		}
+
+		Map<String, Long> jdStatusStats = (Map) executiveService.getExecutiveJdDetails(executive.getExecutiveId());
+
 		return ResponseEntity.ok(new ApiResponse<>("success", "JD Stats", jdStatusStats));
 	}
-	
+
+	@GetMapping("/secure/jd/closure/stats")
+	@PreAuthorize("hasRole('EXECUTIVE')")
+	public ResponseEntity<?> getJdClosureStats(@AuthenticationPrincipal CustomUserDetails executiveDetails,
+			@RequestParam Integer months) {
+
+		String executiveId = executiveDetails.getExecutive().getExecutiveId();
+
+		Map<String, Long> jdStatusStats = (Map) jobDescriptionService.getJdClosureOfExecutiveByMonthRange(months,
+				executiveId);
+
+		return ResponseEntity.ok(new ApiResponse<>("success", "JD Closure Stats", jdStatusStats));
+	}
+
 	@GetMapping("/secure/{id}")
 	@PreAuthorize("hasAnyRole('ADMIN','MANAGER','EXECUTIVE')")
 	public ResponseEntity<?> getExecutiveById(@PathVariable String id) {
-		
+
 		Executive findExecutive = executiveService.getExecutiveById(id);
-		if(findExecutive ==null)
-		{
+		if (findExecutive == null) {
 			throw new AdminException("Executive not found", HttpStatus.NOT_FOUND);
 		}
-		
-		ExecutiveDetails executiveDetails =  new ExecutiveDetails();
+
+		ExecutiveDetails executiveDetails = new ExecutiveDetails();
 		executiveDetails.setActive(findExecutive.isActive());
 		executiveDetails.setCreatedAt(findExecutive.getCreatedAt());
 		executiveDetails.setEmail(findExecutive.getEmail());
@@ -433,56 +665,96 @@ public class ExecutiveController {
 		executiveDetails.setManagerId(findExecutive.getManagerId());
 		executiveDetails.setMobile(findExecutive.getMobile());
 		executiveDetails.setName(findExecutive.getName());
-		Map<String, Long> jdDetails =(Map) executiveService.getExecutiveJdDetails(findExecutive.getExecutiveId());
+		executiveDetails.setProfileImgUrl(findExecutive.getProfileImgUrl());
+		Map<String, Long> jdDetails = (Map) executiveService.getExecutiveJdDetails(findExecutive.getExecutiveId());
 		executiveDetails.setJdsCount(jdDetails);
 		Manager manager = managerService.getManagerById(findExecutive.getManagerId());
 		executiveDetails.setManagerEmail(manager.getEmail());
 		executiveDetails.setManagerName(manager.getName());
 		return ResponseEntity.ok(new ApiResponse<>("success", "Executive Data", executiveDetails));
 	}
-	
-	
+
 	@GetMapping("/secure/{id}/recentJd")
 	@PreAuthorize("hasAnyRole('ADMIN','MANAGER','EXECUTIVE')")
 	public ResponseEntity<?> getExecutiveRecentJd(@PathVariable String id) {
-		
+
+		System.out.println("Here ");
+
 		Executive findExecutive = executiveService.getExecutiveById(id);
-		if(findExecutive ==null)
-		{
+		if (findExecutive == null) {
 			throw new AdminException("Executive not found", HttpStatus.NOT_FOUND);
 		}
-	 
+
 		Integer RECENT_COUNT = 5;
-		
+
+		System.out.println("Executive id " + id);
+
 		Page<JobDescription> jobDescriptions = executiveService.getRecentJobDescriptions(id, RECENT_COUNT);
-		
+
 		return ResponseEntity.ok(new ApiResponse<>("success", "Executive Data", jobDescriptions));
 	}
-	
-	
-	
+
 	@GetMapping("/secure/{id}/jd/stats")
-	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<?> getJdStatsOfExecutive(
-			@PathVariable("id") String executiveId, 
-			@RequestParam("timeUnit") String timeUnit,
-			@RequestParam("range") int range) {
-		
-		List<JdStatsDTO> jdStats =  executiveService.getExecutiveJdStats(executiveId, timeUnit,range);
-		
+	@PreAuthorize("hasAnyRole('ADMIN','MANAGER','EXECUTIVE')")
+	public ResponseEntity<?> getJdStatsOfExecutive(@PathVariable("id") String executiveId,
+			@RequestParam("timeUnit") String timeUnit, @RequestParam("range") int range) {
+
+		List<JdStatsDTO> jdStats = executiveService.getExecutiveJdStats(executiveId, timeUnit, range);
+
 		return ResponseEntity.ok(new ApiResponse<>("success", "JD Stats", jdStats));
 	}
-	
-	
-	
-	//Return total Jd counts , total jd Pending ,total Jd rejected , total Closures achieved
-	
 
-	
-	
-	
-	//vieW ALL JDS BY EXECU ID
-	//after jd closed, fetch count of clousers
-	//for particular executive fetch their total number of JDs,openings,closures completed based on 
+	@PutMapping("/secure/block/{id}")
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<?> blockExecutive(@PathVariable String id) {
+
+		String executiveId = id;
+
+		Executive executive = executiveService.getExecutiveById(executiveId);
+
+		if (executive == null) {
+			throw new ManagerException("Executive Not Found", HttpStatus.NOT_FOUND);
+		}
+
+		executive.setActive(false);
+		executiveService.updateExecutive(executive);
+
+		String mailMessage = htmlTemplates.getAccountBlockedEmail(executive.getName());
+
+		mailService.sendAsync(executive.getEmail(), "Account Blocked - Pentagon Space", mailMessage);
+
+		return ResponseEntity.ok(new ApiResponse<>("success", "Executive Successfully Blocked", null));
+
+	}
+
+	@PutMapping("/secure/unblock/{id}")
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<?> UnBlockExecutive(@PathVariable String id) {
+
+		String executiveId = id;
+
+		Executive executive = executiveService.getExecutiveById(executiveId);
+
+		if (executive == null) {
+			throw new ManagerException("Executive Not Found", HttpStatus.NOT_FOUND);
+		}
+
+		executive.setActive(true);
+		executiveService.updateExecutive(executive);
+
+		String mailMessage = htmlTemplates.getAccountUnblockedEmail(executive.getName());
+
+		mailService.sendAsync(executive.getEmail(), "Account Unblocked - Pentagon Space", mailMessage);
+
+		return ResponseEntity.ok(new ApiResponse<>("success", "Executive Successfully UnBlocked", null));
+
+	}
+
+	// Return total Jd counts , total jd Pending ,total Jd rejected , total Closures
+	// achieved
+	// vieW ALL JDS BY EXECU ID
+	// after jd closed, fetch count of clousers
+	// for particular executive fetch their total number of JDs,openings,closures
+	// completed based on
 
 }

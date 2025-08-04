@@ -2,11 +2,15 @@ package com.pentagon.app.serviceImpl;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.TextStyle;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
@@ -21,15 +25,20 @@ import org.springframework.stereotype.Service;
 import com.pentagon.app.Dto.ExecutiveJDStatusDTO;
 import com.pentagon.app.Dto.JdStatsDTO;
 import com.pentagon.app.entity.JobDescription;
+import com.pentagon.app.entity.Stack;
 import com.pentagon.app.exception.JobDescriptionException;
 import com.pentagon.app.repository.JobDescriptionRepository;
 import com.pentagon.app.service.JobDescriptionService;
+import com.pentagon.app.service.StackService;
 
 @Service
 public class JobDescriptionServiceImp implements JobDescriptionService {
 
 	@Autowired
 	private JobDescriptionRepository jobDescriptionRepository;
+
+	@Autowired
+	private StackService stackService;
 
 	@Override
 	public Optional<JobDescription> findByJobDescriptionId(String jobDescriptionId) {
@@ -66,8 +75,17 @@ public class JobDescriptionServiceImp implements JobDescriptionService {
 
 		try {
 
-			String stackRegex = stack != null ? Arrays.asList(stack.split(",")).stream().map(w -> Pattern.quote(w))
-					.collect(Collectors.joining("|")) : "";
+			String stackRegex = null;
+
+			if (stack == null || stack.isEmpty()) {
+				stackRegex = "";
+			} else if (stack.toLowerCase().equals("any")) {
+				stackRegex = null;
+			} else {
+				Stack findStack = stackService.getByName(stack);
+				stackRegex = findStack != null ? findStack.getStackId() : "";
+			}
+
 			String qualificationRegex = qualification != null ? Arrays.asList(qualification.split(",")).stream()
 					.map(w -> Pattern.quote(w)).collect(Collectors.joining("|")) : "";
 			String streamRegex = stream != null ? Arrays.asList(stream.split(",")).stream().map(w -> Pattern.quote(w))
@@ -99,7 +117,7 @@ public class JobDescriptionServiceImp implements JobDescriptionService {
 	public List<JobDescription> viewJobDescriptionBasedOnStack(String stack) {
 		// TODO Auto-generated method stub
 		try {
-			return jobDescriptionRepository.findByStack(stack);
+			return jobDescriptionRepository.findByStackId(stack);
 		} catch (Exception e) {
 			throw new JobDescriptionException("Failed to Fetch Job Descriptions : " + e.getMessage(),
 					HttpStatus.INTERNAL_SERVER_ERROR);
@@ -186,5 +204,85 @@ public class JobDescriptionServiceImp implements JobDescriptionService {
 	public JobDescription finById(String jdId) {
 		return jobDescriptionRepository.findById(jdId).orElse(null);
 	}
+
+	@Override
+	public Page<JobDescription> findJdForStudent(String companyName, String stack, String role,
+			Integer minYearOfPassing, Integer maxYearOfPassing, String qualification, String stream, Double percentage,
+			String startDate, String endDate, Pageable pageable) {
+		try {
+
+			String stackRegex = null;
+
+			if (stack == null || stack.isEmpty()) {
+				stackRegex = "";
+			} else if (stack.toLowerCase().equals("any")) {
+				stackRegex = null;
+			} else {
+				Stack findStack = stackService.getByName(stack);
+				stackRegex = findStack != null ? findStack.getStackId() : "";
+			}
+
+			String qualificationRegex = qualification != null ? Arrays.asList(qualification.split(",")).stream()
+					.map(w -> Pattern.quote(w)).collect(Collectors.joining("|")) : "";
+			String streamRegex = stream != null ? Arrays.asList(stream.split(",")).stream().map(w -> Pattern.quote(w))
+					.collect(Collectors.joining("|")) : "";
+
+			return jobDescriptionRepository.findJdForStudent(companyName, stackRegex, role, minYearOfPassing,
+					maxYearOfPassing, qualificationRegex, streamRegex, percentage, startDate, endDate, pageable);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new JobDescriptionException("Failed to fetch Job Descriptions", HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@Override
+	public Map<String, Object> getJdClosureOfExecutiveByMonthRange(
+	        Integer noOfMonths,
+	        String executiveId) {
+
+	    Map<String, Long> closureStats = new LinkedHashMap<>(); // Use LinkedHashMap to keep order
+
+	    LocalDate today = LocalDate.now();
+
+	    for (int i = 0; i < noOfMonths; i++) {
+	        // Calculate the year-month we want
+	        LocalDate firstDayOfMonth = today.minusMonths(i).withDayOfMonth(1);
+	        LocalDate lastDayOfMonth = firstDayOfMonth.withDayOfMonth(firstDayOfMonth.lengthOfMonth());
+
+	        LocalDateTime startDateTime = firstDayOfMonth.atStartOfDay(); // 1st day 00:00:00
+	        LocalDateTime endDateTime = lastDayOfMonth.atTime(LocalTime.MAX); // Last day 23:59:59.999...
+
+	        Long count = jobDescriptionRepository.getTotalClosureCountByExecutiveIdAndDateRange(
+	                executiveId,
+	                startDateTime,
+	                endDateTime
+	        );
+
+	        String monthKey = firstDayOfMonth.getMonth().getDisplayName(TextStyle.FULL, Locale.ENGLISH)
+	                + "-" + firstDayOfMonth.getYear();
+
+	        closureStats.put(monthKey, count != null ? count : 0L);
+	    }
+
+	    // If you must wrap in Map<String,Object>
+	    Map<String, Object> response = new HashMap<>();
+	    response.put("closureStats", closureStats);
+
+	    return response;
+	}
+	
+	@Override
+	public Page<JobDescription> getExecutiveJd(String executiveId, Pageable pageable) {
+		return jobDescriptionRepository.getJdOfExecutive(executiveId, pageable);
+	}
+	
+	@Override
+	public Page<JobDescription> getManagerJd(String managerId, Pageable pageable) {
+		// TODO Auto-generated method stub
+		return jobDescriptionRepository.getJdOfManager(managerId, pageable);
+	}
+
+	
 
 }

@@ -33,4 +33,11 @@ public interface TrainerRepository extends JpaRepository<Trainer, String> {
 	
 	public Trainer findByPasswordResetToken(String token);
 	
+	
+	@Query("SELECT t FROM Trainer t where t.isProgramHead = true and t.programHeadId = :programHeadId")
+	public Trainer getTrainer(String programHeadId);
+	
+	@Query("SELECT COUNT(t) FROM Trainer t  WHERE ( :programHead IS NULL OR t.programHeadId = :programHead ) AND ( :status IS NULL OR t.isActive = :status)")
+	public Long countTrainer(String programHead,Boolean status);
+	
 }

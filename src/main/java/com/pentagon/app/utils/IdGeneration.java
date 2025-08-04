@@ -63,7 +63,8 @@ public class IdGeneration {
 	    int month = now.getMonthValue();
 	    int year = now.getYear();
 
-	    int count = studentRepository.countByCourseAndMonthYear(stack, month, year);
+	    int count = studentRepository.countByCourseAndMonthYear(batch.getBatchId());
+	    
 	    int next = count + 1;
 
 	    String paddedNumber = code.equals("ST")
@@ -75,11 +76,11 @@ public class IdGeneration {
 	    String modePart = mode.equalsIgnoreCase("online") ? "ON" : "OF";
 	    String prefix = "PS" + datePart + modePart + code;
 
-	    if (typeOfAdmission.equalsIgnoreCase("csr")) {
-	        return prefix + "#" + paddedNumber; // PS19MAY25OFJFS#0001
-	    } else {
+//	    if (typeOfAdmission.equalsIgnoreCase("csr")) {
+//	        return prefix + "0" + paddedNumber; // PS19MAY25OFJFS#0001
+//	    } else {
 	        return prefix + "0" + paddedNumber;       // PS19MAY25OFJFS0001
-	    }
+//	    }
 	}
 	
 	public  String generateBatchId(String stack) {
@@ -97,7 +98,8 @@ public class IdGeneration {
 		else if(stack.toLowerCase().contains("mern"))
 		{
 			prefix ="MERN";
-		}else if(stack.toLowerCase().contains("testing"))
+		}
+		else if(stack.toLowerCase().contains("testing"))
 		{
 			prefix ="TESTING";
 		}

@@ -45,5 +45,7 @@ public class Announcement
 	private LocalDateTime  createdAt;
 	
 	private String employeeId;
+	
+	private String announcedBy;
 
 }

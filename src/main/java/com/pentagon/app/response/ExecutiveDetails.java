@@ -20,4 +20,6 @@ public class ExecutiveDetails
 	
 	private String managerName;
 	private String managerEmail;
+	
+	private String profileImgUrl;
 }

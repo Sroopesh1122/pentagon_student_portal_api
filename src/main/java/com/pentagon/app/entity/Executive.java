@@ -35,11 +35,12 @@ public class Executive {
 	@Column(nullable = false, length = 10)
 	private String mobile;
 
+	@JsonIgnore
 	@Column(nullable = false)
 	private String password;
 
 	@Column(name = "is_active")
-	private boolean active;
+	private boolean active; // for blocking
 
 	@CreationTimestamp
 	@Column(name = "created_at", updatable = false)
@@ -52,6 +53,11 @@ public class Executive {
 
 	@JsonIgnore
 	private LocalDateTime passwordTokenExpiredAt;
+
+	private String profileImgUrl = "https://www.shutterstock.com/image-vector/default-avatar-profile-icon-social-600nw-1677509740.jpg";
+
+	@JsonIgnore
+	private String profileImgPublicId;
 
 	@UpdateTimestamp
 	@Column(name = "updated_at")

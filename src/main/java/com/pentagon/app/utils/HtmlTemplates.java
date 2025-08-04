@@ -3,7 +3,6 @@ package com.pentagon.app.utils;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import org.springframework.context.annotation.Bean;
 
 import org.springframework.stereotype.Component;
 
@@ -33,6 +32,195 @@ public class HtmlTemplates {
 				+ "<br><p>Regards,<br/>Pentagon Team</p>" + "</body>" + "</html>";
 		return htmlContent;
 	}
+	
+	public String getAnnouncementEmail(String title, String description, String announcedBy,  String link) {
+	    StringBuilder emailBody = new StringBuilder();
+
+	    emailBody.append("<!DOCTYPE html>\n")
+	             .append("<html lang=\"en\">\n")
+	             .append("<head>\n")
+	             .append("  <meta charset=\"UTF-8\">\n")
+	             .append("  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n")
+	             .append("  <title>New Announcement - Pentagon Space</title>\n")
+	             .append("</head>\n")
+	             .append("<body style=\"margin: 0; padding: 20px; background-color: #f5f7fa; font-family: Arial, sans-serif;\">\n")
+	             .append("  <div style=\"max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 10px; ")
+	             .append("box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); padding: 30px; border: 1px solid #e0e6ed;\">\n")
+
+	             .append("    <h2 style=\"color: #ec003f; text-align: center; margin-bottom: 20px;\">Pentagon Space</h2>\n")
+	             .append("    <h3 style=\"color: #222; font-size: 1.2rem; margin-bottom: 10px; text-align: center;\">📢 New Announcement</h3>\n")
+
+	             .append("    <p style=\"font-size: 0.95rem; color: #333333; line-height: 1.6;\"><strong>Title:</strong> " + title + "</p>\n")
+	             .append("    <p style=\"font-size: 0.95rem; color: #555555; line-height: 1.6;\"><strong>Description:</strong><br>" + description + "</p>\n");
+
+	    if (link != null && !link.trim().isEmpty()) {
+	        emailBody.append("    <p style=\"margin-top: 12px;\">\n")
+	                 .append("      <a href=\"" + link + "\" style=\"display: inline-block; background-color: #ec003f; color: white; ")
+	                 .append("text-decoration: none; padding: 10px 20px; border-radius: 6px; font-size: 0.9rem;\">View More</a>\n")
+	                 .append("    </p>\n");
+	    }
+
+	    emailBody.append("    <p style=\"font-size: 0.85rem; color: #888888; margin-top: 30px; border-top: 1px solid #eee; padding-top: 16px; text-align: center;\">\n")
+	             .append("      Announced by <strong style=\"color: #ec003f;\">" + announcedBy + "</strong><br>\n")
+	             .append("      Pentagon Space Team\n")
+	             .append("    </p>\n")
+	             .append("  </div>\n")
+	             .append("</body>\n")
+	             .append("</html>");
+
+	    return emailBody.toString();
+	}
+
+	
+	public String getManagerChangeNotificationEmail(
+	        String executiveName,
+	        String executiveEmail,
+	        String managerName,
+	        String managerEmail
+	) {
+	    return "<!DOCTYPE html>\n" +
+	            "<html lang=\"en\">\n" +
+	            "<head>\n" +
+	            "  <meta charset=\"UTF-8\" />\n" +
+	            "  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n" +
+	            "  <title>Manager Change Notification - Pentagon Space</title>\n" +
+	            "</head>\n" +
+	            "<body style=\"margin: 0; padding: 20px; background-color: #f5f7fa; font-family: Arial, sans-serif;\">\n" +
+	            "  <div style=\"max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 10px; " +
+	            "box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); padding: 30px; border: 1px solid #e0e6ed;\">\n" +
+	            "    <div style=\"text-align: center; margin-bottom: 24px;\">\n" +
+	            "      <h2 style=\"color: #ec003f; margin: 0; font-size: 1.8rem;\">Pentagon Space</h2>\n" +
+	            "      <p style=\"color: #333; font-size: 1.1rem; margin-top: 8px; font-weight: 600;\">Manager Change Notification</p>\n" +
+	            "    </div>\n" +
+	            "    <p style=\"font-size: 1rem; color: #333333; margin-bottom: 16px;\">\n" +
+	            "      Dear " + executiveName + " and " + managerName + ",\n" +
+	            "    </p>\n" +
+	            "    <p style=\"font-size: 0.95rem; color: #555555; line-height: 1.6; margin-bottom: 20px;\">\n" +
+	            "      We are writing to inform you of a recent change in reporting structure. Effective immediately, <strong>" + executiveName + "</strong> will now be reporting directly to <strong>" + managerName + "</strong>.\n" +
+	            "      <br><br>\n" +
+	            "      We kindly request you to acknowledge and accommodate this change. Should you have any questions or need additional clarification, please do not hesitate to contact the Pentagon Space team.\n" +
+	            "    </p>\n" +
+	            "    <p style=\"font-size: 0.9rem; color: #777777; border-top: 1px solid #e6e6e6; padding-top: 20px; text-align: center;\">\n" +
+	            "      Thank you for your cooperation.<br>\n" +
+	            "      <strong style=\"color: #ec003f;\">Pentagon Space Team</strong>\n" +
+	            "    </p>\n" +
+	            "  </div>\n" +
+	            "</body>\n" +
+	            "</html>";
+	}
+	
+	public String getAccountBlockedEmail(String userName) {
+	    return "<!DOCTYPE html>\n" +
+	           "<html lang=\"en\">\n" +
+	           "<head>\n" +
+	           "  <meta charset=\"UTF-8\">\n" +
+	           "  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n" +
+	           "  <title>Account Blocked - Pentagon Space</title>\n" +
+	           "</head>\n" +
+	           "<body style=\"margin: 0; padding: 20px; background-color: #f5f7fa; font-family: Arial, sans-serif;\">\n" +
+	           "  <div style=\"max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 10px; " +
+	           "box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); padding: 30px; border: 1px solid #e0e6ed;\">\n" +
+	           "    <h2 style=\"color: #ec003f; text-align: center; margin-bottom: 20px;\">Pentagon Space</h2>\n" +
+	           "    <p style=\"font-size: 1rem; color: #333;\">Dear " + userName + ",</p>\n" +
+	           "    <p style=\"font-size: 0.95rem; color: #555; line-height: 1.6;\">\n" +
+	           "      We would like to inform you that your Pentagon Space account has been <strong>temporarily blocked</strong>. \n" +
+	           "      Access to the platform and its services is currently restricted.\n" +
+	           "    </p>\n" +
+	           "    <p style=\"font-size: 0.95rem; color: #555;\">\n" +
+	           "      If you believe this was a mistake or if you need further clarification, please contact our support team or your administrator.\n" +
+	           "    </p>\n" +
+	           "    <p style=\"font-size: 0.9rem; color: #777; border-top: 1px solid #eee; padding-top: 20px; text-align: center;\">\n" +
+	           "      Thank you,<br><strong style=\"color: #ec003f;\">Pentagon Space Team</strong>\n" +
+	           "    </p>\n" +
+	           "  </div>\n" +
+	           "</body>\n" +
+	           "</html>";
+	}
+	
+	public String getAccountUnblockedEmail(String userName) {
+	    return "<!DOCTYPE html>\n" +
+	           "<html lang=\"en\">\n" +
+	           "<head>\n" +
+	           "  <meta charset=\"UTF-8\">\n" +
+	           "  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n" +
+	           "  <title>Account Unblocked - Pentagon Space</title>\n" +
+	           "</head>\n" +
+	           "<body style=\"margin: 0; padding: 20px; background-color: #f5f7fa; font-family: Arial, sans-serif;\">\n" +
+	           "  <div style=\"max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 10px; " +
+	           "box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); padding: 30px; border: 1px solid #e0e6ed;\">\n" +
+	           "    <h2 style=\"color: #ec003f; text-align: center; margin-bottom: 20px;\">Pentagon Space</h2>\n" +
+	           "    <p style=\"font-size: 1rem; color: #333;\">Dear " + userName + ",</p>\n" +
+	           "    <p style=\"font-size: 0.95rem; color: #555; line-height: 1.6;\">\n" +
+	           "      We are pleased to inform you that your Pentagon Space account has been <strong>unblocked</strong> and is now active again.\n" +
+	           "      You can log in and resume using the platform as usual.\n" +
+	           "    </p>\n" +
+	           "    <p style=\"font-size: 0.95rem; color: #555;\">\n" +
+	           "      If you face any issues accessing your account or need assistance, please don't hesitate to contact our support team.\n" +
+	           "    </p>\n" +
+	           "    <p style=\"font-size: 0.9rem; color: #777; border-top: 1px solid #eee; padding-top: 20px; text-align: center;\">\n" +
+	           "      Welcome back!<br><strong style=\"color: #ec003f;\">Pentagon Space Team</strong>\n" +
+	           "    </p>\n" +
+	           "  </div>\n" +
+	           "</body>\n" +
+	           "</html>";
+	}
+
+
+	
+	
+	public String getBulkManagerAssignmentEmail(
+	        String managerName,
+	        List<String> executiveNames
+	) {
+	    StringBuilder emailHtml = new StringBuilder();
+
+	    emailHtml.append("<!DOCTYPE html>\n");
+	    emailHtml.append("<html lang=\"en\">\n");
+	    emailHtml.append("<head>\n");
+	    emailHtml.append("  <meta charset=\"UTF-8\">\n");
+	    emailHtml.append("  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n");
+	    emailHtml.append("  <title>Manager Assignment Notification - Pentagon Space</title>\n");
+	    emailHtml.append("</head>\n");
+	    emailHtml.append("<body style=\"margin: 0; padding: 20px; background-color: #f5f7fa; font-family: Arial, sans-serif;\">\n");
+	    emailHtml.append("  <div style=\"max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 10px; ");
+	    emailHtml.append("box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); padding: 30px; border: 1px solid #e0e6ed;\">\n");
+	    emailHtml.append("    <div style=\"text-align: center; margin-bottom: 24px;\">\n");
+	    emailHtml.append("      <h2 style=\"color: #ec003f; margin: 0; font-size: 1.8rem;\">Pentagon Space</h2>\n");
+	    emailHtml.append("      <p style=\"color: #333; font-size: 1.1rem; margin-top: 8px; font-weight: 600;\">Manager Assignment Notification</p>\n");
+	    emailHtml.append("    </div>\n");
+	    emailHtml.append("    <p style=\"font-size: 1rem; color: #333333; margin-bottom: 16px;\">\n");
+	    emailHtml.append("      Dear ").append(managerName).append(",\n");
+	    emailHtml.append("    </p>\n");
+	    emailHtml.append("    <p style=\"font-size: 0.95rem; color: #555555; line-height: 1.6; margin-bottom: 20px;\">\n");
+	    emailHtml.append("      You have been assigned as the reporting manager for the following executives:\n");
+	    emailHtml.append("    </p>\n");
+
+	    emailHtml.append("    <ul style=\"padding-left: 20px; font-size: 0.95rem; color: #333333; margin-bottom: 24px;\">\n");
+	    for (String executive : executiveNames) {
+	        emailHtml.append("      <li style=\"margin-bottom: 6px;\">").append(executive).append("</li>\n");
+	    }
+	    emailHtml.append("    </ul>\n");
+
+	    emailHtml.append("    <p style=\"font-size: 0.95rem; color: #555555; line-height: 1.6;\">\n");
+	    emailHtml.append("      Please ensure to connect with each executive and facilitate a smooth onboarding under your supervision. If you require any support during this transition, feel free to reach out to the Pentagon Space team.\n");
+	    emailHtml.append("    </p>\n");
+
+	    emailHtml.append("    <p style=\"font-size: 0.9rem; color: #777777; border-top: 1px solid #e6e6e6; padding-top: 20px; text-align: center;\">\n");
+	    emailHtml.append("      Thank you.<br>\n");
+	    emailHtml.append("      <strong style=\"color: #ec003f;\">Pentagon Space Team</strong>\n");
+	    emailHtml.append("    </p>\n");
+
+	    emailHtml.append("  </div>\n");
+	    emailHtml.append("</body>\n");
+	    emailHtml.append("</html>");
+
+	    return emailHtml.toString();
+	}
+
+
+	
+	
+	
 
 	public String getAccountCreatedEmail(String name, String link) {
 		return "<!DOCTYPE html>\n" + "<html lang=\"en\">\n" + "<head>\n" + "  <meta charset=\"UTF-8\" />\n"

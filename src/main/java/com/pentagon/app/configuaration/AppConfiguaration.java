@@ -8,6 +8,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -77,6 +78,7 @@ public class AppConfiguaration {
 						.anyRequest().authenticated())
 				.httpBasic(Customizer.withDefaults())
 				.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+				
 
 		return httpSecurity.build();
 	}
@@ -90,6 +92,7 @@ public class AppConfiguaration {
         DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
         daoAuthenticationProvider.setUserDetailsService(customuserDetailsService);
         daoAuthenticationProvider.setPasswordEncoder(passwordEncoder());
+        daoAuthenticationProvider.setHideUserNotFoundExceptions(false);
         return daoAuthenticationProvider;
     }
 	

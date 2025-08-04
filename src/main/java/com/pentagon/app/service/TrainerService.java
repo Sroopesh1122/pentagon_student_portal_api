@@ -2,6 +2,7 @@ package com.pentagon.app.service;
 
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,6 +34,11 @@ public interface TrainerService {
 	public Page<Trainer> getAllTrainers(String programHeadId, String q, Pageable pageable);
 	
 	public Trainer findByPasswordResetToken(String token);
+	
+	
+	public Trainer getTrainer(String programHead);
+	
+    public Map getTrainerStats(String programHead);
 	
 	
 }

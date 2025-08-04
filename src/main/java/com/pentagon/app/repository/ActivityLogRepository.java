@@ -11,9 +11,8 @@ import org.springframework.stereotype.Repository;
 import com.pentagon.app.entity.ActivityLog;
 @Repository
 public interface ActivityLogRepository extends JpaRepository<ActivityLog, Long> {
-	List<ActivityLog> findByEmail(String email);
-
-	List<ActivityLog> findByRole(String role);
+	
+	List<ActivityLog> findByUserId(String userId);
 
 	@Query("SELECT a FROM ActivityLog a WHERE a.timestamp BETWEEN :start AND :end")
 	List<ActivityLog> findByDateRange(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);

@@ -53,7 +53,7 @@ public class JobDescriptionController {
 	private JdStatusRoundHistoryService jdStatusRoundHistoryService;
 	
 	@GetMapping("/secure/{jobDescriptionId}")
-	@PreAuthorize("hasAnyRole('TRAINER','EXECUTIVE','MANAGER')")
+	@PreAuthorize("hasAnyRole('TRAINER','EXECUTIVE','MANAGER','PROGRAMHEAD')")
 	public ResponseEntity<?> getJobDescriptionById(@PathVariable String jobDescriptionId) {
 
 		Optional<JobDescription> jobDescriptionOtp = jobDescriptionService.findByJobDescriptionId(jobDescriptionId);
@@ -69,7 +69,7 @@ public class JobDescriptionController {
 		jobDescriptionDTO.setCompanyName(jobDescription.getCompanyName());
 		jobDescriptionDTO.setWebsite(jobDescription.getWebsite());
 		jobDescriptionDTO.setRole(jobDescription.getRole());
-		jobDescriptionDTO.setStack(jobDescription.getStack());
+		jobDescriptionDTO.setStack(jobDescription.getJdStack());
 		jobDescriptionDTO.setQualification(jobDescription.getQualification());
 		jobDescriptionDTO.setStream(jobDescription.getStream());
 		jobDescriptionDTO.setPercentage(jobDescription.getPercentage());
@@ -101,7 +101,7 @@ public class JobDescriptionController {
 		jobDescriptionDTO.setInterviewDate(jobDescription.getInterviewDate());
 		jobDescriptionDTO.setGenderPreference(jobDescription.getGenderPreference());
 		jobDescriptionDTO.setRolesAndResponsibility(jobDescription.getRolesAndResponsibility());
-		jobDescriptionDTO.setGeneric(jobDescription.getGeneric());
+//		jobDescriptionDTO.setGeneric(jobDescription.getGeneric());
 
 		Manager manager = managerService.getManagerById(jobDescription.getManagerId());
 		if (manager != null) {
@@ -112,10 +112,11 @@ public class JobDescriptionController {
 		return ResponseEntity.ok(new ApiResponse<>("success", "Job Description Fetched", jobDescriptionDTO));
 
 	}
-
-	@GetMapping("/secure/all")
-	@PreAuthorize("hasAnyRole('TRAINER','MANAGER')")
-	public ResponseEntity<?> viewAllJobDescriptions(
+	
+	
+	@GetMapping("/secure/approved")
+	@PreAuthorize("hasAnyRole('TRAINER','MANAGER','PROGRAMHEAD')")
+	public ResponseEntity<?> viewAllApprovedJdJobDescriptions(
 			@AuthenticationPrincipal CustomUserDetails executiveDetails,
 			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int limit,
 			@RequestParam(required = false) String companyName,
@@ -127,16 +128,13 @@ public class JobDescriptionController {
 			@RequestParam(required = false, defaultValue = "") String qualification,
 			@RequestParam(required = false, defaultValue = "") String stream,
 			@RequestParam(required = false) Double percentage,
-			@RequestParam(required = false, defaultValue = "") String status,
-			@RequestParam(required = false) String startDate, @RequestParam(required = false) String endDate) {
+			@RequestParam(required = false) String startDate,
+			@RequestParam(required = false) String endDate) {
 
 		Pageable pageable = PageRequest.of(page, limit, Sort.by("created_at").descending());
 		
-		System.out.println(percentage);
-
-		Page<JobDescription> jobDescriptions = jobDescriptionService.findAllJobDescriptions(companyName, stack, role,
-				isClosed, minYearOfPassing, maxYearOfPassing, qualification, stream, percentage, null, null,
-				status, startDate, endDate, pageable);
+		
+		Page<JobDescription> jobDescriptions = jobDescriptionService.findJdForStudent(companyName, stack, role, minYearOfPassing, maxYearOfPassing, qualification, stream, percentage, startDate, endDate, pageable);
 
 		Page<JobDescriptionDTO> JobDescriptionDTOResponse = jobDescriptions.map(jobDescription -> {
 			JobDescriptionDTO jobDescriptionDTO = new JobDescriptionDTO();
@@ -145,7 +143,7 @@ public class JobDescriptionController {
 			jobDescriptionDTO.setCompanyName(jobDescription.getCompanyName());
 			jobDescriptionDTO.setWebsite(jobDescription.getWebsite());
 			jobDescriptionDTO.setRole(jobDescription.getRole());
-			jobDescriptionDTO.setStack(jobDescription.getStack());
+			jobDescriptionDTO.setStack(jobDescription.getJdStack());
 			jobDescriptionDTO.setQualification(jobDescription.getQualification());
 			jobDescriptionDTO.setStream(jobDescription.getStream());
 			jobDescriptionDTO.setPercentage(jobDescription.getPercentage());
@@ -189,6 +187,118 @@ public class JobDescriptionController {
 		return ResponseEntity
 				.ok(new ApiResponse<>("success", "Job Descriptions fetched successfully", JobDescriptionDTOResponse));
 	}
+	
+
+	@GetMapping("/secure/all")
+	@PreAuthorize("hasAnyRole('TRAINER','MANAGER')")
+	public ResponseEntity<?> viewAllJobDescriptions(
+			@AuthenticationPrincipal CustomUserDetails executiveDetails,
+			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int limit,
+			@RequestParam(required = false) String companyName,
+			@RequestParam(required = false, defaultValue = "") String stack,
+			@RequestParam(required = false) String role, 
+			@RequestParam(required = false) Boolean isClosed,
+			@RequestParam(required = false) Integer minYearOfPassing,
+			@RequestParam(required = false) Integer maxYearOfPassing,
+			@RequestParam(required = false, defaultValue = "") String qualification,
+			@RequestParam(required = false, defaultValue = "") String stream,
+			@RequestParam(required = false) Double percentage,
+			@RequestParam(required = false, defaultValue = "") String status,
+			@RequestParam(required = false) String startDate, @RequestParam(required = false) String endDate) {
+
+		Pageable pageable = PageRequest.of(page, limit, Sort.by("created_at").descending());
+		
+		System.out.println(percentage);
+
+		Page<JobDescription> jobDescriptions = jobDescriptionService.findAllJobDescriptions(companyName, stack, role,
+				isClosed, minYearOfPassing, maxYearOfPassing, qualification, stream, percentage, null, null,
+				status, startDate, endDate, pageable);
+
+		Page<JobDescriptionDTO> JobDescriptionDTOResponse = jobDescriptions.map(jobDescription -> {
+			JobDescriptionDTO jobDescriptionDTO = new JobDescriptionDTO();
+			jobDescriptionDTO.setCompanyLogo(jobDescription.getCompanyLogo());
+			jobDescriptionDTO.setJobDescriptionId(jobDescription.getJobDescriptionId());
+			jobDescriptionDTO.setCompanyName(jobDescription.getCompanyName());
+			jobDescriptionDTO.setWebsite(jobDescription.getWebsite());
+			jobDescriptionDTO.setRole(jobDescription.getRole());
+			jobDescriptionDTO.setStack(jobDescription.getJdStack());
+			jobDescriptionDTO.setQualification(jobDescription.getQualification());
+			jobDescriptionDTO.setStream(jobDescription.getStream());
+			jobDescriptionDTO.setPercentage(jobDescription.getPercentage());
+			jobDescriptionDTO.setMinYearOfPassing(jobDescription.getMinYearOfPassing());
+			jobDescriptionDTO.setMaxYearOfPassing(jobDescription.getMaxYearOfPassing());
+			jobDescriptionDTO.setSalaryPackage(jobDescription.getSalaryPackage());
+			jobDescriptionDTO.setNumberOfRegistrations(jobDescription.getNumberOfRegistrations());
+			jobDescriptionDTO.setCurrentRegistrations(jobDescription.getCurrentRegistrations());
+			jobDescriptionDTO.setMockRating(jobDescription.getMockRating());
+			jobDescriptionDTO.setJdStatus(jobDescription.getJdStatus());
+			jobDescriptionDTO.setManagerApproval(jobDescription.isManagerApproval());
+			jobDescriptionDTO.setNumberOfClosures(jobDescription.getNumberOfClosures());
+			jobDescriptionDTO.setClosed(jobDescription.isClosed());
+			jobDescriptionDTO.setCreatedAt(jobDescription.getCreatedAt());
+			jobDescriptionDTO.setUpdatedAt(jobDescription.getUpdatedAt());
+			jobDescriptionDTO.setLocation(jobDescription.getLocation());
+			jobDescriptionDTO.setSkills(jobDescription.getSkills());
+			jobDescriptionDTO.setPostedBy(jobDescription.getPostedBy());
+			jobDescriptionDTO.setJdStatus(jobDescription.getJdStatus());
+			jobDescriptionDTO.setJdActionReason(jobDescription.getJdActionReason());
+			jobDescriptionDTO.setAcardemicGap(jobDescription.getAcardemicGap());
+			jobDescriptionDTO.setBacklogs(jobDescription.getBacklogs());
+			jobDescriptionDTO.setBondDetails(jobDescription.getBondDetails());
+			jobDescriptionDTO.setSalaryDetails(jobDescription.getSalaryDetails());
+			jobDescriptionDTO.setStautsHistory(jobDescription.getStautsHistory());
+			jobDescriptionDTO.setRoundHistory(jobDescription.getRoundHistory());
+			jobDescriptionDTO.setAboutCompany(jobDescription.getAboutCompany());
+			jobDescriptionDTO.setInterviewDate(jobDescription.getInterviewDate());
+			jobDescriptionDTO.setGenderPreference(jobDescription.getGenderPreference());
+			jobDescriptionDTO.setRolesAndResponsibility(jobDescription.getRolesAndResponsibility());
+
+			Manager jdManager = managerService.getManagerById(jobDescription.getManagerId());
+			if (jdManager != null) {
+				jobDescriptionDTO.setManagerId(jdManager.getManagerId());
+				jobDescriptionDTO.setManagerName(jdManager.getName());
+			}
+
+			return jobDescriptionDTO;
+		});
+
+		return ResponseEntity
+				.ok(new ApiResponse<>("success", "Job Descriptions fetched successfully", JobDescriptionDTOResponse));
+	}
+	
+	
+	@GetMapping("/secure/manager/{id}")
+	@PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+	public ResponseEntity<?> managersJd(
+			@PathVariable String id,
+			@RequestParam(required = false,defaultValue ="0") Integer page,
+			@RequestParam(required = false,defaultValue = "20") Integer limit
+			) {
+		
+		Pageable pageable = PageRequest.of(page, limit,Sort.by("createdAt").descending());
+		
+		Page<JobDescription> jobPage =jobDescriptionService.getManagerJd(id, pageable);
+		
+		return ResponseEntity.ok(new ApiResponse<>("success","Managers Jd", jobPage));
+	}
+	
+	@GetMapping("/secure/executive/{id}")
+	@PreAuthorize("hasAnyRole('ADMIN','MANAGER','EXECUTIVE')")
+	public ResponseEntity<?> executivesJd(
+			@PathVariable String id,
+			@RequestParam(required = false,defaultValue ="0") Integer page,
+			@RequestParam(required = false,defaultValue = "20") Integer limit
+			) {
+		
+		Pageable pageable = PageRequest.of(page, limit,Sort.by("createdAt").descending());
+		
+		Page<JobDescription> jobPage =jobDescriptionService.getExecutiveJd(id, pageable);
+		
+		return ResponseEntity.ok(new ApiResponse<>("success","Executives Jd", jobPage));
+		
+		
+	}
+	
 
 
 	@Transactional

@@ -23,6 +23,8 @@ public interface ExecutiveService {
 	public ProfileResponse getProfile(Executive executive);
 	
 	public Page<Executive> getAllExecutives(String q , Pageable pageable);
+	
+	public List<Executive> getAllManagerExecutive(String managerId);
 
 	
 	public void disableExecutiveByUniqueId(String executiveId);

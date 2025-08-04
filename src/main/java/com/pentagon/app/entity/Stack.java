@@ -34,5 +34,6 @@ public class Stack {
 	@OneToMany(mappedBy = "stack")
 	@JsonIgnore
 	private List<Student> students;
+	
 
 }

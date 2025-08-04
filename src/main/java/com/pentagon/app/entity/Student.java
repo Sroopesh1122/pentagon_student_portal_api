@@ -8,6 +8,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
@@ -29,7 +30,8 @@ public class Student {
 
     private String mobile;
     
-    private String profileUrl;
+    @Size(max = 100000)
+    private String profileUrl = "https://img.freepik.com/premium-vector/social-media-logo_1305298-29989.jpg?semt=ais_hybrid&w=740&q=80";
     
     private String profilePublicId;
     
@@ -38,9 +40,10 @@ public class Student {
     private String dob;
     
     @Column(length = 1000)
-    @Size(max = 1000, message = "Summary must be under 1000 characters")
+    @Size( message = "Summary must be under 1000 characters")
     private String summary;
     
+    @Size(max = 100000)
     private String address;
     
     private String state;
@@ -49,6 +52,8 @@ public class Student {
     
     private String experience;
     
+    
+    @Size(max = 100000)
     private String skills;
     
     private String tenthSchool;
@@ -100,16 +105,19 @@ public class Student {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private EnrollmentStatus status = EnrollmentStatus.PENDING;
+    private EnrollmentStatus status = EnrollmentStatus.ACTIVE;
 
     public enum EnrollmentStatus {
-        PENDING,
         ACTIVE,
-        DISABLED,
+        BLOCKED,
         COMPLETED,
-        DROPPED,
         PLACED
     }
+    
+    
+    private LocalDate validUpto;
+    
+    private Boolean educationUpdate= false;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)

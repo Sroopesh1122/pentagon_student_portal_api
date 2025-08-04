@@ -26,6 +26,7 @@ public class ProgramHead {
 
 	private String email;
 
+	@JsonIgnore
 	private String password;
 	
 	private String mobile;

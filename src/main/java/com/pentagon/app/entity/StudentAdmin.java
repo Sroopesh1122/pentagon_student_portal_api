@@ -22,7 +22,10 @@ public class StudentAdmin {
 
 	private String email;
 
+	@JsonIgnore
 	private String password;
+	
+	private String mobile;
 
 	@Column(name = "is_active", nullable = false)
 	private boolean isActive = true;
@@ -33,6 +36,12 @@ public class StudentAdmin {
 
 	@JsonIgnore
 	private LocalDateTime passwordTokenExpiredAt;
+	
+	
+	private String profileImgUrl = "https://www.shutterstock.com/image-vector/default-avatar-profile-icon-social-600nw-1677509740.jpg";
+
+	@JsonIgnore
+	private String profileImgPublicId;
 
 	@CreationTimestamp
 	@Column(name = "created_at", updatable = false)

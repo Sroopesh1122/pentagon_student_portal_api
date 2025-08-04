@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -71,7 +72,10 @@ public class MockTestController {
 	private MockTestMapper mockTestMapper;
 
 	@PostMapping("/secure/create")
-	public ResponseEntity<?> createMockTest(@Valid @RequestBody CreateMockTestRequest request,
+	@PreAuthorize("hasAnyRole('TRAINER','PROGRAMHEAD')")
+	public ResponseEntity<?> createMockTest(
+			@AuthenticationPrincipal CustomUserDetails userDetails,
+			@Valid @RequestBody CreateMockTestRequest request,
 			BindingResult bindingResult) {
 		if (bindingResult.hasErrors()) {
 			throw new InvalidDataException("Invalid Inputs", HttpStatus.BAD_REQUEST);

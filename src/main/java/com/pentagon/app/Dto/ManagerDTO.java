@@ -14,4 +14,5 @@ public class ManagerDTO {
 	private boolean active;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private String profileImgUrl;
 }

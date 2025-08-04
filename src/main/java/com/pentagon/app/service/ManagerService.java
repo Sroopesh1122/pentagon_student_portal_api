@@ -29,7 +29,7 @@ public interface ManagerService {
 
 	public ProfileResponse getProfile(Manager manager);
 	
-	public Page<Manager> findAll(String q ,Pageable pageable);
+	public Page<Manager> findAll(String q, String status ,Pageable pageable);
 	
 	public Manager getManagerById(String managerId);
 	

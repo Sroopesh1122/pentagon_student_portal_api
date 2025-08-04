@@ -2,9 +2,9 @@ package com.pentagon.app.restController;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +21,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -38,6 +39,8 @@ import com.pentagon.app.entity.JdRoundHistory;
 import com.pentagon.app.entity.JobDescription;
 import com.pentagon.app.entity.Student;
 import com.pentagon.app.entity.StudentJdApplication;
+import com.pentagon.app.entity.Technology;
+import com.pentagon.app.entity.Student.EnrollmentStatus;
 import com.pentagon.app.exception.StudentException;
 import com.pentagon.app.exception.StudentJdApplcationException;
 import com.pentagon.app.mapper.StudentJdApplcationMapper;
@@ -48,6 +51,7 @@ import com.pentagon.app.response.ApiResponse;
 import com.pentagon.app.service.ApplicationStatusHistoryService;
 import com.pentagon.app.service.CustomUserDetails;
 import com.pentagon.app.service.JobDescriptionService;
+import com.pentagon.app.service.MockTestService;
 import com.pentagon.app.service.StudentJdApplicationService;
 import com.pentagon.app.service.StudentService;
 import com.pentagon.app.serviceImpl.ExcelGeneratorService;
@@ -90,6 +94,9 @@ public class StudentJdApplicationController {
 	@Autowired
 	private ApplicationStatusHistoryService applicationStatusHistoryService;
 	
+	@Autowired
+	private MockTestService mockTestService;
+	
 	
 	@Value("${FRONTEND_URL}")
 	private String FRONTEND_URL;
@@ -109,6 +116,27 @@ public class StudentJdApplicationController {
 		{
 			throw new StudentJdApplcationException("Student Not Found", HttpStatus.NOT_FOUND);
 		}
+		
+		if(student.getStatus() == EnrollmentStatus.BLOCKED)
+		{
+			throw new StudentJdApplcationException("Your Account is Blocked,Please Contact Support Team",HttpStatus.BAD_REQUEST);
+		}
+		
+		if (student.getStatus() == EnrollmentStatus.PLACED) {
+		    throw new StudentJdApplcationException(
+		        "You have already been placed and are no longer eligible to apply for additional opportunities.",
+		        HttpStatus.BAD_REQUEST
+		    );
+		}
+
+		
+		if (LocalDate.now().isAfter(student.getValidUpto())) {
+		    throw new StudentJdApplcationException(
+		        "Your account validity period of one year has expired. Please renew your account to continue accessing job application services.",
+		        HttpStatus.BAD_REQUEST
+		    );
+		}
+		
 		JobDescription jobDescription = jobDescriptionService.finById(request.getJdId());
 		
 		if(jobDescription == null)
@@ -134,9 +162,7 @@ public class StudentJdApplicationController {
 		}
 		
 		
-		if(jobDescription.getGeneric() !=null && jobDescription.getGeneric().toLowerCase().equals("no"))
-		{
-			// Looking for match
+            // Looking for match
 			//later need to check for mock rating also
 			String profileStack  = student.getStack().getName();
 			String profileQualification = student.getGradCourse();
@@ -158,8 +184,7 @@ public class StudentJdApplicationController {
 			if(!isProfileMatchedJd)
 			{
 				throw new StudentJdApplcationException("Your Profile Not Matched for this Jd", HttpStatus.BAD_REQUEST);
-			}
-		}
+		    }
 		
 		
 		StudentJdApplication createApplication = new StudentJdApplication();
@@ -253,8 +278,35 @@ public class StudentJdApplicationController {
 		return ResponseEntity.ok(new ApiResponse<>("success","JD Applicants", studentJdApplication));
 	}
 	
+	@GetMapping("/secure/all/student")
+	@PreAuthorize("hasAnyRole('ADMIN','EXECUTIVE')")
+	public ResponseEntity<?> getApplcationForStudent(
+			@RequestParam String id,
+			@RequestParam(required = false ,defaultValue = "0") Integer page,
+			@RequestParam(required = false ,defaultValue = "12") Integer limit)
+	{
+		
+		Student student = studentService.findById(id);
+		
+		if(student ==null)
+		{
+			throw new StudentJdApplcationException("Application Not  Found", HttpStatus.NOT_FOUND);
+		}
+		
+		String studentId = student.getStudentId();
+		
+		
+		Pageable pageable =   PageRequest.of(page, limit, Sort.by("appliedAt").descending());
+		
+		
+		Page<StudentJdApplcationDTO> studentJdApplication =  studentJdApplicationService.getAllAppliedJdForStudent(studentId, pageable).map(application->studentJdApplcationMapper.toDto(application));
+		
+		
+		return ResponseEntity.ok(new ApiResponse<>("success","Application", studentJdApplication));
+	}
 	
 	
+	//Only For Student
 	@GetMapping("/secure/student")
 	public ResponseEntity<?> getApplcationByStudent(
 			@AuthenticationPrincipal CustomUserDetails customUserDetails,
@@ -406,7 +458,25 @@ public class StudentJdApplicationController {
 	}
 	
 	
+	@GetMapping("/secure/student/application/stats")
+	public ResponseEntity<?> getStudentApplicationStats(@AuthenticationPrincipal CustomUserDetails customUserDetails,
+			@RequestParam String id)
+	{
+		Student student = studentService.findById(id);
+		
+		if(student ==null)
+		{
+			throw new StudentJdApplcationException("Student Not  Found", HttpStatus.NOT_FOUND);
+		}
+		
+		Map<String, Long> statsDetails = studentJdApplicationService.totalApplicationStatsByStuent(student.getStudentId());
+		
+		return ResponseEntity.ok(new ApiResponse<>("success","Application Stats", statsDetails));
+		
+	}
 	
+	
+	//Only for student
 	@GetMapping("/secure/student/stats")
 	public ResponseEntity<?> getStudentApplicationStats(@AuthenticationPrincipal CustomUserDetails customUserDetails)
 	{
@@ -460,6 +530,7 @@ public class StudentJdApplicationController {
 	
 	
 	//CHeck for jd and student profile match
+	@Transactional
 	private Boolean jdAndProfileMatch(Student student, JobDescription jd) {
 
 	    String profileStack = student.getStack().getName();
@@ -471,7 +542,7 @@ public class StudentJdApplicationController {
 	    Integer yearOfPassing = student.getGradPassOutYear();
 	    String gender = student.getGender();
 
-	    String jdStacks = jd.getStack(); // e.g. "Java, React"
+//	    String jdStacks = jd.getJdStack().; // e.g. "Java, React"
 	    String jdQualifications = jd.getQualification();
 	    String jdStreams = jd.getStream();
 	    Double jdPercentage = jd.getPercentage();
@@ -480,10 +551,10 @@ public class StudentJdApplicationController {
 	    String jdGenderPreference = jd.getGenderPreference();
 
 	    // Split and trim
-	    List<String> jdStackList = Arrays.stream(jdStacks.split(","))
-	        .map(String::trim)
-	        .map(String::toLowerCase)
-	        .toList();
+//	    List<String> jdStackList = Arrays.stream(jdStacks.split(","))
+//	        .map(String::trim)
+//	        .map(String::toLowerCase)
+//	        .toList();
 
 	    List<String> jdQualificationList = Arrays.stream(jdQualifications.split(","))
 	        .map(String::trim)
@@ -495,8 +566,8 @@ public class StudentJdApplicationController {
 	        .map(String::toLowerCase)
 	        .toList();
 
-	    boolean stackMatched = jdStackList.contains("any") ||
-	                           jdStackList.contains(profileStack.toLowerCase());
+	    boolean stackMatched = jd.getJdStack() == null ||
+	                           jd.getJdStack().getName().toLowerCase().equals(profileStack.toLowerCase());
 
 	    boolean qualificationMatched = jdQualificationList.contains("any") ||
 	                                   jdQualificationList.contains(profileQualification.toLowerCase());
@@ -518,8 +589,36 @@ public class StudentJdApplicationController {
 	    	     (jdMaxYearPassing == null || yearOfPassing <= jdMaxYearPassing));
 
 	    boolean genderMatched = jdGenderPreference.toLowerCase().contains("any") || jdGenderPreference.toLowerCase().equals(gender);
+	    
+	    
+	    
+	    boolean ratingMatched= true;
+	    
+	    
+        List<Technology> jdTechnologies  = jd.getMockRatingTechnologies();
+	    
+	    
+	    String studentId = student.getStudentId();
+	    
+	    for (Technology technology : jdTechnologies) {
+	    	
+	        List<Double> ratings = mockTestService.getRatingOfStudent(studentId, technology.getTechId());
+	        if (ratings != null && !ratings.isEmpty()) {
+	            // Calculate average using streams
+	            double avgRating = ratings.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+	            
+	            if(avgRating < jd.getMockRating())
+	            {
+	            	ratingMatched =false;
+	            }
+	           
+	        } else {
+	        	ratingMatched=false;
+	        }
+	        
+	    }
 
-	    return stackMatched && qualificationMatched && streamMatched && percentageMatched && yearMatched && genderMatched;
+	    return stackMatched && qualificationMatched && streamMatched && percentageMatched && yearMatched && genderMatched && ratingMatched;
 	}
 
 	

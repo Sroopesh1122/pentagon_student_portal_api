@@ -12,6 +12,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
@@ -55,7 +57,7 @@ public class JobDescription {
 	private String stream;
     
     @Column(nullable = false)
-    @Size(max = 100000)
+    @Size(max = 10000)
     private String skills;
     
     @Column(nullable = false)
@@ -67,9 +69,13 @@ public class JobDescription {
 	@Column(name = "max_year_of_passing")
 	private Integer maxYearOfPassing;
 	
-	@Column(name="stack")
-	@Size(max = 50000)
-	private String stack;
+	@ManyToOne
+	@JoinColumn(name = "stack_id")
+	private Stack jdStack;
+	
+	
+	@ManyToMany
+	private List<Technology> mockRatingTechnologies;  // technologies to check for mock rating while applying
 	
 	@Column(name="package",nullable = false)
 	private String salaryPackage;
@@ -140,7 +146,6 @@ public class JobDescription {
 	@Size(max = 100000)
 	private String rolesAndResponsibility;
 	
-	private String generic="no";
 	
 	
 	@OneToMany(mappedBy = "jobDescription")

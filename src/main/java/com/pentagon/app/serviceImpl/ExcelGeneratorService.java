@@ -29,7 +29,7 @@ public class ExcelGeneratorService {
             "10th Pass Out Year", "10th Percentage",
             "12th Pass Out Year", "12th Percentage",
             "Graduation Course", "Graduation Branch",
-            "Graduation Percentage", "Graduation CGPA"
+            "Graduation Percentage", "Graduation CGPA","Resume ","Linked In","Git Hub"
         };
 
         try (
@@ -80,6 +80,9 @@ public class ExcelGeneratorService {
                 row.createCell(col++).setCellValue(student.getGradBranch() != null ? student.getGradBranch() : "");
                 row.createCell(col++).setCellValue(student.getGradPercentage() != null ? student.getGradPercentage() : 0.0);
                 row.createCell(col++).setCellValue(student.getGradCgpa() != null ? student.getGradCgpa() : 0.0);
+                row.createCell(col++).setCellValue(student.getResumeUrl() != null ? student.getResumeUrl() : "No Resume");
+                row.createCell(col++).setCellValue(student.getLinkedin() != null ? student.getLinkedin() : "Not Mentioned");
+                row.createCell(col++).setCellValue(student.getGithub() != null ? student.getGithub() : "Not Mentioned");
             }
 
             // Auto-size columns

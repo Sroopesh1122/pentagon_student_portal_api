@@ -31,6 +31,7 @@ public class Manager {
 	@Column(nullable = false, length = 10)
 	private String mobile;
 
+	@JsonIgnore
 	@Column(nullable = false)
 	private String password;
 
@@ -42,6 +43,12 @@ public class Manager {
 
 	@JsonIgnore
 	private LocalDateTime passwordTokenExpiredAt;
+	
+	private String profileImgUrl = "https://www.shutterstock.com/image-vector/default-avatar-profile-icon-social-600nw-1677509740.jpg";
+	
+	@JsonIgnore
+	private String profileImgPublicId;
+	
 
 	@CreationTimestamp
 	@Column(name = "created_at", updatable = false)

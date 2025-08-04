@@ -46,6 +46,10 @@ public class StackServiceImpl implements StackService {
     @Override
     public List<Stack> getAll() {
     	return stackRepository.findAll();
+    } 
+    @Override
+    public Stack getByName(String stackName) {
+    	return stackRepository.findByName(stackName);
     }
     
 }

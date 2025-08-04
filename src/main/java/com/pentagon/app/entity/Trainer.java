@@ -38,7 +38,7 @@ public class Trainer {
     private String password;
 
     @Column(name = "is_active", nullable = false)
-    private boolean isActive;
+    private boolean isActive = true;
 
     private String qualification;
     
@@ -73,6 +73,8 @@ public class Trainer {
     
     
     private String programHeadId;  // added by
+    
+    private boolean isProgramHead = false;
     
     @ManyToMany
     @JsonIgnore

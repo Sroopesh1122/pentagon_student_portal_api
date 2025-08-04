@@ -42,4 +42,6 @@ public class BatchTechTrainer {
     
     private LocalDate completedDate;
     
+    private Double classProgress = 0.0;
+    
 }

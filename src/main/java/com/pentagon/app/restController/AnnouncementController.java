@@ -1,5 +1,6 @@
 package com.pentagon.app.restController;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,9 @@ import com.pentagon.app.response.ApiResponse;
 import com.pentagon.app.service.AnnouncementService;
 import com.pentagon.app.service.BatchService;
 import com.pentagon.app.service.CustomUserDetails;
+import com.pentagon.app.service.StudentService;
+import com.pentagon.app.serviceImpl.MailService;
+import com.pentagon.app.utils.HtmlTemplates;
 
 import jakarta.validation.Valid;
 
@@ -36,6 +40,17 @@ public class AnnouncementController {
 
 	@Autowired
 	private AnnouncementService announcementService;
+	
+	@Autowired
+	private StudentService studentService;
+	
+	
+	@Autowired
+	private HtmlTemplates htmlTemplates;
+	
+	
+	@Autowired
+	private MailService mailService;
 
 	@PostMapping("/secure/create")
 	public ResponseEntity<?> createAnnouncement(@AuthenticationPrincipal CustomUserDetails customUserDetails,
@@ -45,6 +60,7 @@ public class AnnouncementController {
 		}
 		
 		String employeeId = getEmployeeId(customUserDetails);
+		String employeeName = getEmployeeName(customUserDetails);
 		
 
 		Announcement announcement = new Announcement();
@@ -56,10 +72,25 @@ public class AnnouncementController {
 		}
 
 		List<Batch> batches = batchService.findAllById(request.getBatchId());
+		
+		List<String> studentEmails = new ArrayList<>();
+		
+		batches.forEach(batch->{
+			studentEmails.addAll(studentService.getEmailByBatch(batch.getBatchId()));
+		});
+		
 
 		announcement.setBatches(batches);
 		announcement.setEmployeeId(employeeId);
+		announcement.setAnnouncedBy(employeeName);
 		announcement = announcementService.createAnnouncement(announcement);
+		
+		String mailMessage = htmlTemplates.getAnnouncementEmail(announcement.getTitle(), announcement.getDescription(), employeeName, null);
+		
+		
+		mailService.sendWithBccAsync(null,"New Announcement - Pentagon Space", mailMessage, studentEmails);
+		
+		
 
 		return ResponseEntity.ok(new ApiResponse<>("success", "New Announcement Created", null));
 	}
@@ -78,7 +109,8 @@ public class AnnouncementController {
 		}
 		
 		
-		if (announcement != null) {
+		if (announcement != null) 
+		{
 			announcementService.deleteById(id);
 		}
 
@@ -86,7 +118,7 @@ public class AnnouncementController {
 
 	}
 
-	@GetMapping("/secure/batch/{id}")
+	@GetMapping("/secure/batch/{batchId}")
 	public ResponseEntity<?> getAnnouncement(@PathVariable String batchId) {
 
 		List<Announcement> announcements = announcementService.getAnnouncementByBatch(batchId);
@@ -113,6 +145,26 @@ public class AnnouncementController {
 		}
 		
 		return employeeId;
+	}
+	
+	private String getEmployeeName(CustomUserDetails customUserDetails) {
+		String employeeName = null;
+
+		if (customUserDetails.getAdmin() != null) {
+			employeeName = customUserDetails.getAdmin().getName();
+		} else if (customUserDetails.getExecutive() != null) {
+			employeeName = customUserDetails.getExecutive().getName();
+		} else if (customUserDetails.getManager() != null) {
+			employeeName = customUserDetails.getManager().getName();
+		} else if (customUserDetails.getProgramHead() != null) {
+			employeeName = customUserDetails.getProgramHead().getName();
+		} else if (customUserDetails.getStudentAdmin() != null) {
+			employeeName = customUserDetails.getStudentAdmin().getName();
+		} else if (customUserDetails.getTrainer() != null) {
+			employeeName = customUserDetails.getTrainer().getName();
+		}
+		
+		return employeeName;
 	}
 
 }

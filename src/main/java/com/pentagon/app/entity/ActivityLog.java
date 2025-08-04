@@ -7,23 +7,22 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
 @Entity
-@Table(name = "activity_log")
 public class ActivityLog {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	private String email;
-
 	private String userId; //unique id
+	
+	private String title;
 
-	private String role;
-
+	@Size(max = 10000)
 	private String description;
 
 	@CreationTimestamp

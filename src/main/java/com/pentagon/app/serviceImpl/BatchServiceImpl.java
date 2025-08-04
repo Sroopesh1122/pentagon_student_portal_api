@@ -47,4 +47,26 @@ public class BatchServiceImpl implements BatchService {
 	public List<Batch> findAllById(List<String> ids) {
 		return batchRepository.findAllById(ids);
 	}
+
+	@Override
+	public Long countCompletedBatch() {
+		return batchRepository.countBatch(true);
+	}
+
+	@Override
+	public Long countOnGoingBatch() {
+		// TODO Auto-generated method stub
+		return batchRepository.countBatch(false);
+	}
+
+	@Override
+	public Long countCompletedBatchByStack(String stackId) {
+		return batchRepository.countBatchByStack(stackId, true);
+	}
+
+	@Override
+	public Long countOnGOingBatchByStack(String stackId) {
+		return batchRepository.countBatchByStack(stackId, false);
+	}
+
 }

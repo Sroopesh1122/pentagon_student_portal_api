@@ -20,4 +20,5 @@ public class StudentAdminDTO {
 	private LocalDateTime createdAt;
 
 	private LocalDateTime updatedAt;
+	private String profileImgUrl;
 }

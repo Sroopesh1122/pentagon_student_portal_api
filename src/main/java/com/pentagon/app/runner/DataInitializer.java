@@ -13,7 +13,7 @@ import com.pentagon.app.repository.AdminRepository;
 @Configuration
 public class DataInitializer {
 
-	@Bean
+//	@Bean
     CommandLineRunner initAdmin(AdminRepository adminRepository, PasswordEncoder passwordEncoder) {
         return args -> {
             if (adminRepository.findByEmail("pradeepkurba2001@gmail.com").isEmpty()) {

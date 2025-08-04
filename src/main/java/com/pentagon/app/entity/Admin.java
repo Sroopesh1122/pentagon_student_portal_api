@@ -30,6 +30,7 @@ public class Admin {
 	@Column(nullable = false, length = 10)
 	private String mobile;
 
+	@JsonIgnore
 	@Column(nullable = false)
 	private String password;
 
@@ -38,6 +39,12 @@ public class Admin {
 
 	@JsonIgnore
 	private LocalDateTime passwordTokenExpiredAt;
+	
+	
+	private String profileImgUrl = "https://cdn-icons-png.flaticon.com/512/3685/3685367.png";
+	
+	@JsonIgnore
+	private String profilePublicId;
 
 	@CreationTimestamp
 	@Column(name = "created_at", updatable = false)

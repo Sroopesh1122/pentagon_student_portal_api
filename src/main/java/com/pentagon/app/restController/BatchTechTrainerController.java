@@ -15,8 +15,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,14 +30,17 @@ import com.pentagon.app.Dto.BatchTechTrainerDTO;
 import com.pentagon.app.entity.Batch;
 import com.pentagon.app.entity.BatchTechTrainer;
 import com.pentagon.app.entity.Trainer;
+import com.pentagon.app.exception.BatchException;
 import com.pentagon.app.exception.BatchTechTrainerException;
 import com.pentagon.app.exception.TrainerException;
 import com.pentagon.app.mapper.BatchMapper;
 import com.pentagon.app.mapper.BatchTechTrainerMapper;
+import com.pentagon.app.request.UpdateClassProgress;
 import com.pentagon.app.request.UpdateScheduleDetails;
 import com.pentagon.app.response.ApiResponse;
 import com.pentagon.app.service.BatchService;
 import com.pentagon.app.service.BatchTechTrainerService;
+import com.pentagon.app.service.CustomUserDetails;
 import com.pentagon.app.service.StudentService;
 import com.pentagon.app.service.TrainerService;
 import com.pentagon.app.serviceImpl.MailService;
@@ -76,7 +81,7 @@ public class BatchTechTrainerController {
 	
 	
 	@GetMapping("/secure/trainer/{id}/schedule")
-	@PreAuthorize("hasAnyRole('STUDENTADMIN', 'PROGRAMHEAD','ADMIN')")
+	@PreAuthorize("hasAnyRole('STUDENTADMIN', 'PROGRAMHEAD','ADMIN','TRAINER')")
 	public ResponseEntity<?> getTrainerScheduleInfo(@PathVariable String id)
 	{
 		Trainer findTrainer = trainerService.getById(id);
@@ -89,6 +94,50 @@ public class BatchTechTrainerController {
 		List<BatchTechTrainer> scheduleInfo = batchTechTrainerService.getTrainerSchedule(id);
 		return ResponseEntity.ok(new ApiResponse<>("success","ScheduleData", scheduleInfo));
 		
+	}
+	
+	
+	@PutMapping("/secure/{id}/progress")
+	@PreAuthorize("hasRole('TRAINER','PROGRAMHEAD')")
+	public ResponseEntity<?> updateClassProgress(
+			@AuthenticationPrincipal CustomUserDetails customUserDetails,
+			@PathVariable Integer id,
+			@RequestBody UpdateClassProgress request)
+	{
+		Trainer trainer = customUserDetails.getTrainer();
+		
+		BatchTechTrainer batchTechTrainer = batchTechTrainerService.getById(id);
+		
+		if(batchTechTrainer ==null)
+		{
+			throw new BatchTechTrainerException("Class Not Found", HttpStatus.NOT_FOUND);
+		}
+		
+		if(batchTechTrainer.getClassProgress() >=100)
+		{
+			throw new BatchTechTrainerException("Progress is full", HttpStatus.BAD_REQUEST);
+		}
+		
+		if(!trainer.getTrainerId().equals(batchTechTrainer.getTrainer().getTrainerId()))
+		{
+			throw new BatchTechTrainerException("Your are not allowed to update class progress", HttpStatus.BAD_REQUEST);
+		}
+		
+		if(request.getProgress() < batchTechTrainer.getClassProgress())
+		{
+			throw new BatchTechTrainerException("Cannot able to decrease progress", HttpStatus.BAD_REQUEST);
+		}
+		
+		if(batchTechTrainer.isCompleted())
+		{
+			throw new BatchTechTrainerException("This Batch is Completed", HttpStatus.BAD_REQUEST);
+		}
+		
+		batchTechTrainer.setClassProgress(request.getProgress());
+		
+		batchTechTrainerService.update(batchTechTrainer);
+		
+		return ResponseEntity.ok(new ApiResponse<>("success","Class progress updated", null));
 	}
 	
 	
@@ -106,7 +155,7 @@ public class BatchTechTrainerController {
 			    .map(data -> data.getTrainer().getEmail())
 			    .collect(Collectors.toList());
 
-			List<String> studentsEmail = studentService.findEmailByBatch(batchId);
+			List<String> studentsEmail = studentService.getEmailByBatch(batchId);
 
 			// Combine trainer and student emails into a new list
 			List<String> recipientsEmails = new ArrayList<>(trainerEmails);
@@ -134,6 +183,29 @@ public class BatchTechTrainerController {
 			}
 		
 		return ResponseEntity.ok(new ApiResponse<>("success","Emails Sent Successfully",null));
+	}
+	
+	
+	@PostMapping("/secure/{id}/complete")
+	@PreAuthorize("hasAnyRole('STUDENTADMIN')")
+	public ResponseEntity<?> completeBatch(@PathVariable String id)
+	{
+		Batch findBatch = batchService.getBatchById(id).orElse(null);
+		if(findBatch ==null)
+		{
+			throw new BatchException("Batch Not Found", HttpStatus.NOT_FOUND);
+		}
+		
+		
+		if(findBatch.isCompleted())
+		{
+			throw new BatchException("Batch is already completed", HttpStatus.BAD_REQUEST); 
+		}
+		
+		findBatch.setCompleted(true);
+		batchService.updateBatch(findBatch);
+		
+		return ResponseEntity.ok(new ApiResponse<>("success","Batch Completed Successfully" , null));
 	}
 	
 	
@@ -178,14 +250,36 @@ public class BatchTechTrainerController {
 	
 	
 	@PutMapping("/secure/class/complete/{id}")
-	@PreAuthorize("hasAnyRole('STUDENTADMIN','PROGRAMHEAD','ADMIN','TRAINER','STUDENT')")
-	public ResponseEntity<?> markClassAsComplete(@PathVariable Integer id)
+	@PreAuthorize("hasAnyRole('STUDENTADMIN','PROGRAMHEAD','ADMIN','TRAINER')")
+	public ResponseEntity<?> markClassAsComplete(@AuthenticationPrincipal CustomUserDetails userDetails,@PathVariable Integer id)
 	{
 		BatchTechTrainer batchScheduleInfo  = batchTechTrainerService.getById(id);
+		
+		Trainer trainer =null;
+		
+		if(userDetails.getTrainer()== null && userDetails.getProgramHead() ==null )
+		{
+			throw new BatchException("Unauthorized",HttpStatus.UNAUTHORIZED);
+		}
+		
+		if(userDetails.getTrainer()!=null)
+		{
+			trainer = userDetails.getTrainer();
+		}
+		else {
+			trainer = trainerService.getTrainer(userDetails.getProgramHead().getId());
+		}
+		
+		
 		
 		if(batchScheduleInfo==null)
 		{
 			throw new BatchTechTrainerException("Class Not Found", null);
+		}
+		
+		if(!batchScheduleInfo.getTrainer().getTrainerId().equals(trainer.getTrainerId()))
+		{
+			throw new BatchTechTrainerException("You are not authorized", null);
 		}
 		
 		batchScheduleInfo.setCompleted(true);

@@ -9,12 +9,11 @@ public interface ActivityLogService {
 
 	List<ActivityLog> getAllLogs();
 
-	List<ActivityLog> getLogsByEmail(String email);
 
-	List<ActivityLog> getLogsByRole(String role);
+	List<ActivityLog> getLogsByUserId(String userId);
 
 	List<ActivityLog> getLogsByDateRange(LocalDateTime start, LocalDateTime end);
 
-	void log(String email, String userId, String role, String description);
+	void log(String userId,String title,String description);
 
 }

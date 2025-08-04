@@ -21,4 +21,5 @@ public class ExecutiveDTO {
 		private List<JobDescription> jobDescription;
 	    private LocalDateTime createdAt;
 	    private LocalDateTime updatedAt;
+	    private String profileImgUrl;
 }

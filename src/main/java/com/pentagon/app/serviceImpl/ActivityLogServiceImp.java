@@ -17,12 +17,12 @@ public class ActivityLogServiceImp implements ActivityLogService{
     private ActivityLogRepository repository;
 
     @Override
-    public void log(String email, String userId, String role, String description) {
+    public void log(String userId,String title,String description) {
         ActivityLog log = new ActivityLog();
-        log.setEmail(email);
         log.setUserId(userId);
-        log.setRole(role);
+        log.setTitle(title);
         log.setDescription(description);
+        log.setTimestamp(LocalDateTime.now());
         repository.save(log);
     }
 
@@ -32,14 +32,8 @@ public class ActivityLogServiceImp implements ActivityLogService{
     }
 
     @Override
-    public List<ActivityLog> getLogsByEmail(String email) {
-        return repository.findByEmail(email);
-    }
-
-    @Override
-
-    public List<ActivityLog> getLogsByRole(String role) {
-        return repository.findByRole(role);
+    public List<ActivityLog> getLogsByUserId(String userId) {
+    	return repository.findByUserId(userId);
     }
 
     @Override

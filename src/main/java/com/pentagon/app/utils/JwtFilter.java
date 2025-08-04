@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -12,6 +13,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pentagon.app.entity.Executive;
+import com.pentagon.app.exception.BlockedException;
 import com.pentagon.app.exception.SessionExpiredException;
 import com.pentagon.app.service.CustomUserDetails;
 import com.pentagon.app.service.CustomUserDetailsService;
@@ -51,61 +54,66 @@ public class JwtFilter extends OncePerRequestFilter {
 			}
 			if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 				
-				CustomUserDetails userDetails =null;
-				if(role.equals("ADMIN"))
-				{
-					userDetails= (CustomUserDetails) customUserDetailsService.loadAdmin(email);
-				}
-				else if(role.equals("EXECUTIVE"))
-				{
-					userDetails =  (CustomUserDetails) customUserDetailsService.loadExecutive(email);
-				}
-				else if(role.equals("MANAGER"))
-				{
-					userDetails =  (CustomUserDetails) customUserDetailsService.loadManager(email);
-				}
-				else if(role.equals("PROGRAMHEAD"))
-				{
-					userDetails =  (CustomUserDetails) customUserDetailsService.loadProgramHead(email);
-				}
-				else if(role.equals("STUDENTADMIN"))
-				{
-					userDetails =  (CustomUserDetails) customUserDetailsService.loadStudentAdmin(email);
-				}
-				else if(role.equals("TRAINER"))
-				{
-					userDetails =  (CustomUserDetails) customUserDetailsService.loadTrainer(email);
-				}
-				else if(role.equals("STUDENT"))
-				{
-					userDetails =  (CustomUserDetails) customUserDetailsService.loadStudent(email);
-				}
-	            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-	                    userDetails,
-	                    null,
-	                    userDetails.getAuthorities()
-	            );
-	            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+				try {
+					
+					CustomUserDetails userDetails =null;
+					if(role.equals("ADMIN"))
+					{
+						userDetails= (CustomUserDetails) customUserDetailsService.loadAdmin(email);
+					}
+					else if(role.equals("EXECUTIVE"))
+					{
+						userDetails =  (CustomUserDetails) customUserDetailsService.loadExecutive(email);
+						
+					}
+					else if(role.equals("MANAGER"))
+					{
+						userDetails =  (CustomUserDetails) customUserDetailsService.loadManager(email);
+					}
+					else if(role.equals("PROGRAMHEAD"))
+					{
+						userDetails =  (CustomUserDetails) customUserDetailsService.loadProgramHead(email);
+					}
+					else if(role.equals("STUDENTADMIN"))
+					{
+						userDetails =  (CustomUserDetails) customUserDetailsService.loadStudentAdmin(email);
+					}
+					else if(role.equals("TRAINER"))
+					{
+						userDetails =  (CustomUserDetails) customUserDetailsService.loadTrainer(email);
+					}
+					else if(role.equals("STUDENT"))
+					{
+						userDetails =  (CustomUserDetails) customUserDetailsService.loadStudent(email);
+					}
+		            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+		                    userDetails,
+		                    null,
+		                    userDetails.getAuthorities()
+		            );
+		            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-	            SecurityContextHolder.getContext().setAuthentication(authentication);
+		            SecurityContextHolder.getContext().setAuthentication(authentication);
+					
+				} catch (BlockedException e) {
+					response.setStatus(HttpStatus.UNAUTHORIZED.value());
+			        response.setContentType("application/json");
+
+			        Map<String, Object> errorResponse = new HashMap<>();
+			        errorResponse.put("status", "failure");
+			        errorResponse.put("type", "BlockException");
+			        errorResponse.put("error", e.getMessage());
+			        errorResponse.put("isBlocked", true);
+
+			        ObjectMapper mapper = new ObjectMapper();
+			        response.getWriter().write(mapper.writeValueAsString(errorResponse));
+
+			        return; 
+				}
 			}			
 		}	
 
 		chain.doFilter(request, response);
 	}
 	
-	
-	private void handleCustomException(HttpServletResponse response, String message) throws IOException {
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        response.setContentType("application/json");
-
-        Map<String, Object> errorDetails = new HashMap<>();
-        errorDetails.put("status", "failure");
-        errorDetails.put("type", "Session Expired");
-        errorDetails.put("error", message);
-        errorDetails.put("localTime", LocalDateTime.now());
-        errorDetails.put("relogin", true);
-
-        new ObjectMapper().writeValue(response.getOutputStream(), errorDetails);
-    }
 }

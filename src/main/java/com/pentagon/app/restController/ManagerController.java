@@ -23,10 +23,13 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.pentagon.app.Dto.ExecutiveJDStatusDTO;
 import com.pentagon.app.Dto.JobDescriptionDTO;
@@ -45,7 +48,9 @@ import com.pentagon.app.exception.OtpException;
 import com.pentagon.app.mapper.JobDescriptionMapper;
 import com.pentagon.app.request.AddExecutiveRequest;
 import com.pentagon.app.request.AddTrainerRequest;
+import com.pentagon.app.request.BlockUserRequest;
 import com.pentagon.app.request.MangerJdStatusUpdateRequest;
+import com.pentagon.app.request.UnblockUserRequest;
 import com.pentagon.app.request.UpdateManagerRequest;
 import com.pentagon.app.response.ApiResponse;
 import com.pentagon.app.response.ExecutiveDetails;
@@ -57,6 +62,7 @@ import com.pentagon.app.service.JdStatusRoundHistoryService;
 import com.pentagon.app.service.JobDescriptionService;
 import com.pentagon.app.service.ManagerService;
 import com.pentagon.app.service.TrainerService;
+import com.pentagon.app.serviceImpl.CloudinaryServiceImp;
 import com.pentagon.app.serviceImpl.MailService;
 import com.pentagon.app.utils.HtmlTemplates;
 import com.pentagon.app.utils.IdGeneration;
@@ -78,8 +84,6 @@ public class ManagerController {
 	@Autowired
 	private IdGeneration idGeneration;
 
-	@Autowired
-	private JwtUtil jwtUtil;
 
 	@Autowired
 	private ActivityLogService activityLogService;
@@ -112,39 +116,119 @@ public class ManagerController {
 	@Autowired
 	private JobDescriptionMapper jobDescriptionMapper;
 	
+	@Autowired
+	private CloudinaryServiceImp cloudinaryService;
+	
 	
 	@Value("${FRONTEND_URL}")
 	private String FRONTEND_URL;
 
-	@PostMapping("/secure/updateManager")
+	@PutMapping("/secure/")
 	@PreAuthorize("hasRole('MANAGER')")
-	public ResponseEntity<?> updateManager(@AuthenticationPrincipal CustomUserDetails managerDetails,
-			@Valid @RequestBody UpdateManagerRequest request, BindingResult bindingResult) {
+	public ResponseEntity<?> updateManager(
+			@AuthenticationPrincipal CustomUserDetails managerDetails,
+			@RequestParam String managerId,
+			@RequestParam(required = false) String mobile,
+			@RequestPart(required = false) MultipartFile profileImg) {
 
-		if (bindingResult.hasErrors()) {
-			throw new ManagerException("Ivalid Input Data", HttpStatus.BAD_REQUEST);
+
+
+		Manager manager = managerService.getManagerById(managerId);
+		
+		if(manager ==null)
+		{
+			throw new ManagerException("Manger Not Found", HttpStatus.NOT_FOUND);
 		}
 
-		Manager manager = managerDetails.getManager();
-		manager.setName(request.getName());
-		manager.setEmail(request.getEmail());
-		manager.setMobile(request.getMobile());
-
-		if (request.getPassword() != null && !request.getPassword().isBlank()) {
-
-			String hashedPassword = passwordEncoder.encode(request.getPassword());
-			manager.setPassword(hashedPassword);
-
+		if(profileImg!=null)
+		{
+			if(manager.getProfileImgPublicId() !=null)
+			{
+				cloudinaryService.deleteFile(manager.getProfileImgPublicId(), "image");
+			}
+			Map<String, Object>	uploadResponse  = cloudinaryService.uploadImage(profileImg);
+			manager.setProfileImgPublicId(uploadResponse.get("public_id").toString());
+			manager.setProfileImgUrl(uploadResponse.get("secure_url").toString());
+		}
+		
+		if(mobile !=null)
+		{
+			manager.setMobile(mobile);
 		}
 
 		Manager updatedManager = managerService.updateManager(manager);
 
-		activityLogService.log(managerDetails.getManager().getEmail(), managerDetails.getManager().getManagerId(),
-				"MANAGER",
-				"Manager with ID " + managerDetails.getManager().getManagerId() + " updated their own profile details");
 
 		return ResponseEntity.ok(new ApiResponse<>("success", "Manager Updated Successfully", null));
 	}
+	
+	
+	@PostMapping("/secure/executive/block")
+	@PreAuthorize("hasRole('MANAGER')")
+	public ResponseEntity<?> blockExecutive(@AuthenticationPrincipal CustomUserDetails customUserDetails ,@RequestBody BlockUserRequest request)
+	{
+		Manager manager = customUserDetails.getManager();
+		
+		String executiveId = request.getId();
+		
+		if(manager ==null)
+		{
+			throw new ManagerException("Unauthorized", HttpStatus.UNAUTHORIZED);
+		}
+		
+		Executive executive = executiveService.getExecutiveById(executiveId);
+		
+		if(executive ==null)
+		{
+			throw new ManagerException("Executive Not Found", HttpStatus.NOT_FOUND);
+		}
+		
+		if(!executive.getManagerId().equals(manager.getManagerId()))
+		{
+			throw new ManagerException("You are not allowed to block this executive", null);
+		}
+		
+		executive.setActive(false);
+		executiveService.updateExecutive(executive);
+		
+		return ResponseEntity.ok(new ApiResponse<>("success", "Executive Successfully Blocked", null));		
+		
+	}
+	
+	
+	@PostMapping("/secure/executive/unblock")
+	@PreAuthorize("hasRole('MANAGER')")
+	public ResponseEntity<?> UnBlockExecutive(@AuthenticationPrincipal CustomUserDetails customUserDetails ,@RequestBody UnblockUserRequest request)
+	{
+		Manager manager = customUserDetails.getManager();
+		
+		String executiveId = request.getId();
+		
+		if(manager ==null)
+		{
+			throw new ManagerException("Unauthorized", HttpStatus.UNAUTHORIZED);
+		}
+	
+		Executive executive = executiveService.getExecutiveById(executiveId);
+		
+		if(executive ==null)
+		{
+			throw new ManagerException("Executive Not Found", HttpStatus.NOT_FOUND);
+		}
+		
+		if(!executive.getManagerId().equals(manager.getManagerId()))
+		{
+			throw new ManagerException("You are not allowed to unblock this executive", null);
+		}
+		
+		executive.setActive(true);
+		executiveService.updateExecutive(executive);
+		
+		return ResponseEntity.ok(new ApiResponse<>("success", "Executive Successfully UnBlocked", null));		
+		
+	}
+	
+	
 
 	// not working
 	@PostMapping("secure/addExecutive")
@@ -183,9 +267,6 @@ public class ManagerController {
 			throw new OtpException("Mail couldn't be sent", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 
-		activityLogService.log(managerDetails.getManager().getEmail(), managerDetails.getManager().getManagerId(),
-				"MANAGER", "Manager with ID " + managerDetails.getManager().getManagerId()
-						+ " added a new Executive with ID " + newExecutive.getExecutiveId());
 
 		return ResponseEntity.ok(new ApiResponse<>("success", "Executive Added Successfully", null));
 	}
@@ -296,8 +377,21 @@ public class ManagerController {
 			throw new ManagerException("UNAUTHORIZED", HttpStatus.UNAUTHORIZED);
 		}
 		Manager manager = managerDetails.getManager();
-		ProfileResponse details = managerService.getProfile(manager);
-		return ResponseEntity.ok(new ApiResponse<>("success", "Manager Profile", details));
+		return ResponseEntity.ok(new ApiResponse<>("success", "Manager Profile", manager));
+	}
+	
+	@GetMapping("/secure/{id}")
+	public ResponseEntity<?> getManagerById(@AuthenticationPrincipal CustomUserDetails managerDetails ,@PathVariable("id") String managerId) {
+		
+		
+		Manager manager = managerService.getManagerById(managerId);
+		
+		if(manager ==null)
+		{
+			throw new ManagerException("Manager Not Found", HttpStatus.NOT_FOUND);
+		}
+		
+		return ResponseEntity.ok(new ApiResponse<>("success", "Manager Data", manager));
 	}
 
 	@GetMapping("/secure/jd/{jobDescriptionId}")
@@ -312,41 +406,6 @@ public class ManagerController {
 
 		JobDescription jobDescription = jobDescriptionOtp.get();
 		JobDescriptionDTO jobDescriptionDTO = jobDescriptionMapper.toDTO(jobDescription);
-//		jobDescriptionDTO.setJobDescriptionId(jobDescription.getJobDescriptionId());
-//		jobDescriptionDTO.setCompanyName(jobDescription.getCompanyName());
-//		jobDescriptionDTO.setCompanyLogo(jobDescription.getCompanyLogo());
-//		jobDescriptionDTO.setWebsite(jobDescription.getWebsite());
-//		jobDescriptionDTO.setRole(jobDescription.getRole());
-//		jobDescriptionDTO.setStack(jobDescription.getStack());
-//		jobDescriptionDTO.setQualification(jobDescription.getQualification());
-//		jobDescriptionDTO.setStream(jobDescription.getStream());
-//		jobDescriptionDTO.setPercentage(jobDescription.getPercentage());
-//		jobDescriptionDTO.setMinYearOfPassing(jobDescription.getMinYearOfPassing());
-//		jobDescriptionDTO.setMaxYearOfPassing(jobDescription.getMaxYearOfPassing());
-//		jobDescriptionDTO.setSalaryPackage(jobDescription.getSalaryPackage());
-//		jobDescriptionDTO.setNumberOfRegistrations(jobDescription.getNumberOfRegistrations());
-//		jobDescriptionDTO.setCurrentRegistrations(jobDescription.getCurrentRegistrations());
-//		jobDescriptionDTO.setMockRating(jobDescription.getMockRating());
-//		jobDescriptionDTO.setJdStatus(jobDescription.getJdStatus());
-//		jobDescriptionDTO.setManagerApproval(jobDescription.isManagerApproval());
-//		jobDescriptionDTO.setNumberOfClosures(jobDescription.getNumberOfClosures());
-//		jobDescriptionDTO.setClosed(jobDescription.isClosed());
-//		jobDescriptionDTO.setCreatedAt(jobDescription.getCreatedAt());
-//		jobDescriptionDTO.setUpdatedAt(jobDescription.getUpdatedAt());
-//		jobDescriptionDTO.setLocation(jobDescription.getLocation());
-//		jobDescriptionDTO.setExecutive(jobDescription.getExecutive());
-//		jobDescriptionDTO.setPostedBy(jobDescription.getPostedBy());
-//		jobDescriptionDTO.setDescription(jobDescription.getDescription());
-//		jobDescriptionDTO.setSkills(jobDescription.getSkills());
-//		jobDescriptionDTO.setJdActionReason(jobDescription.getJdActionReason());
-//		jobDescriptionDTO.setBondDetails(jobDescription.getBondDetails());
-//		jobDescriptionDTO.setSalaryDetails(jobDescription.getSalaryDetails());
-//		jobDescriptionDTO.setStautsHistory(jobDescription.getStautsHistory());
-//		jobDescriptionDTO.setRoundHistory(jobDescription.getRoundHistory());
-//		jobDescriptionDTO.setAboutCompany(jobDescription.getAboutCompany());
-//		jobDescriptionDTO.setInterviewDate(jobDescription.getInterviewDate());
-//		jobDescriptionDTO.setGenderPreference(jobDescription.getGenderPreference());
-//		jobDescriptionDTO.setRolesAndResposilibity(jobDescription.getRolesAndResposilibity());
 		return ResponseEntity.ok(new ApiResponse<>("success", "Job Description Fetched", jobDescriptionDTO));
 
 	}
@@ -376,36 +435,6 @@ public class ManagerController {
 
 		Page<JobDescriptionDTO> JobDescriptionDTOResponse = jobDescriptions.map(jobDescription -> {
 			JobDescriptionDTO jobDescriptionDTO = jobDescriptionMapper.toDTO(jobDescription);
-//			jobDescriptionDTO.setJobDescriptionId(jobDescription.getJobDescriptionId());
-//			jobDescriptionDTO.setCompanyName(jobDescription.getCompanyName());
-//			jobDescriptionDTO.setCompanyLogo(jobDescription.getCompanyLogo());
-//			jobDescriptionDTO.setWebsite(jobDescription.getWebsite());
-//			jobDescriptionDTO.setRole(jobDescription.getRole());
-//			jobDescriptionDTO.setStack(jobDescription.getStack());
-//			jobDescriptionDTO.setQualification(jobDescription.getQualification());
-//			jobDescriptionDTO.setStream(jobDescription.getStream());
-//			jobDescriptionDTO.setPercentage(jobDescription.getPercentage());
-//			jobDescriptionDTO.setMinYearOfPassing(jobDescription.getMinYearOfPassing());
-//			jobDescriptionDTO.setMaxYearOfPassing(jobDescription.getMaxYearOfPassing());
-//			jobDescriptionDTO.setSalaryPackage(jobDescription.getSalaryPackage());
-//			jobDescriptionDTO.setNumberOfRegistrations(jobDescription.getNumberOfRegistrations());
-//			jobDescriptionDTO.setCurrentRegistrations(jobDescription.getCurrentRegistrations());
-//			jobDescriptionDTO.setMockRating(jobDescription.getMockRating());
-//			jobDescriptionDTO.setJdStatus(jobDescription.getJdStatus());
-//			jobDescriptionDTO.setManagerApproval(jobDescription.isManagerApproval());
-//			jobDescriptionDTO.setNumberOfClosures(jobDescription.getNumberOfClosures());
-//			jobDescriptionDTO.setClosed(jobDescription.isClosed());
-//			jobDescriptionDTO.setCreatedAt(jobDescription.getCreatedAt());
-//			jobDescriptionDTO.setUpdatedAt(jobDescription.getUpdatedAt());
-//			jobDescriptionDTO.setLocation(jobDescription.getLocation());
-//			jobDescriptionDTO.setStautsHistory(jobDescription.getStautsHistory());
-//			jobDescriptionDTO.setRoundHistory(jobDescription.getRoundHistory());
-//			jobDescriptionDTO.setAboutCompany(jobDescription.getAboutCompany());
-//			jobDescriptionDTO.setInterviewDate(jobDescription.getInterviewDate());
-//			jobDescriptionDTO.setGenderPreference(jobDescription.getGenderPreference());
-//			jobDescriptionDTO.setRolesAndResposilibity(jobDescription.getRolesAndResposilibity());
-//			jobDescriptionDTO.setBondDetails(jobDescription.getBondDetails());
-//			jobDescriptionDTO.setSalaryDetails(jobDescription.getSalaryDetails());
 			return jobDescriptionDTO;
 		});
 
@@ -436,13 +465,14 @@ public class ManagerController {
 	    return ResponseEntity.ok(new ApiResponse<>("success", "Executive JD stats", stats));
 	}
 	
-	@GetMapping("/secure/jd-stats")
+	@GetMapping("/secure/{id}/jd-stats")
 	@PreAuthorize("hasAnyRole('MANAGER','ADMIN')")
-	public ResponseEntity<?> getManagerJdStats(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
-		Manager manager = customUserDetails.getManager();
+	public ResponseEntity<?> getManagerJdStats(@AuthenticationPrincipal CustomUserDetails customUserDetails,
+			@PathVariable String id) {
+		Manager manager = managerService.getManagerById(id);
 		if(manager ==null)
 		{
-			throw new UsernameNotFoundException("Unauthorized");
+			throw new ManagerException("User Not Found", HttpStatus.BAD_REQUEST);
 		}
 	   Map<String, Long> jdDetails = (Map)managerService.getManagersJdDetails(manager.getManagerId());
 	    return ResponseEntity.ok(new ApiResponse<>("success", "Manager JD stats", jdDetails ));
@@ -508,6 +538,63 @@ public class ManagerController {
 		executiveDetails.setManagerEmail(manager.getEmail());
 		executiveDetails.setManagerName(manager.getName());
 		return ResponseEntity.ok(new ApiResponse<>("success", "Executive Data", executiveDetails));
+	}
+	
+	
+	
+	@PutMapping("/secure/block/{id}")
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<?> blockManager(@PathVariable String id)
+	{
+		Manager manager = managerService.getManagerById(id);
+		if(manager ==null)
+		{
+			throw new ManagerException("Manager not FOund", HttpStatus.NOT_FOUND);
+		}
+		
+		if(!manager.isActive())
+		{
+			throw new ManagerException("Manager is Already blocked", HttpStatus.BAD_REQUEST);
+		}
+		
+		manager.setActive(false);
+		
+		managerService.updateManager(manager);
+		
+		String  mailMessage= htmlTemplates.getAccountBlockedEmail(manager.getName());
+		
+		mailService.sendAsync(manager.getEmail(),"Account Blocked - Pentagon Space", mailMessage);
+		
+		
+		return ResponseEntity.ok(new ApiResponse<>("success","Manager Blocked Successfully", null));
+		
+	}
+	
+	@PutMapping("/secure/unblock/{id}")
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<?> unBlockManager(@PathVariable String id)
+	{
+		Manager manager = managerService.getManagerById(id);
+		if(manager ==null)
+		{
+			throw new ManagerException("Manager not FOund", HttpStatus.NOT_FOUND);
+		}
+		
+		if(manager.isActive())
+		{
+			throw new ManagerException("Manager is Already active", HttpStatus.BAD_REQUEST);
+		}
+		
+		manager.setActive(true);
+		
+		managerService.updateManager(manager);
+		
+		String mailMessage = htmlContentService.getAccountUnblockedEmail(manager.getName());
+		
+		mailService.sendAsync(manager.getEmail(), "Account Unblocked - Pentagon Space", mailMessage);
+		
+		return ResponseEntity.ok(new ApiResponse<>("success","Manager Un-Blocked Successfully", null));
+		
 	}
 	
 	

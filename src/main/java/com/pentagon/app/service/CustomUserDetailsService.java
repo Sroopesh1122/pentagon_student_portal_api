@@ -3,6 +3,7 @@ package com.pentagon.app.service;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -13,8 +14,10 @@ import com.pentagon.app.entity.Executive;
 import com.pentagon.app.entity.Manager;
 import com.pentagon.app.entity.ProgramHead;
 import com.pentagon.app.entity.Student;
+import com.pentagon.app.entity.Student.EnrollmentStatus;
 import com.pentagon.app.entity.StudentAdmin;
 import com.pentagon.app.entity.Trainer;
+import com.pentagon.app.exception.BlockedException;
 import com.pentagon.app.repository.AdminRepository;
 import com.pentagon.app.repository.ExecutiveRepository;
 import com.pentagon.app.repository.ManagerRepository;
@@ -70,18 +73,29 @@ public class CustomUserDetailsService implements UserDetailsService {
 		if (manager.isEmpty()) {
 			throw new UsernameNotFoundException("User not found");
 		}
-
+		
+		if(!manager.get().isActive())
+		{
+			throw new BlockedException("Your Account is Blocked",HttpStatus.UNAUTHORIZED);
+		}
 		return new CustomUserDetails(manager.get());
 	}
 
 	public UserDetails loadExecutive(String email) {
-		Optional<Executive> executive = executiveRepository.findByEmail(email);
+		Optional<Executive> executiveOpt = executiveRepository.findByEmail(email);
 
-		if (executive.isEmpty()) {
+		if (executiveOpt.isEmpty()) {
 			throw new UsernameNotFoundException("User not found");
 		}
+		
+		Executive  executive  = executiveOpt.get();
 
-		return new CustomUserDetails(executive.get());
+		if(!executive.isActive())
+		{
+			throw new BlockedException("Your Account is Blocked",HttpStatus.UNAUTHORIZED);
+		}
+		
+		return new CustomUserDetails(executive);
 	}
 
 	public UserDetails loadStudentAdmin(String email) {
@@ -93,6 +107,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 		}
 		return new CustomUserDetails(studentAdmin.get());
 	}
+	
 
 	public UserDetails loadTrainer(String email) {
 		Optional<Trainer> trainer = trainerRepository.findByEmail(email);
@@ -100,8 +115,27 @@ public class CustomUserDetailsService implements UserDetailsService {
 		if (trainer.isEmpty()) {
 			throw new UsernameNotFoundException("User Not Found");
 		}
+		
+		if(trainer.get().isProgramHead())
+		{
+		  ProgramHead programHead =	programHeadRepository.findById(trainer.get().getProgramHeadId()).orElse(null);
+		  
+		  if(programHead ==null)
+		  {
+			  throw new UsernameNotFoundException("User Not Found");
+		  }
+			
+		  return new CustomUserDetails(programHead);
+		}
+		
+		if(!trainer.get().isActive())
+		{
+			throw new BlockedException("Your Account is Blocked",HttpStatus.UNAUTHORIZED);
+		}
+		
 		return new CustomUserDetails(trainer.get());
 	}
+	
 
 	public UserDetails loadProgramHead(String email) {
 		Optional<ProgramHead> programHead = programHeadRepository.findByEmail(email);
@@ -114,12 +148,14 @@ public class CustomUserDetailsService implements UserDetailsService {
 	
 	
 	public UserDetails loadStudent(String email) {
-		Optional<Student> student= studentRepository.findByEmail(email);
+		Optional<Student> studentOpt= studentRepository.findByEmail(email);
 
-		if (student.isEmpty()) {
+		if (studentOpt.isEmpty()) {
 			throw new UsernameNotFoundException("User Not Found");
 		}
-		return new CustomUserDetails(student.get());
+		
+		Student student = studentOpt.get();		
+		return new CustomUserDetails(student);
 	}
 
 }

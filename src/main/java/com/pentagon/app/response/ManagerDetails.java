@@ -23,5 +23,6 @@ public class ManagerDetails {
 	private Map<String, Long> jdsCount;
 	private Long totalExecutives;
 	private List<JdStatsDTO> lastWeekJdCount;
+	private String profileImgUrl;
 	
 }

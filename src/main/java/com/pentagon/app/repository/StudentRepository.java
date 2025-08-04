@@ -1,5 +1,6 @@
 package com.pentagon.app.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -11,6 +12,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.pentagon.app.entity.Student;
+import com.pentagon.app.entity.Student.EnrollmentStatus;
 @Repository
 public interface StudentRepository extends JpaRepository<Student, String> {
 
@@ -23,18 +25,24 @@ public interface StudentRepository extends JpaRepository<Student, String> {
 	public List<Student> findByBatch(String batchId);
 	
 	@Query("SELECT s.email FROM Student s WHERE s.batch.batchId = :batchId")
-	public List<String> findEmailsByBatch(String batchId);
+	public List<String> getEmailsByBatch(String batchId);
 	
-	@Query("SELECT COUNT(s) FROM Student s WHERE s.stack.stackId = :stack AND FUNCTION('MONTH', s.createdAt) = :month AND FUNCTION('YEAR', s.createdAt) = :year")
-	public int countByCourseAndMonthYear( String stack, int month, int year);
+	@Query("SELECT COUNT(s) FROM Student s WHERE s.batch.batchId =:batchId")
+	public int countByCourseAndMonthYear(String batchId);
 
 	public Optional<Student> findByEmail(String email);
 	
 	@Query("SELECT s FROM Student s " +
 		       "WHERE (:q IS NULL OR s.name LIKE CONCAT( :q, '%') OR s.email LIKE CONCAT( :q, '%') OR s.studentId LIKE CONCAT(:q, '%')) " +
 		       "AND (:batchId IS NULL OR s.batch.batchId = :batchId) " +
-		       "AND (:stackId IS NULL OR s.stack.stackId = :stackId)")
-		Page<Student> findStudents(@Param("q") String q, @Param("batchId") String batchId, @Param("stackId") String stackId, Pageable pageable);
+		       "AND (:stackId IS NULL OR s.stack.stackId = :stackId) "+
+		       "AND (:status IS NULL OR s.status =:status)")
+		Page<Student> findStudents(
+				@Param("q") String q,
+				@Param("batchId") String batchId, 
+				@Param("stackId") String stackId, 
+				@Param("status") EnrollmentStatus status,
+				Pageable pageable);
 	
 	@Query("SELECT s.status, COUNT(s) FROM Student s " +
 		       "WHERE (:batchId IS NULL OR s.batch.batchId = :batchId) " +
@@ -42,4 +50,19 @@ public interface StudentRepository extends JpaRepository<Student, String> {
 		List<Object[]> countStudentsByStatus(@Param("batchId") String batchId, @Param("stackId") String stackId);
 	
 	public Student findByPasswordResetToken(String token);
+	
+	
+	@Query("SELECT COUNT(s) FROM Student s WHERE s.status = :status")
+	public Long countStudents(EnrollmentStatus status);
+	
+	@Query("SELECT COUNT(s) FROM Student s WHERE s.status = :status  AND s.stack.stackId=:stackId")
+	public Long countStudentsByBatch(EnrollmentStatus status,String stackId);
+	
+	
+	@Query("SELECT COUNT(s) FROM Student s WHERE FUNCTION('MONTH', s.createdAt) = :month AND FUNCTION('YEAR', s.createdAt) = :year")
+    public long countByCreatedAtMonthAndYear(@Param("month") int month, @Param("year") int year);
+
+
+	
+	
 }

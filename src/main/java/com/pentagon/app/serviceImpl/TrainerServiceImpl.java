@@ -1,7 +1,10 @@
 package com.pentagon.app.serviceImpl;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -142,6 +145,24 @@ public class TrainerServiceImpl implements TrainerService {
 	@Override
 	public Trainer findByPasswordResetToken(String token) {
 		return trainerRepository.findByPasswordResetToken(token);
+	}
+
+
+	@Override
+	public Trainer getTrainer(String programHead) {
+		return trainerRepository.getTrainer(programHead);
+	}
+	
+	
+	@Override
+	public Map getTrainerStats(String programHead) {
+		
+		Map<String, Long> stats = new LinkedHashMap<>();
+		stats.put("totalTeamCount",trainerRepository.countTrainer(programHead, null));
+		stats.put("active",trainerRepository.countTrainer(programHead, true));
+		stats.put("inActive", trainerRepository.countTrainer(programHead, false));
+		stats.put("fullTotal", trainerRepository.countTrainer(null, null));
+		return  stats;
 	}
 	
 	

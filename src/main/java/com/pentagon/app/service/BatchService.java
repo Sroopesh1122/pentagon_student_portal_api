@@ -15,5 +15,12 @@ public interface BatchService {
     public void deleteBatch(String batchId);
     public List<Batch> findAllById(List<String> ids);
     
+    public Long countCompletedBatch();
+    
+    public Long countOnGoingBatch();
+    
+    public Long countCompletedBatchByStack(String stackId);
+    public Long countOnGOingBatchByStack(String stackId);
+    
     
 }

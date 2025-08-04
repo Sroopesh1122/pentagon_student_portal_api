@@ -20,10 +20,12 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.pentagon.app.Dto.AdminDashboardInfoDTO;
 import com.pentagon.app.Dto.ExecutiveDTO;
@@ -56,7 +58,6 @@ import com.pentagon.app.request.AddStudentAdminRequest;
 import com.pentagon.app.response.ApiResponse;
 import com.pentagon.app.response.ExecutiveDetails;
 import com.pentagon.app.response.ManagerDetails;
-import com.pentagon.app.response.ProfileResponse;
 import com.pentagon.app.service.ActivityLogService;
 import com.pentagon.app.service.AdminService;
 import com.pentagon.app.service.CustomUserDetails;
@@ -65,12 +66,12 @@ import com.pentagon.app.service.JobDescriptionService;
 import com.pentagon.app.utils.HtmlTemplates;
 import com.pentagon.app.utils.IdGeneration;
 import com.pentagon.app.service.ManagerService;
-import com.pentagon.app.service.OtpService;
 import com.pentagon.app.service.ProgramHeadService;
 import com.pentagon.app.service.StackService;
 import com.pentagon.app.service.StudentAdminService;
 import com.pentagon.app.service.TechnologyService;
 import com.pentagon.app.service.TrainerService;
+import com.pentagon.app.serviceImpl.CloudinaryServiceImp;
 import com.pentagon.app.serviceImpl.MailService;
 import com.pentagon.app.utils.PasswordGenration;
 
@@ -82,18 +83,21 @@ public class AdminController {
 
 	@Autowired
 	AdminService adminservice;
+	
 	@Autowired
 	private PasswordEncoder passwordEncoder;
+	
 	@Autowired
 	private MailService mailService;
+	
 	@Autowired
 	private IdGeneration idGeneration;
 	@Autowired
 	private ManagerService managerService;
+	
 	@Autowired
 	private ActivityLogService activityLogService;
-	@Autowired
-	private OtpService otpService;
+	
 	@Autowired
 	private HtmlTemplates htmlContentService;
 	@Autowired
@@ -127,6 +131,9 @@ public class AdminController {
 	
 	@Autowired
 	private TechnologyService technologyService;
+	
+	@Autowired
+	private CloudinaryServiceImp cloudinaryService;
 
 	@PostMapping("/secure/addManager")
 	@PreAuthorize("hasRole('ADMIN')")
@@ -165,9 +172,14 @@ public class AdminController {
 		} catch (Exception e) {
 			throw new OtpException("Mail couldn't be sent", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+		
+		String logDetails = "Manager Added:<br>" +
+                "Name: " + manager.getName() + "<br>" +
+                "Email: " + manager.getEmail() + "<br>" +
+                "Mobile: " + manager.getMobile();
 
-		activityLogService.log(adminDetails.getAdmin().getEmail(), adminDetails.getAdmin().getAdminId(), "ADMIN",
-				"Manager with Unique Id " + manager.getManagerId() + " Added Successfully");
+
+		activityLogService.log(adminDetails.getAdmin().getAdminId(),"New Manager Added",logDetails);
 
 		return ResponseEntity.ok(new ApiResponse<>("success", "Manager added successfully", null));
 	}
@@ -186,6 +198,18 @@ public class AdminController {
 
 		if (findExecutive != null) {
 			throw new AdminException("Email Already exists", HttpStatus.CONFLICT);
+		}
+		
+		Manager  manager  = managerService.getManagerById(newExecutive.getManagerId());
+		
+		if(manager == null)
+		{
+			throw new AdminException("Manager Not Found", HttpStatus.NOT_FOUND);
+		}
+		
+		if(!manager.isActive())
+		{
+			throw new AdminException("This Manager is in-active ", HttpStatus.BAD_REQUEST);
 		}
 
 		Executive executive = new Executive();
@@ -208,8 +232,13 @@ public class AdminController {
 			throw new OtpException("Mail couldn't be sent", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 
-		activityLogService.log(adminDetails.getAdmin().getEmail(), adminDetails.getAdmin().getAdminId(), "ADMIN",
-				"Executive with Unique Id " + executive.getExecutiveId() + " Added Successfully");
+		String logDetails = "Executive Added:<br>" +
+                "Name: " + executive.getName() + "<br>" +
+                "Email: " + executive.getEmail() + "<br>" +
+                "Mobile: " + executive.getMobile();
+
+
+		activityLogService.log(adminDetails.getAdmin().getAdminId(),"New Executive Added",logDetails);
 
 		return ResponseEntity.ok(new ApiResponse<>("success", "Executive added Successfully", null));
 	}
@@ -264,6 +293,7 @@ public class AdminController {
 		trainer.setMobile(request.getMobile());		
 		trainer.setActive(true);
 		trainer.setProgramHeadId(newProgramHead.getId());
+		trainer.setProgramHead(true);
 		trainer.setCreatedAt(LocalDateTime.now());
 		trainer.setPassword(passwordEncoder.encode(password));
 		
@@ -284,11 +314,14 @@ public class AdminController {
 		
 		String htmlContent = htmlContentService.getLoginEmailHtmlContent(newProgramHead.getName(), newProgramHead.getEmail(), password);
 
-		try {
-			mailService.send(newProgramHead.getEmail(), "Welcome to Pentagon – Login Credentials Enclosed",htmlContent);
-		} catch (Exception e) {
-			throw new OtpException("Mail couldn't be sent", HttpStatus.INTERNAL_SERVER_ERROR);
-		}
+	     mailService.send(newProgramHead.getEmail(), "Welcome to Pentagon – Login Credentials Enclosed",htmlContent);
+	     
+	     
+	     String logDetails = "Trainer Added:<br>" +
+	                "Name: " + trainer.getName() + "<br>" +
+	                "Email: " + trainer.getEmail() + "<br>";
+			activityLogService.log(adminDetails.getAdmin().getAdminId(),"New Trainer Added",logDetails);
+		
 		
 		return ResponseEntity.ok(new ApiResponse<>("success", "Program Head added Successfully", null));	
 	}
@@ -322,11 +355,13 @@ public class AdminController {
 		
 		String htmlContent = htmlContentService.getLoginEmailHtmlContent(studentAdmin.getName(), studentAdmin.getEmail(), password);
 
-		try {
-			mailService.send(studentAdmin.getEmail(), "Welcome to Pentagon – Login Credentials Enclosed",htmlContent);
-		} catch (Exception e) {
-			throw new OtpException("Mail couldn't be sent", HttpStatus.INTERNAL_SERVER_ERROR);
-		}
+	   mailService.send(studentAdmin.getEmail(), "Welcome to Pentagon – Login Credentials Enclosed",htmlContent);
+	   
+	   String logDetails = "Student Admin Added:<br>" +
+               "Name: " + studentAdmin.getName() + "<br>" +
+               "Email: " + studentAdmin.getEmail() + "<br>";
+		activityLogService.log(adminDetails.getAdmin().getAdminId(),"New Student Admin Added",logDetails);
+		
 		
 		return ResponseEntity.ok(new ApiResponse<>("success", "Student Admin added Successfully",null));	
 	}
@@ -337,8 +372,61 @@ public class AdminController {
 	public ResponseEntity<?> getAdminProfile(@AuthenticationPrincipal CustomUserDetails adminDetails) {
 
 		Admin admin = adminDetails.getAdmin();
-		ProfileResponse details = adminservice.getProfile(admin);
-		return ResponseEntity.ok(new ApiResponse<>("success", "Admin Profile", details));
+		return ResponseEntity.ok(new ApiResponse<>("success", "Admin Profile", admin));
+	}
+	
+	
+	@PutMapping("/secure/profile/update")
+	public ResponseEntity<?> updateProfile(
+			@AuthenticationPrincipal CustomUserDetails customUserDetails,
+			@RequestParam String adminId,
+			@RequestParam String name,
+			@RequestParam String email,
+			@RequestParam String mobile,
+			@RequestParam(required = false) MultipartFile profileImg)
+	{
+		Admin admin = customUserDetails.getAdmin();
+		if(admin == null)
+		{
+			throw new AdminException("Unauthorized", HttpStatus.UNAUTHORIZED);
+		}
+		
+		if(!admin.getAdminId().toLowerCase().equals(adminId.toLowerCase()))
+		{
+			throw new AdminException("You can't update this profile", HttpStatus.FORBIDDEN);
+		}
+		
+		if(name!=null)
+		{
+			admin.setName(name);
+		}
+		if(email !=null)
+		{
+			admin.setEmail(email);
+		}
+		if(mobile!=null)
+		{
+			admin.setMobile(mobile);
+		}
+		
+		if(profileImg !=null)
+		{
+			if(admin.getProfilePublicId()!=null)
+			{
+				cloudinaryService.deleteFile(admin.getProfilePublicId(),"image");
+			}
+			
+			Map<String, Object>	uploadResponse  = cloudinaryService.uploadImage(profileImg);
+			  admin.setProfilePublicId(uploadResponse.get("public_id").toString());
+			  admin.setProfileImgUrl(uploadResponse.get("secure_url").toString());
+		}
+		
+		adminservice.updateAdmin(admin);
+		
+		 
+		 activityLogService.log(customUserDetails.getAdmin().getAdminId(),"Profile Updated",null);
+		
+		return ResponseEntity.ok(new ApiResponse<>("success","Admin Profile Updated Successfully", null));
 	}
 	
 	@GetMapping("/secure/program-heads")
@@ -351,7 +439,17 @@ public class AdminController {
 
 		Pageable pageable = PageRequest.of(page, limit, Sort.by("createdAt").descending());
          
-		Page<ProgramHeadDTO> programHeads =  programHeadService.getAll(q, pageable).map(programHead -> programHeadMapper.toDTO(programHead));
+		Page<ProgramHeadDTO> programHeads =  programHeadService.getAll(q, pageable).map(programHead -> {
+			ProgramHeadDTO programHeadDTO = programHeadMapper.toDTO(programHead);
+		    Trainer trainer = trainerService.getTrainer(programHead.getId());
+		    if(trainer !=null)
+		    {
+		    	programHeadDTO.setProfileImgUrl(trainer.getProfileImgUrl());
+		    	programHeadDTO.setTrainer(trainer);
+		    }
+			
+			return programHeadDTO;
+		});
 		
 
 		return ResponseEntity.ok(new ApiResponse<>("success", "Trainers fetched successfully", programHeads));
@@ -403,13 +501,16 @@ public class AdminController {
 
 	@GetMapping("/secure/managers")
 	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<?> viewAllManagers(@AuthenticationPrincipal CustomUserDetails adminDetails,
-			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int limit,
-			@RequestParam(required = false) String q) {
+	public ResponseEntity<?> viewAllManagers(
+			@AuthenticationPrincipal CustomUserDetails adminDetails,
+			@RequestParam(defaultValue = "0") int page,
+			@RequestParam(defaultValue = "10") int limit,
+			@RequestParam(required = false) String q ,
+			@RequestParam(required = false) String status) {
 
 		Pageable pageable = PageRequest.of(page, limit, Sort.by("createdAt").descending());
 
-		Page<Manager> managers = managerService.findAll(q, pageable);
+		Page<Manager> managers = managerService.findAll(q, status,pageable);
 
 		Page<ManagerDTO> managerDTOPage = managers.map(manager -> {
 			ManagerDTO dto = new ManagerDTO();
@@ -420,6 +521,7 @@ public class AdminController {
 			dto.setActive(manager.isActive());
 			dto.setCreatedAt(manager.getCreatedAt());
 			dto.setUpdatedAt(manager.getUpdatedAt());
+			dto.setProfileImgUrl(manager.getProfileImgUrl());
 			return dto;
 		});
 
@@ -445,6 +547,7 @@ public class AdminController {
 			dto.setActive(executive.isActive());
 			dto.setCreatedAt(executive.getCreatedAt());
 			dto.setUpdatedAt(executive.getUpdatedAt());
+			dto.setProfileImgUrl(executive.getProfileImgUrl());
 			return dto;
 		});
 
@@ -464,7 +567,7 @@ public class AdminController {
 		jobDescriptionDTO.setCompanyLogo(jobDescription.getCompanyLogo());
 		jobDescriptionDTO.setWebsite(jobDescription.getWebsite());
 		jobDescriptionDTO.setRole(jobDescription.getRole());
-		jobDescriptionDTO.setStack(jobDescription.getStack());
+		jobDescriptionDTO.setStack(jobDescription.getJdStack());
 		jobDescriptionDTO.setQualification(jobDescription.getQualification());
 		jobDescriptionDTO.setStream(jobDescription.getStream());
 		jobDescriptionDTO.setPercentage(jobDescription.getPercentage());
@@ -495,7 +598,9 @@ public class AdminController {
 		jobDescriptionDTO.setInterviewDate(jobDescription.getInterviewDate());
 		jobDescriptionDTO.setGenderPreference(jobDescription.getGenderPreference());
 		jobDescriptionDTO.setRolesAndResponsibility(jobDescription.getRolesAndResponsibility());
-		jobDescriptionDTO.setGeneric(jobDescription.getGeneric());
+		jobDescriptionDTO.setBacklogs(jobDescription.getBacklogs());
+		jobDescriptionDTO.setAcardemicGap(jobDescription.getAcardemicGap());
+		jobDescriptionDTO.setMockRatingTechnologies(jobDescription.getMockRatingTechnologies());
 		Manager manager = managerService.getManagerById(jobDescription.getManagerId());
 		if(manager !=null)
 		{
@@ -547,6 +652,7 @@ public class AdminController {
 		managerDetails.setMobile(findManager.getMobile());
 		managerDetails.setName(findManager.getName());
 		managerDetails.setPassword(null);
+		managerDetails.setProfileImgUrl(findManager.getProfileImgUrl());
 		managerDetails.setTotalExecutives(managerService.getAllExecutivesCount(findManager.getManagerId()));
 		
 		
@@ -594,6 +700,7 @@ public class AdminController {
 		executiveDetails.setManagerId(findExecutive.getManagerId());
 		executiveDetails.setMobile(findExecutive.getMobile());
 		executiveDetails.setName(findExecutive.getName());
+		executiveDetails.setProfileImgUrl(findExecutive.getProfileImgUrl());
 		Map<String, Long> jdDetails = (Map) executiveService.getExecutiveJdDetails(findExecutive.getExecutiveId());
 		executiveDetails.setJdsCount(jdDetails);
 		Manager manager = managerService.getManagerById(findExecutive.getManagerId());
@@ -614,7 +721,6 @@ public class AdminController {
 		}
 	 
 		Integer RECENT_COUNT = 5;
-		
 		Page<JobDescription> jobDescriptions = executiveService.getRecentJobDescriptions(id, RECENT_COUNT);
 		
 		return ResponseEntity.ok(new ApiResponse<>("success", "Executive Data", jobDescriptions));

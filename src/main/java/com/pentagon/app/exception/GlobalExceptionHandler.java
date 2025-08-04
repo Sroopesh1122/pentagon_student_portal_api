@@ -6,6 +6,8 @@ import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -15,6 +17,29 @@ import io.jsonwebtoken.ExpiredJwtException;
 public class GlobalExceptionHandler {
 	
 	
+	@ExceptionHandler(BlockedException.class)
+    public ResponseEntity<Map<String, Object>> handleBlockException(BlockedException exception) {
+        Map<String,Object> errorResponse = new HashMap<>();
+        errorResponse.put("status", "failure");
+        errorResponse.put("type","Blocked Exception");
+        errorResponse.put("error", exception.getMessage());
+        errorResponse.put("isBlocked", true);
+        errorResponse.put("localTime", LocalDateTime.now());
+        errorResponse.put("status",exception.getHttpStatus().toString());
+        return new ResponseEntity<Map<String,Object>>(errorResponse, exception.getHttpStatus());
+    }
+		
+	
+	 @ExceptionHandler(TestimonialException.class)
+	    public ResponseEntity<Map<String, Object>> handleTestimonialException(TestimonialException testimonialException) {
+	        Map<String,Object> errorResponse = new HashMap<>();
+	        errorResponse.put("status", "failure");
+	        errorResponse.put("type","TEstimonial Exception");
+	        errorResponse.put("error", testimonialException.getMessage());
+	        errorResponse.put("localTime", LocalDateTime.now());
+	        errorResponse.put("status",testimonialException.getHttpStatus().toString());
+	        return new ResponseEntity<Map<String,Object>>(errorResponse, testimonialException.getHttpStatus());
+	    }
 	 @ExceptionHandler(InvalidDataException.class)
 	    public ResponseEntity<Map<String, Object>> handleInvalidDataException(InvalidDataException invalidDataException) {
 	        Map<String,Object> errorResponse = new HashMap<>();

@@ -8,6 +8,8 @@ import java.util.Map;
 import com.pentagon.app.entity.Executive;
 import com.pentagon.app.entity.JdRoundHistory;
 import com.pentagon.app.entity.JdStatusHistory;
+import com.pentagon.app.entity.Stack;
+import com.pentagon.app.entity.Technology;
 
 import lombok.Data;
 
@@ -18,7 +20,7 @@ public class JobDescriptionDTO {
 	private String companyName;
 	private String website;
 	private String role;
-	private String stack;
+	private Stack stack;
 	private String qualification;
 	private String stream;
 	private Double percentage;
@@ -54,7 +56,7 @@ public class JobDescriptionDTO {
 	private String aboutCompany;
 	private LocalDate interviewDate;
 	private String rolesAndResponsibility;
-	
+	private List<Technology> mockRatingTechnologies;
 	private String generic;
 	
 	

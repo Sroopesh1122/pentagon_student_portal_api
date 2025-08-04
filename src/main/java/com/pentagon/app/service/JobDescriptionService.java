@@ -1,7 +1,9 @@
 
 package com.pentagon.app.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -28,6 +30,12 @@ public interface JobDescriptionService {
 		        String endDate,
 			Pageable pageable);
 
+	public Page<JobDescription> findJdForStudent(String companyName, String stack, String role,
+			Integer minYearOfPassing, Integer maxYearOfPassing, String qualification, String stream, Double percentage,
+			 String startDate,
+		        String endDate,
+			Pageable pageable);
+	
 	public JobDescription addJobDescription(JobDescription jobDescription);
 
 	public JobDescription updateJobDescription(JobDescription jobDescription);
@@ -46,6 +54,14 @@ public interface JobDescriptionService {
 	public Long totalCount();
 	
 	public Long totalClosureCount();
+	
+	
+	public Map<String, Object> getJdClosureOfExecutiveByMonthRange(Integer noOfMonths,String executiveId);
+	
+	
+	public Page<JobDescription> getManagerJd(String managerId,Pageable pageable);
+	
+	public Page<JobDescription> getExecutiveJd(String executiveId,Pageable pageable);
 	
 	
 	
