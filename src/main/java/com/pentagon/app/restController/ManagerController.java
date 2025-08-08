@@ -333,24 +333,49 @@ public class ManagerController {
 
 		findJobDescription.setJdActionReason(jdActionReason);
 		
-		findJobDescription.setCurrentRound("Pending Scheduling");
+		
+		if("approved".equalsIgnoreCase(request.getStatus()))
+		{
+			findJobDescription.setCurrentRound("Pending Scheduling");
+		}
 		findJobDescription = jobDescriptionService.updateJobDescription(findJobDescription);
 		
 		//Adding Status History
 		JdStatusHistory jdStatusHistory= new JdStatusHistory();
-		jdStatusHistory.setStatus("Approved");
-		jdStatusHistory.setDescription("JD approved by " + managerDetails.getManager().getName() + ", on "
-				+ LocalDateTime.now().toLocalDate()+LocalDateTime.now().toLocalTime());
-		jdStatusHistory.setJobDescription(findJobDescription);
+		
+		if("approved".equalsIgnoreCase(request.getStatus()))
+		{
+			jdStatusHistory.setStatus("Approved");
+			jdStatusHistory.setDescription("JD approved by " + managerDetails.getManager().getName() + ", on "
+					+ LocalDateTime.now().toLocalDate()+LocalDateTime.now().toLocalTime());
+			jdStatusHistory.setJobDescription(findJobDescription);
+		}
+		else if("hold".equalsIgnoreCase(request.getStatus()))
+		{
+			jdStatusHistory.setStatus("Hold");
+			jdStatusHistory.setDescription("JD holded by " + managerDetails.getManager().getName() + ", on "
+					+ LocalDateTime.now().toLocalDate()+LocalDateTime.now().toLocalTime());
+			jdStatusHistory.setJobDescription(findJobDescription);
+		}
+		else if("rejected".equalsIgnoreCase(request.getStatus()))
+		{
+			jdStatusHistory.setStatus("Hold");
+			jdStatusHistory.setDescription("JD rejected by " + managerDetails.getManager().getName() + ", on "
+					+ LocalDateTime.now().toLocalDate()+LocalDateTime.now().toLocalTime());
+			jdStatusHistory.setJobDescription(findJobDescription);
+		}
 		
 		jdStatusRoundHistoryService.addStatus(jdStatusHistory);
 		
 		
 		//Adding Round History
-		JdRoundHistory jdRoundHistory = new JdRoundHistory();
-		jdRoundHistory.setRound("Pending Scheduling");
-		jdRoundHistory.setJobDescription(findJobDescription);
-		jdStatusRoundHistoryService.addRound(jdRoundHistory);
+		if("approved".equalsIgnoreCase(request.getStatus()))
+		{
+			JdRoundHistory jdRoundHistory = new JdRoundHistory();
+			jdRoundHistory.setRound("Pending Scheduling");
+			jdRoundHistory.setJobDescription(findJobDescription);
+			jdStatusRoundHistoryService.addRound(jdRoundHistory);
+		}
 		
 		Executive executive = executiveService.getExecutiveById(findJobDescription.getPostedBy());
 		

@@ -317,6 +317,11 @@ public class JobDescriptionController {
 			throw new JobDescriptionException("Jd not found", HttpStatus.NOT_FOUND);
 		}
 		
+		if(!jobDescription.getJdStatus().equalsIgnoreCase("approved"))
+		{
+			throw new JobDescriptionException("Jd not approved", HttpStatus.NOT_FOUND);
+		}
+		
 		
 		JdRoundHistory jdRoundHistory =  jdStatusRoundHistoryService.findRound(request.getRoundName(), request.getJdId());
 		

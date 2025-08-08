@@ -48,7 +48,6 @@ public class AuthController {
 	private final ProgramHeadService programHeadService;
 	private final OtpService otpService;
 	private final JwtUtil jwtUtil;
-	private final ActivityLogService activityLogService;
 	private final MailService mailService;
 	private final PasswordEncoder passwordEncoder;
 	private final IdGeneration idGeneration;
@@ -74,7 +73,6 @@ public class AuthController {
 		this.studentService = studentService;
 		this.otpService = otpService;
 		this.jwtUtil = jwtUtil;
-		this.activityLogService = activityLogService;
 		this.mailService = mailService;
 		this.passwordEncoder = passwordEncoder;
 		this.idGeneration = idGeneration;
@@ -267,7 +265,7 @@ public class AuthController {
 		} else if (role.equals("admin")) {
 			Admin admin = adminService.findByEmail(email);
 			if (admin == null) {
-				throw new AdminException("Email Not Founs", HttpStatus.NOT_FOUND);
+				throw new AdminException("Email Not Found", HttpStatus.NOT_FOUND);
 			}
 			userName = admin.getName();
 			admin.setPasswordResetToken(passwordResetToken);
