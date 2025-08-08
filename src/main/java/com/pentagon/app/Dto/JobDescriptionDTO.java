@@ -1,0 +1,65 @@
+package com.pentagon.app.Dto;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+
+import com.pentagon.app.entity.Executive;
+import com.pentagon.app.entity.JdRoundHistory;
+import com.pentagon.app.entity.JdStatusHistory;
+import com.pentagon.app.entity.Stack;
+import com.pentagon.app.entity.Technology;
+
+import lombok.Data;
+
+@Data
+public class JobDescriptionDTO {
+	private String jobDescriptionId;
+	private String companyLogo;
+	private String companyName;
+	private String website;
+	private String role;
+	private Stack stack;
+	private String qualification;
+	private String stream;
+	private Double percentage;
+	private Integer minYearOfPassing;
+	private Integer maxYearOfPassing;
+	private String salaryPackage;
+	private Integer numberOfRegistrations;
+	private Integer currentRegistrations;
+	private Double mockRating;
+	private String jdStatus;
+	private boolean managerApproval;
+	private Integer numberOfClosures;
+	private boolean isClosed;
+	private LocalDateTime createdAt;
+	private LocalDateTime updatedAt;
+	private String location;
+	private Executive executive;
+	private String postedBy;
+	private String description;
+	private String managerId;
+	private String managerName;
+	private String skills;
+	private String jdActionReason;
+	private String bondDetails;
+	private String salaryDetails;
+	private String backlogs;
+	private String acardemicGap;
+	private LocalDateTime approvedDate;
+	private String currentRound;
+	private List<JdRoundHistory> roundHistory;
+	private List<JdStatusHistory> stautsHistory;
+    private String genderPreference;
+	private String aboutCompany;
+	private LocalDate interviewDate;
+	private String rolesAndResponsibility;
+	private List<Technology> mockRatingTechnologies;
+	private String generic;
+	
+	
+	private Map<String, String> studentProfileMatch;
+
+}
