@@ -98,6 +98,8 @@ public class StudentJdApplicationController {
 	private MockTestService mockTestService;
 	
 	
+	
+	
 	@Value("${FRONTEND_URL}")
 	private String FRONTEND_URL;
 	
@@ -418,7 +420,7 @@ public class StudentJdApplicationController {
 
 	        studentJdApplication.setCurrentStatus("Rejected");
 
-	        ApplicationStatusHistory applicationStatusHistory = applicationStatusHistoryService.findByRound(request.getRound());
+	        ApplicationStatusHistory applicationStatusHistory = applicationStatusHistoryService.findByRound(request.getRound(),studentJdApplication.getApplicationId());
 	        if(applicationStatusHistory != null)
 	        {
 	        	applicationStatusHistory.setStatus("Rejected");
@@ -581,8 +583,8 @@ public class StudentJdApplicationController {
 	                                 profileGradPercentage >= jdPercentage);
 
 	    boolean yearMatched = 
-	    	    ((jdMinYearPassing != null && jdMinYearPassing == -1) &&
-	    	     (jdMaxYearPassing != null && jdMaxYearPassing == -1))
+	    	    ((jdMinYearPassing != null && jdMinYearPassing == 0) &&
+	    	     (jdMaxYearPassing != null && jdMaxYearPassing == 0))
 	    	    ||
 	    	    (yearOfPassing != null &&
 	    	     (jdMinYearPassing == null || yearOfPassing >= jdMinYearPassing) &&
@@ -605,13 +607,17 @@ public class StudentJdApplicationController {
 	        List<Double> ratings = mockTestService.getRatingOfStudent(studentId, technology.getTechId());
 	        if (ratings != null && !ratings.isEmpty()) {
 	            // Calculate average using streams
-	            double avgRating = ratings.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
-	            
-	            if(avgRating < jd.getMockRating())
+//	            double avgRating = ratings.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+//	        	if(avgRating < jd.getMockRating())
+//	            {
+//	            	ratingMatched =false;
+//	            }
+	        	Double recentRating =  ratings.get(0);
+	        	
+	        	if(recentRating < jd.getMockRating())
 	            {
 	            	ratingMatched =false;
 	            }
-	           
 	        } else {
 	        	ratingMatched=false;
 	        }

@@ -98,9 +98,9 @@ public class TrainerServiceImpl implements TrainerService {
 	}
 
 	@Override
-	public Page<Trainer> viewAllTrainers(String stack, String name, String trainerId, Pageable pageable) {
+	public Page<Trainer> viewAllTrainers(String stack, String name, String trainerId,String branchId, Pageable pageable) {
 	    try {
-	        return trainerRepository.findByFilters(stack, name, trainerId, pageable);
+	        return trainerRepository.findByFilters(stack, name, trainerId, branchId, pageable);
 	    } catch (Exception e) {
 	        throw new TrainerException("Failed to fetch trainers", HttpStatus.INTERNAL_SERVER_ERROR);
 	    }
@@ -136,9 +136,9 @@ public class TrainerServiceImpl implements TrainerService {
 
 
 	@Override
-	public Page<Trainer> getAllTrainers(String programHeadId, String q, Pageable pageable) {
+	public Page<Trainer> getAllTrainers(String programHeadId, String q,String branchId, Pageable pageable) {
 		// TODO Auto-generated method stub
-		return trainerRepository.getAllTrainers(programHeadId,q, pageable);
+		return trainerRepository.getAllTrainers(programHeadId,q,branchId, pageable);
 	}
 
 

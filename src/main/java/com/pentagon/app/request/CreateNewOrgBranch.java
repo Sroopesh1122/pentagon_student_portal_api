@@ -4,10 +4,14 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
-public class StudentLoginRequest {
+public class CreateNewOrgBranch {
 
 	@NotBlank
-	private String email;
+	private String branchName;
+
 	@NotBlank
-	private String password;
+	private String branchAddress;
+	
+	private Boolean isHeadOffice =false;
+
 }

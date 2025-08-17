@@ -3,6 +3,7 @@ package com.pentagon.app.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -32,8 +33,7 @@ public class Batch {
     @JsonIgnore
     private List<Student> students;
     
-    @CreationTimestamp
-    private LocalDateTime startDate;
+    private LocalDate startDate;
     
     @CreationTimestamp
     private LocalDateTime createdAt;
@@ -47,6 +47,10 @@ public class Batch {
     
     
     private boolean completed=false;
+    
+    @JoinColumn(name = "branch_id")
+    @ManyToOne
+    private OrganizationBranch branch;
     
     
 }

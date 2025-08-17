@@ -23,4 +23,6 @@ public class AddProgramHeadRequest {
 	
 	@Size(min = 1, message = "At least one technologies ID must be provided")
 	private List<String> technologies;
+	
+	private String branchId;
 }

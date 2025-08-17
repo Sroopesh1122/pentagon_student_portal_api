@@ -2,6 +2,7 @@ package com.pentagon.app.Dto;
 
 import java.time.LocalDateTime;
 
+import com.pentagon.app.entity.OrganizationBranch;
 import com.pentagon.app.entity.Stack;
 
 import lombok.Data;
@@ -20,8 +21,9 @@ public class BatchDTO {
 	
 	private boolean completed;
 	
-	
 	private Long totalStudents;
 	
 	private Long placedStudents;
+	
+	private OrganizationBranch branch;
 }

@@ -1,6 +1,5 @@
 package com.pentagon.app.repository;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,6 +20,9 @@ public interface StudentRepository extends JpaRepository<Student, String> {
 	@Query("SELECT s FROM Student s WHERE s.stack.stackId = :stackId")
 	public List<Student> findByStack(String stackId);
 	
+	@Query("SELECT s.email FROM Student s WHERE s.status != 'PLACED'")
+	public List<String> getNotPacedStudents();
+	
 	@Query("SELECT s FROM Student s WHERE s.batch.batchId = :batchId")
 	public List<Student> findByBatch(String batchId);
 	
@@ -36,12 +38,14 @@ public interface StudentRepository extends JpaRepository<Student, String> {
 		       "WHERE (:q IS NULL OR s.name LIKE CONCAT( :q, '%') OR s.email LIKE CONCAT( :q, '%') OR s.studentId LIKE CONCAT(:q, '%')) " +
 		       "AND (:batchId IS NULL OR s.batch.batchId = :batchId) " +
 		       "AND (:stackId IS NULL OR s.stack.stackId = :stackId) "+
-		       "AND (:status IS NULL OR s.status =:status)")
+		       "AND (:status IS NULL OR s.status =:status)"
+		       + "AND (:branchId IS NULL OR s.branch.id =:branchId)")
 		Page<Student> findStudents(
 				@Param("q") String q,
 				@Param("batchId") String batchId, 
 				@Param("stackId") String stackId, 
 				@Param("status") EnrollmentStatus status,
+				String branchId,
 				Pageable pageable);
 	
 	@Query("SELECT s.status, COUNT(s) FROM Student s " +
@@ -52,11 +56,11 @@ public interface StudentRepository extends JpaRepository<Student, String> {
 	public Student findByPasswordResetToken(String token);
 	
 	
-	@Query("SELECT COUNT(s) FROM Student s WHERE s.status = :status")
-	public Long countStudents(EnrollmentStatus status);
+	@Query("SELECT COUNT(s) FROM Student s WHERE s.status = :status AND (:branchId IS NULL OR s.branch.id =:branchId)")
+	public Long countStudents(EnrollmentStatus status,String branchId);
 	
-	@Query("SELECT COUNT(s) FROM Student s WHERE s.status = :status  AND s.stack.stackId=:stackId")
-	public Long countStudentsByBatch(EnrollmentStatus status,String stackId);
+	@Query("SELECT COUNT(s) FROM Student s WHERE s.status = :status  AND s.stack.stackId=:stackId AND (:branchId IS NULL OR s.branch.id =:branchId)")
+	public Long countStudentsByBatch(EnrollmentStatus status,String stackId,String branchId);
 	
 	
 	@Query("SELECT COUNT(s) FROM Student s WHERE FUNCTION('MONTH', s.createdAt) = :month AND FUNCTION('YEAR', s.createdAt) = :year")

@@ -8,6 +8,7 @@ import com.pentagon.app.Dto.JobDescriptionDTO;
 import com.pentagon.app.Dto.TrainerDTO;
 import com.pentagon.app.entity.Batch;
 import com.pentagon.app.entity.BatchTechTrainer;
+import com.pentagon.app.entity.OrganizationBranch;
 import com.pentagon.app.entity.Stack;
 import com.pentagon.app.entity.Student;
 import com.pentagon.app.entity.StudentAdmin;
@@ -24,6 +25,7 @@ import com.pentagon.app.service.BatchService;
 import com.pentagon.app.service.BatchTechTrainerService;
 import com.pentagon.app.service.CustomUserDetails;
 import com.pentagon.app.service.JobDescriptionService;
+import com.pentagon.app.service.OrgBranchService;
 import com.pentagon.app.service.StackService;
 import com.pentagon.app.service.StudentAdminService;
 import com.pentagon.app.service.StudentService;
@@ -35,9 +37,16 @@ import com.pentagon.app.utils.HtmlTemplates;
 import com.pentagon.app.utils.IdGeneration;
 import com.pentagon.app.utils.PasswordGenration;
 
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -51,7 +60,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -110,6 +118,10 @@ public class StudentAdminController {
 
 	@Autowired
 	private MailService mailServicel;
+	
+	
+	@Autowired
+	private OrgBranchService orgBranchService;
 
 	@Value("${FRONTEND_URL}")
 	private String FRONTEND_URL;
@@ -127,14 +139,16 @@ public class StudentAdminController {
 
 	@GetMapping("/secure/batch-info")
 	@PreAuthorize("hasAnyRole('STUDENTADMIN','ADMIN')")
-	public ResponseEntity<?> getBatchInfo(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
+	public ResponseEntity<?> getBatchInfo(
+			@AuthenticationPrincipal CustomUserDetails customUserDetails,
+			@RequestParam(required = false) String branchId) {
 
 		Map<String, Object> batchInfo = new HashMap<>();
 
 		Map<String, Object> batchCountInfo = new HashMap<>();
 
-		Long completedBatches = batchService.countCompletedBatch();
-		Long onGoingBatches = batchService.countOnGoingBatch();
+		Long completedBatches = batchService.countCompletedBatch(branchId);
+		Long onGoingBatches = batchService.countOnGoingBatch(branchId);
 		Long totalBatches = completedBatches + onGoingBatches;
 		batchCountInfo.put("completed", completedBatches);
 		batchCountInfo.put("onGoing", onGoingBatches);
@@ -197,16 +211,17 @@ public class StudentAdminController {
 
 	@GetMapping("/secure/student-info")
 	@PreAuthorize("hasAnyRole('STUDENTADMIN','ADMIN')")
-	public ResponseEntity<?> getStudentInfo(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
+	public ResponseEntity<?> getStudentInfo(@AuthenticationPrincipal CustomUserDetails customUserDetails,
+			@RequestParam(required = false) String branchId) {
 
 		Map<String, Object> studentInfo = new HashMap<>();
 
 		Map<String, Object> studentCountInfo = new HashMap<>();
 
-		Long activeStudents = studentService.countStudents(EnrollmentStatus.ACTIVE);
-		Long blockedStudents = studentService.countStudents(EnrollmentStatus.BLOCKED);
-		Long completedStudent = studentService.countStudents(EnrollmentStatus.COMPLETED);
-		Long placedStudent = studentService.countStudents(EnrollmentStatus.PLACED);
+		Long activeStudents = studentService.countStudents(EnrollmentStatus.ACTIVE,branchId);
+		Long blockedStudents = studentService.countStudents(EnrollmentStatus.BLOCKED,branchId);
+		Long completedStudent = studentService.countStudents(EnrollmentStatus.COMPLETED,branchId);
+		Long placedStudent = studentService.countStudents(EnrollmentStatus.PLACED,branchId);
 
 		Long totalStudents = activeStudents + blockedStudents + completedStudent + placedStudent;
 
@@ -224,7 +239,8 @@ public class StudentAdminController {
 
 	@GetMapping("/secure/stack-batch-student-info")
 	@PreAuthorize("hasAnyRole('STUDENTADMIN','ADMIN')")
-	public ResponseEntity<?> getStackInfo(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
+	public ResponseEntity<?> getStackInfo(@AuthenticationPrincipal CustomUserDetails customUserDetails,
+			@RequestParam(required = false) String branchId) {
 
 		Map<String, Object> stackInfo = new HashMap<>();
 
@@ -236,15 +252,15 @@ public class StudentAdminController {
 
 			Map<String, Object> batchInfo = new HashMap<>();
 
-			Long completedBatches = batchService.countCompletedBatchByStack(stack.getStackId());
-			Long onGoingBatches = batchService.countOnGOingBatchByStack(stack.getStackId());
+			Long completedBatches = batchService.countCompletedBatchByStack(stack.getStackId(),branchId);
+			Long onGoingBatches = batchService.countOnGOingBatchByStack(stack.getStackId(),branchId);
 			Long totalBatched = completedBatches + onGoingBatches;
 
 			batchInfo.put("completed", completedBatches);
 			batchInfo.put("onGoing", onGoingBatches);
 			batchInfo.put("total", totalBatched);
 
-			Map<String, Object> studentCountInfo = studentService.countStudentByStack(stack.getStackId());
+			Map<String, Object> studentCountInfo = studentService.countStudentByStack(stack.getStackId(),branchId);
 
 			info.put("batchInfo", batchInfo);
 			info.put("studentInfo", studentCountInfo);
@@ -258,8 +274,10 @@ public class StudentAdminController {
 
 	@PutMapping("/secure")
 	@PreAuthorize("hasRole('STUDENTADMIN')")
-	public ResponseEntity<?> updateProfile(@AuthenticationPrincipal CustomUserDetails customUserDetails,
-			@RequestParam(required = false) String mobile, @RequestPart(required = false) MultipartFile profileImg) {
+	public ResponseEntity<?> updateProfile(
+			@AuthenticationPrincipal CustomUserDetails customUserDetails,
+			@RequestParam(required = false) String mobile, 
+			@RequestPart(required = false) MultipartFile profileImg) {
 		StudentAdmin studentAdmin = customUserDetails.getStudentAdmin();
 
 		if (profileImg != null) {
@@ -300,14 +318,15 @@ public class StudentAdminController {
 
 	@GetMapping("/secure/viewAllTrainers")
 	@PreAuthorize("hasRole('STUDENTADMIN')")
-	public ResponseEntity<?> viewAllTrainers(@AuthenticationPrincipal CustomUserDetails adminDetails,
+	public ResponseEntity<?> viewAllTrainers(
+			@AuthenticationPrincipal CustomUserDetails adminDetails,
 			@RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "10") int limit,
 			@RequestParam(required = false) String stack, @RequestParam(required = false) String name,
 			@RequestParam(required = false) String trainerId) {
 
 		Pageable pageable = PageRequest.of(page - 1, limit, Sort.by("createdAt").descending());
 
-		Page<Trainer> trainers = trainerService.viewAllTrainers(stack, name, trainerId, pageable);
+		Page<Trainer> trainers = trainerService.viewAllTrainers(stack, name, trainerId,null, pageable);
 
 		Page<TrainerDTO> TrainerDTOPage = trainers.map(trainer -> {
 			TrainerDTO dto = new TrainerDTO();
@@ -329,17 +348,31 @@ public class StudentAdminController {
 	@PostMapping("/secure/batch/add")
 	@PreAuthorize("hasRole('STUDENTADMIN')")
 	@Transactional
-	public ResponseEntity<?> createBatch(@Valid @RequestBody CreateBatchRequest request, BindingResult bindingResult) {
+	public ResponseEntity<?> createBatch(@AuthenticationPrincipal CustomUserDetails customUserDetails,@Valid @RequestBody CreateBatchRequest request, BindingResult bindingResult) {
 		if (bindingResult.hasErrors()) {
 			throw new StudentAdminException("Invalid Data", HttpStatus.BAD_REQUEST);
 
 		}
+		
+		
+		StudentAdmin studentAdmin = customUserDetails.getStudentAdmin();
+		
+		if(studentAdmin ==null)
+		{
+			throw new StudentAdminException("Unauthorized", HttpStatus.UNAUTHORIZED);
+		}
+		
+		OrganizationBranch branch = studentAdmin.getBranch();
+		
+		
+		
 		Stack findStack = stackService.getStackById(request.getStackId()).orElse(null);
 		if (findStack == null) {
 			throw new StudentAdminException("Stack Not Found", HttpStatus.NOT_FOUND);
 		}
+		
 
-		String batchId = idGeneration.generateBatchId(findStack.getName());
+		String batchId = idGeneration.generateBatchId(findStack.getName(),request.getStartDate());
 
 		Batch findBatch = batchService.getBatchById(batchId).orElse(null);
 
@@ -353,6 +386,8 @@ public class StudentAdminController {
 		newBatch.setName(request.getBatchName());
 		newBatch.setMode(request.getBatchMode());
 		newBatch.setStack(findStack);
+		newBatch.setStartDate(request.getStartDate());
+		newBatch.setBranch(branch);
 		Batch createdBatch = batchService.addBatch(newBatch);
 
 		findStack.getTechnologies().forEach(technology -> {
@@ -363,32 +398,6 @@ public class StudentAdminController {
 			batchTechTrainer.setStatus("Not Started");
 			batchTechTrainer = batchTechTrainerService.assignTrainer(batchTechTrainer);
 		});
-
-//		request.getScheduleDetails().forEach(schedule->{
-//			boolean available = batchTechTrainerService.checkTrainerAvailabality(schedule.getTrainerId(), schedule.getStartTime(), schedule.getEndTime());
-//			if(!available)
-//			{
-//				throw new StudentAdminException("Trainer unavailable between "+schedule.getStartTime()+" to "+schedule.getEndTime(), HttpStatus.CONFLICT);
-//			}
-//			Technology findTechnology = technologyService.getTechnologyById(schedule.getTechId()).orElse(null);
-//			Trainer findTrainer = trainerService.getById(schedule.getTrainerId());
-//			if(findTechnology==null)
-//			{
-//				throw new StudentAdminException("Technology Not Found", HttpStatus.CONFLICT);
-//			}
-//			if(findTrainer ==  null)
-//			{
-//				throw new StudentAdminException("Trainer Not Found", HttpStatus.CONFLICT);
-//			}
-//			BatchTechTrainer batchTechTrainer  = new BatchTechTrainer();
-//			batchTechTrainer.setBatch(createdBatch);
-//			batchTechTrainer.setCreatedAt(LocalDateTime.now());
-//			batchTechTrainer.setEndTime(schedule.getEndTime());
-//			batchTechTrainer.setStartTime(schedule.getStartTime());
-//			batchTechTrainer.setTechnology(findTechnology);
-//			batchTechTrainer.setTrainer(findTrainer);
-//			batchTechTrainer = batchTechTrainerService.assignTrainer(batchTechTrainer);
-//		});	
 
 		return ResponseEntity.ok(new ApiResponse<>("success", "Batch Created Successfully", null));
 
@@ -415,6 +424,14 @@ public class StudentAdminController {
 		Student findStudent = studentService.findByEmail(request.getEmail());
 		if (findStudent != null) {
 			throw new StudentAdminException("Email Already exists", HttpStatus.CONFLICT);
+		}
+		
+		
+		OrganizationBranch branch = orgBranchService.getById(request.getBranchId());
+		
+		if(branch ==null)
+		{
+			throw new StudentAdminException("Branch Not Found", HttpStatus.NOT_FOUND);	
 		}
 
 		String stackCode = "";
@@ -449,6 +466,7 @@ public class StudentAdminController {
 		newStudent.setEmail(request.getEmail());
 		newStudent.setMobile(request.getMobile());
 		newStudent.setStudyMode(request.getMode());
+		newStudent.setBranch(branch);
 		newStudent.setTypeOfAdmission(request.getAdmissionMode());
 		String generatedPassword = passwordGenration.generateRandomPassword();
 		newStudent.setPassword(passwordEncoder.encode(generatedPassword));
@@ -476,5 +494,185 @@ public class StudentAdminController {
 		return ResponseEntity.ok(new ApiResponse<>("success", "Student Added Successfully", newStudent));
 
 	}
+	
+	
+	@Transactional
+	@PostMapping("/secure/student/list/add")
+	@PreAuthorize("hasRole('STUDENTADMIN')")
+	public ResponseEntity<?> addStdudentsByExcel(
+			@RequestParam MultipartFile file,
+			@RequestParam String batchId,
+			@RequestParam String stackId
+			) {
+		
+		String fileName = file.getOriginalFilename();
+		if (fileName == null || 
+		    !(fileName.toLowerCase().endsWith(".xls") || fileName.toLowerCase().endsWith(".xlsx"))) {
+		    throw new StudentAdminException("Only Excel sheets are allowed", HttpStatus.BAD_REQUEST);
+		}
+		
+		Stack findStack = stackService.getStackById(stackId).orElse(null);
+		if (findStack == null) {
+			throw new StudentAdminException("Stack Not Found", HttpStatus.NOT_FOUND);
+		}
+
+		Batch findBatch = batchService.getBatchById(batchId).orElse(null);
+		if (findBatch == null) {
+			throw new StudentAdminException("Batch Not Found", HttpStatus.NOT_FOUND);
+		}
+		
+		
+		String stackCode = "";
+
+		switch (findStack.getName()) {
+		case "Java Full Stack": {
+			stackCode = "java full stack";
+			break;
+		}
+		case "Python Full Stack": {
+			stackCode = "python full stack";
+			break;
+		}
+		case "Mern Full Stack": {
+			stackCode = "mern full stack";
+			break;
+		}
+		case "Software Testing": {
+			stackCode = "software testing";
+			break;
+		}
+		default:
+			throw new IllegalArgumentException("Unexpected value: " + findStack);
+		}
+		
+		try (Workbook workbook = new XSSFWorkbook(file.getInputStream())) {
+	        Sheet sheet = workbook.getSheetAt(0); // Get first sheet
+	        Row headerRow = sheet.getRow(0); // Get header row
+
+	        // Validate required columns
+	        Map<String, Integer> columnIndexMap = validateHeaders(headerRow);
+	        if (columnIndexMap == null) {
+	        	 throw new StudentAdminException("Invalid Columns", HttpStatus.BAD_REQUEST);
+	        }
+
+	        
+	        // Process rows starting from row 1 (skip header)
+	        for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+	            Row row = sheet.getRow(i);
+	            if (row == null) continue;
+
+	           
+	                String fullName = getCellValue(row, columnIndexMap.get("fullName"));
+	                String email = getCellValue(row, columnIndexMap.get("email"));
+	                String mobile =getCellValue(row, columnIndexMap.get("mobile"));
+	                String mode = getCellValue(row, columnIndexMap.get("mode"));
+	                String admissionMode =getCellValue(row, columnIndexMap.get("admissionMode"));
+	                String branchId =getCellValue(row, columnIndexMap.get("branchId"));
+	                
+	                if(fullName !=null && email !=null && mobile !=null && mode !=null && admissionMode!=null && branchId!=null)
+	                {
+	                	email = email.trim();
+	                	fullName = fullName.trim();
+	                	
+	                	
+	                	Student findStudent = studentService.findByEmail(email);
+	            		if (findStudent != null) {
+	            			throw new StudentAdminException("Email "+email+" Already exists", HttpStatus.CONFLICT);
+	            		}
+	            		
+	            		OrganizationBranch branch = orgBranchService.getById(branchId);
+	            		
+	            		if(branch ==null)
+	            		{
+	            			throw new StudentAdminException("Branch Not Found", HttpStatus.NOT_FOUND);	
+	            		}
+	                	
+	                	Student newStudent = new Student();
+		        		newStudent.setStudentId(
+		        				idGeneration.generateStudentId(stackCode, mode, admissionMode, findBatch));
+		        		newStudent.setName(fullName);
+		        		newStudent.setStack(findStack);
+		        		newStudent.setBatch(findBatch);
+		        		newStudent.setEmail(email);
+		        		newStudent.setMobile(mobile);
+		        		newStudent.setStudyMode(mode.toUpperCase());
+		        		newStudent.setBranch(branch);
+		        		newStudent.setTypeOfAdmission(admissionMode.toUpperCase());
+		        		String generatedPassword = passwordGenration.generateRandomPassword();
+		        		newStudent.setPassword(passwordEncoder.encode(generatedPassword));
+		        		newStudent.setStatus(EnrollmentStatus.ACTIVE);
+		        		newStudent.setValidUpto(LocalDate.now().plusYears(1));
+
+		        		String passwordResetToken = idGeneration.generateRandomString();
+
+		        		newStudent.setPasswordResetToken(passwordResetToken);
+
+		        		newStudent = studentService.addStudent(newStudent);
+
+		        		String passwordResetLink = FRONTEND_URL + "/auth/student/reset-password?token=" + passwordResetToken;
+
+		        		String accountCreatedHtmlTemplates = htmlTemplates.getAccountCreatedEmail(newStudent.getName(),
+		        				passwordResetLink);
+		        			mailServicel.send(email, "Account Created", accountCreatedHtmlTemplates);	        		
+	                }
+      
+	        }
+
+	        return ResponseEntity.ok(new ApiResponse<>("success","Studentds Data Added Sucessfully", null));
+
+	    } catch (IOException e) {
+	    	throw new StudentAdminException("Error processing Excel file", HttpStatus.BAD_REQUEST);
+	       
+	    }
+		
+	}
+	
+	
+	private String getCellValue(Row row, int columnIndex) {
+	    if (columnIndex < 0) return null;
+	    Cell cell = row.getCell(columnIndex);
+	    if (cell == null) return null;
+
+	    switch (cell.getCellType()) {
+	        case STRING:
+	            return cell.getStringCellValue().trim();
+	        case NUMERIC:
+	            return String.valueOf(cell.getNumericCellValue());
+	        case BOOLEAN:
+	            return String.valueOf(cell.getBooleanCellValue());
+	        default:
+	            return null;
+	    }
+	}
+	
+	
+	
+	
+	private Map<String, Integer> validateHeaders(Row headerRow) {
+	    if (headerRow == null) return null;
+
+	    String[] requiredHeaders = {"fullName", "email", "mobile", "mode", "admissionMode","branchId"};
+	    Map<String, Integer> columnIndexMap = new HashMap<>();
+
+	    for (Cell cell : headerRow) {
+	        if (cell.getCellType() == CellType.STRING) {
+	            String header = cell.getStringCellValue().trim().toLowerCase();
+	            for (String required : requiredHeaders) {
+	                if (header.equalsIgnoreCase(required)) {
+	                    columnIndexMap.put(required, cell.getColumnIndex());
+	                }
+	            }
+	        }
+	    }
+
+	    // Check if all required headers were found
+	    if (columnIndexMap.size() != requiredHeaders.length) {
+	        return null;
+	    }
+
+	    return columnIndexMap;
+	}
+	
+	
 
 }

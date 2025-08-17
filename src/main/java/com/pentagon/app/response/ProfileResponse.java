@@ -1,6 +1,5 @@
 package com.pentagon.app.response;
 
-import jakarta.persistence.Column;
 import lombok.Data;
 
 @Data

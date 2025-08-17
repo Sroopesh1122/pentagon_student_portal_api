@@ -492,7 +492,8 @@ public class ExecutiveController {
 
 	@GetMapping("/secure/jd")
 	@PreAuthorize("hasRole('EXECUTIVE')")
-	public ResponseEntity<?> viewAllJobDescriptions(@AuthenticationPrincipal CustomUserDetails executiveDetails,
+	public ResponseEntity<?> viewAllJobDescriptions(
+			@AuthenticationPrincipal CustomUserDetails executiveDetails,
 			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int limit,
 			@RequestParam(required = false) String companyName,
 			@RequestParam(required = false, defaultValue = "") String stack,

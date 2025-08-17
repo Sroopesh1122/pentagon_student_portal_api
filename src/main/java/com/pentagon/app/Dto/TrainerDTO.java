@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.pentagon.app.entity.OrganizationBranch;
 import com.pentagon.app.entity.Technology;
 
 import lombok.Data;
@@ -28,5 +29,6 @@ public class TrainerDTO {
     private String profileImgUrl;
     private String profilePublicId;
     private LocalDate dob;
+    private OrganizationBranch branch;
     
 }

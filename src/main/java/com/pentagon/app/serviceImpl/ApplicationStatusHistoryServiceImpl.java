@@ -22,8 +22,8 @@ public class ApplicationStatusHistoryServiceImpl implements ApplicationStatusHis
 	}
 	
 	@Override
-	public ApplicationStatusHistory findByRound(String round) {
-		return applicationStatusHistoryRepository.findByRound(round);
+	public ApplicationStatusHistory findByRound(String round,String applicationId) {
+		return applicationStatusHistoryRepository.findByRound(round,applicationId);
 	}
 	
 	@Override

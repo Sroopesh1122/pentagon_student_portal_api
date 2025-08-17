@@ -59,9 +59,7 @@ public class IdGeneration {
 
 	    
 	    //Based on batch created date student id will be generated
-	    LocalDateTime now = batch.getCreatedAt();
-	    int month = now.getMonthValue();
-	    int year = now.getYear();
+	    LocalDate now = batch.getStartDate();
 
 	    int count = studentRepository.countByCourseAndMonthYear(batch.getBatchId());
 	    
@@ -83,7 +81,7 @@ public class IdGeneration {
 //	    }
 	}
 	
-	public  String generateBatchId(String stack) {
+	public  String generateBatchId(String stack,LocalDate startDate) {
 		
 		String prefix="";
 		
@@ -104,7 +102,7 @@ public class IdGeneration {
 			prefix ="TESTING";
 		}
 		
-        LocalDate today = LocalDate.now();
+        LocalDate today = startDate;
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
         return prefix+"-BATCH-" + today.format(formatter);
     }

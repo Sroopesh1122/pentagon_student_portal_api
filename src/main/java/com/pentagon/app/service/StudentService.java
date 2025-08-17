@@ -35,18 +35,20 @@ public interface StudentService {
 	
 	public Student findByPasswordResetToken(String token);
 	
-	public Page<Student> findStudent(String q,String batchId,String stackId,EnrollmentStatus status ,Pageable pageable);
+	public Page<Student> findStudent(String q,String batchId,String stackId,EnrollmentStatus status,String branchId ,Pageable pageable);
 	
 	public Map<String, Long> countStudent(String batchId,String stackId);
 	
-	public Map<String, Object> countStudentByStack(String stackId);
+	public Map<String, Object> countStudentByStack(String stackId,String branchId);
 	
 	public List<Student> findByBatch(String batchId);
 	
 	public List<String> getEmailByBatch(String batchId);
 	
-	public Long countStudents(EnrollmentStatus status);
+	public Long countStudents(EnrollmentStatus status,String branchId);
 	
 	public Map<String, Long> getStudentCountsForPastMonths(int noOfMonths);
+	
+	public List<String> getNotPlacedStudentEmails();
 	
 }

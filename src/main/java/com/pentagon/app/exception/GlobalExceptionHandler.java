@@ -6,8 +6,6 @@ import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -15,6 +13,28 @@ import io.jsonwebtoken.ExpiredJwtException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+	
+	@ExceptionHandler(EnquiryException.class)
+    public ResponseEntity<Map<String, Object>> handleEnquiryException(EnquiryException exception) {
+        Map<String,Object> errorResponse = new HashMap<>();
+        errorResponse.put("status", "failure");
+        errorResponse.put("type","Enquiry Exception");
+        errorResponse.put("error", exception.getMessage());
+        errorResponse.put("localTime", LocalDateTime.now());
+        errorResponse.put("status",exception.getHttpStatus().toString());
+        return new ResponseEntity<Map<String,Object>>(errorResponse, exception.getHttpStatus());
+    }
+	
+	@ExceptionHandler(BranchException.class)
+    public ResponseEntity<Map<String, Object>> handleBranchException(BranchException exception) {
+        Map<String,Object> errorResponse = new HashMap<>();
+        errorResponse.put("status", "failure");
+        errorResponse.put("type","Branch Exception");
+        errorResponse.put("error", exception.getMessage());
+        errorResponse.put("localTime", LocalDateTime.now());
+        errorResponse.put("status",exception.getHttpStatus().toString());
+        return new ResponseEntity<Map<String,Object>>(errorResponse, exception.getHttpStatus());
+    }
 	
 	
 	@ExceptionHandler(BlockedException.class)

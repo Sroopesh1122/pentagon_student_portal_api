@@ -116,7 +116,8 @@ public class StudentController {
 			@RequestParam(required = false) String batchId,
 			@RequestParam(required = false) String stackId,
 			@RequestParam(required = false) String q,
-			@RequestParam(required = false) String status)
+			@RequestParam(required = false) String status,
+			@RequestParam(required = false) String branchId)
 	{
 		
 		Pageable pageable = PageRequest.of(page, limit,Sort.by("createdAt").ascending());
@@ -132,7 +133,7 @@ public class StudentController {
 		    }
 		}		
 		
-		Page<StudentDTO> students = studentService.findStudent(q, batchId, stackId,filterStatus,pageable).map(student->studentMapper.toDto(student));
+		Page<StudentDTO> students = studentService.findStudent(q, batchId, stackId,filterStatus,branchId,pageable).map(student->studentMapper.toDto(student));
 		
 		
 		return ResponseEntity.ok(new ApiResponse<>("success","Student Profile data",students));
@@ -509,20 +510,24 @@ public class StudentController {
 	@Transactional
 	private Map<String, String> profileMatch(JobDescription jobDescription, Student student) {
 	    Map<String, String> matchResult = new LinkedHashMap<>();
-	    
-	    
-	    // Check for nulls in required student fields
-	    if (
-	        student.getGender() == null ||
-	        student.getGradCourse() == null ||
-	        student.getGradBranch() == null ||
-	        student.getStack() == null || student.getStack().getName() == null ||
+
+	    if (jobDescription == null || student == null) {
+	        matchResult.put("error", "Job description or student profile is missing.");
+	        return matchResult;
+	    }
+
+	    // Check required student fields for completeness
+	    if (isNullOrEmpty(student.getGender()) ||
+	        isNullOrEmpty(student.getGradCourse()) ||
+	        isNullOrEmpty(student.getGradBranch()) ||
+	        student.getStack() == null || isNullOrEmpty(student.getStack().getName()) ||
 	        student.getGradPassOutYear() == null ||
 	        student.getTenthPercentage() == null ||
 	        student.getGradPercentage() == null ||
 	        student.getGradCgpa() == null ||
-	        student.getTwelvePercentage() == null
-	    ) {
+	        student.getTwelvePercentage() == null ||
+	        isNullOrEmpty(student.getSkills())) {
+
 	        matchResult.put("error", "Please complete your profile to apply for this job.");
 	        return matchResult;
 	    }
@@ -530,10 +535,9 @@ public class StudentController {
 	    boolean allMatched = true;
 
 	    // Gender
-	    if (
-	        jobDescription.getGenderPreference().equalsIgnoreCase("any") ||
-	        jobDescription.getGenderPreference().equalsIgnoreCase(student.getGender())
-	    ) {
+	    String jobGender = safeLower(jobDescription.getGenderPreference());
+	    String studentGender = safeLower(student.getGender());
+	    if ("any".equals(jobGender) || jobGender.equals(studentGender)) {
 	        matchResult.put("gender", "Eligible");
 	    } else {
 	        matchResult.put("gender", "Not Eligible");
@@ -541,10 +545,9 @@ public class StudentController {
 	    }
 
 	    // Qualification
-	    if (
-	        jobDescription.getQualification().toLowerCase().contains("any") ||
-	        jobDescription.getQualification().toLowerCase().contains(student.getGradCourse().toLowerCase())
-	    ) {
+	    String jobQual = safeLower(jobDescription.getQualification());
+	    String studentQual = safeLower(student.getGradCourse());
+	    if (jobQual.contains("any") || jobQual.contains(studentQual)) {
 	        matchResult.put("qualification", "Eligible");
 	    } else {
 	        matchResult.put("qualification", "Not Eligible");
@@ -552,10 +555,9 @@ public class StudentController {
 	    }
 
 	    // Stream
-	    if (
-	        jobDescription.getStream().toLowerCase().contains("any") ||
-	        jobDescription.getStream().toLowerCase().contains(student.getGradBranch().toLowerCase())
-	    ) {
+	    String jobStream = safeLower(jobDescription.getStream());
+	    String studentStream = safeLower(student.getGradBranch());
+	    if (jobStream.contains("any") || jobStream.contains(studentStream)) {
 	        matchResult.put("stream", "Eligible");
 	    } else {
 	        matchResult.put("stream", "Not Eligible");
@@ -563,8 +565,9 @@ public class StudentController {
 	    }
 
 	    // Stack
-	    //If STack is null  means "FOr Every Stack"
-	    if (jobDescription.getJdStack() == null  || jobDescription.getJdStack().getName().toLowerCase().equals(student.getStack().getName().toLowerCase())) {
+	    if (jobDescription.getJdStack() == null ||
+	        safeLower(jobDescription.getJdStack().getName())
+	            .equals(safeLower(student.getStack().getName()))) {
 	        matchResult.put("stack", "Eligible");
 	    } else {
 	        matchResult.put("stack", "Not Eligible");
@@ -572,14 +575,12 @@ public class StudentController {
 	    }
 
 	    // Passing Year
-	    Integer maxYearOfPassout = jobDescription.getMaxYearOfPassing();
-	    Integer minYearOfPassout = jobDescription.getMinYearOfPassing();
-	    Integer studentPassingYear = student.getGradPassOutYear();
-
-	    if (
-	        (maxYearOfPassout == -1 && minYearOfPassout == -1) ||
-	        (minYearOfPassout <= studentPassingYear && studentPassingYear <= maxYearOfPassout)
-	    ) {
+	    Integer maxYear = jobDescription.getMaxYearOfPassing();
+	    Integer minYear = jobDescription.getMinYearOfPassing();
+	    Integer studentYear = student.getGradPassOutYear();
+	    if ((isAnyYear(maxYear, minYear)) ||
+	        (minYear != null && maxYear != null &&
+	         studentYear >= minYear && studentYear <= maxYear)) {
 	        matchResult.put("passingYear", "Eligible");
 	    } else {
 	        matchResult.put("passingYear", "Not Eligible");
@@ -587,118 +588,98 @@ public class StudentController {
 	    }
 
 	    // Percentages
-	    Double _10thPercentage = student.getTenthPercentage();
-	    Double _12thPercentage = student.getTwelvePercentage();
-	    Double _gradPercentage = student.getGradPercentage();
+	    Double tenth = student.getTenthPercentage();
+	    Double twelfth = student.getTwelvePercentage();
+	    Double grad = student.getGradPercentage();
+	    Double reqPct = jobDescription.getPercentage() != null ? jobDescription.getPercentage() : 0.0;
 
-	    if (_10thPercentage >= jobDescription.getPercentage() &&
-	        _12thPercentage >= jobDescription.getPercentage() &&
-	        _gradPercentage >= jobDescription.getPercentage()) {
+	    if (tenth >= reqPct && twelfth >= reqPct && grad >= reqPct) {
 	        matchResult.put("percentage", "Eligible");
 	    } else {
 	        matchResult.put("percentage", "Not Eligible");
 	        allMatched = false;
 	    }
-	    
-	    
-	    //Skills 
-	   
-	    String[] jobSkills = jobDescription.getSkills().toLowerCase().split(",");
-	    String[] profileSkills = student.getSkills().toLowerCase().split(",");
 
-	    // Trim spaces
+	    // Skills
+	    String jobSkillsStr = safeLower(jobDescription.getSkills());
+	    String studentSkillsStr = safeLower(student.getSkills());
+
 	    Set<String> profileSkillSet = new HashSet<>();
-	    for (String skill : profileSkills) {
-	        profileSkillSet.add(skill.trim());
-	    }
-
-	    int matchedSkills = 0;
-	    for (String skill : jobSkills) {
-	        if (profileSkillSet.contains(skill.trim())) {
-	            matchedSkills++;
+	    if (!jobSkillsStr.isEmpty() && !studentSkillsStr.isEmpty()) {
+	        String[] profileSkills = studentSkillsStr.split(",");
+	        for (String skill : profileSkills) {
+	            profileSkillSet.add(skill.trim());
 	        }
-	    }
-	    int totalJobSkills = jobSkills.length;
-	    matchResult.put("skillsMatched", matchedSkills + " out of " + totalJobSkills + " job skills matched");
-	    matchResult.put("matchedSkillsCount",matchedSkills+"");
-	    matchResult.put("totalSkills", totalJobSkills+"");
 
-	    // CGPA (uncomment if needed)
-	    // Double _gradeCgpa = student.getGradCgpa();
-	    // if (jobDescription.getCgpaRequirement() != null) {
-	    //     if (_gradeCgpa >= jobDescription.getCgpaRequirement()) {
-	    //         matchResult.put("cgpa", "Eligible");
-	    //     } else {
-	    //         matchResult.put("cgpa", "Not Eligible");
-	    //         allMatched = false;
-	    //     }
-	    // }
-	    
-//	    List<Technology> technologies = technologyService.findTechnologiesByStack(student.getStack().getStackId());
-//	    
-//	    String studentId = student.getStudentId();
-//	    
-//	    for (Technology technology : technologies) {
-//	        List<Double> ratings = mockTestService.getRatingOfStudent(studentId, technology.getTechId());
-//	        if (ratings != null && !ratings.isEmpty()) {
-//	            // Calculate average using streams
-//	            double avgRating = ratings.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
-//	            
-//	            System.out.println(technology.getName()+"  "+ avgRating);
-//	            
-//	            if(avgRating >= jobDescription.getMockRating())
-//	            {
-//	            	 matchResult.put(technology.getName()+" Rating", "Eligible");
-//	            }else {
-//	            	allMatched=false;
-//	            	matchResult.put(technology.getName()+" Rating", "Not Eligible");
-//	            }
-//	           
-//	        } else {
-//	        	allMatched=false;
-//	        	matchResult.put(technology.getName()+" Rating","Not Eligible"); // or null, depending on your use case
-//	        }
-//	        
-//	    }
-	    
-	    List<Technology> jdTechnologies  = jobDescription.getMockRatingTechnologies();
-	    
-	    
-	    String studentId = student.getStudentId();
-	    
-	    for (Technology technology : jdTechnologies) {
-	    	
-	        List<Double> ratings = mockTestService.getRatingOfStudent(studentId, technology.getTechId());
-	        if (ratings != null && !ratings.isEmpty()) {
-	            // Calculate average using streams
-	            double avgRating = ratings.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
-	            
-	            System.out.println(technology.getName()+"  "+ avgRating);
-	            
-	            if(avgRating >= jobDescription.getMockRating())
-	            {
-	            	 matchResult.put(technology.getName()+" Rating", "Eligible");
-	            }else {
-	            	allMatched=false;
-	            	matchResult.put(technology.getName()+" Rating", "Not Eligible");
+	        String[] jobSkills = jobSkillsStr.split(",");
+	        int matchedSkills = 0;
+	        for (String skill : jobSkills) {
+	            if (profileSkillSet.contains(skill.trim())) {
+	                matchedSkills++;
 	            }
-	           
-	        } else {
-	        	allMatched=false;
-	        	matchResult.put(technology.getName()+" Rating","Not Eligible"); // or null, depending on your use case
 	        }
-	        
+	        matchResult.put("skillsMatched", matchedSkills + " out of " + jobSkills.length + " job skills matched");
+	        matchResult.put("matchedSkillsCount", matchedSkills + "");
+	        matchResult.put("totalSkills", jobSkills.length + "");
+	    } else {
+	        matchResult.put("skillsMatched", "0 out of 0 job skills matched");
+	        matchResult.put("matchedSkillsCount", "0");
+	        matchResult.put("totalSkills", "0");
+	        allMatched = false;
 	    }
-	    
-	    
-	    
-	    
-	 
-	    // Set allMatched
-	    matchResult.put("allMatched", allMatched ? "Eligible" : "Not Eligible");
 
+	    // Mock Rating Check
+	    List<Technology> jdTechnologies = jobDescription.getMockRatingTechnologies();
+	    String studentId = student.getStudentId();
+
+	    if (jdTechnologies != null && !jdTechnologies.isEmpty()) {
+	        for (Technology technology : jdTechnologies) {
+	            if (technology == null) continue;
+	            List<Double> ratings = mockTestService.getRatingOfStudent(studentId, technology.getTechId());
+	            if (ratings != null && !ratings.isEmpty()) {
+//	                double avgRating = ratings.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+//	                if (jobDescription.getMockRating() != null && avgRating >= jobDescription.getMockRating()) {
+//	                    matchResult.put(technology.getName() + " Rating", "Eligible");
+//	                } else {
+//	                    matchResult.put(technology.getName() + " Rating", "Not Eligible");
+//	                    allMatched = false;
+//	                }
+	            	
+                    //Get Recent mock rating
+	            	
+	            	Double recentRating = ratings.get(0);
+	            	if (jobDescription.getMockRating() != null && recentRating >= jobDescription.getMockRating()) {
+	                    matchResult.put(technology.getName() + " Rating", "Eligible");
+	                } else {
+	                    matchResult.put(technology.getName() + " Rating", "Not Eligible");
+	                    allMatched = false;
+	                }
+	            	
+	            	
+	            } else {
+	                matchResult.put(technology.getName() + " Rating", "Not Eligible");
+	                allMatched = false;
+	            }
+	        }
+	    }
+
+	    matchResult.put("allMatched", allMatched ? "Eligible" : "Not Eligible");
 	    return matchResult;
 	}
+
+	// ---------- Helper Methods ----------
+	private boolean isNullOrEmpty(String s) {
+	    return s == null || s.trim().isEmpty();
+	}
+
+	private String safeLower(String s) {
+	    return (s == null) ? "" : s.trim().toLowerCase();
+	}
+
+	private boolean isAnyYear(Integer max, Integer min) {
+	    return (max != null && min != null && max == 0 && min == 0);
+	}
+
 	
 	
 }

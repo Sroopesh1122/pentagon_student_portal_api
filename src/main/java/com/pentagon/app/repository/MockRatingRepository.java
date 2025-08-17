@@ -18,7 +18,7 @@ public interface MockRatingRepository extends JpaRepository<MockRating,String> {
 	@Query("SELECT r FROM MockRating r WHERE r.mockTest.id =:testId ")
 	public List<MockRating> findMockRatingByMockTest(String testId);
 	
-	@Query("SELECT r.rating FROM MockRating r WHERE r.student.studentId =:studentId AND r.mockTest.technology.techId =:techId")
+	@Query("SELECT r.rating FROM MockRating r WHERE r.student.studentId =:studentId AND r.mockTest.technology.techId =:techId  order by createdAt desc")
 	public List<Double> getRatingByStudentAndTechnology(String studentId,String techId);
 	
 

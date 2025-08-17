@@ -52,7 +52,6 @@ public class Student {
     
     private String experience;
     
-    
     @Size(max = 100000)
     private String skills;
     
@@ -136,4 +135,9 @@ public class Student {
     @JsonIgnore
     @JoinColumn(name = "stackId")
     private Stack stack;
+    
+    @JoinColumn(name = "branch_id")
+    @ManyToOne
+    private OrganizationBranch branch;
+    
 }

@@ -303,8 +303,14 @@ public class JobDescriptionController {
 
 	@Transactional
 	@PostMapping("/secure/schedule-round")
-	public ResponseEntity<?> scheduleNewRound(@RequestBody @Valid ScheduleRoundRequest request,BindingResult bindingResult)
+	public ResponseEntity<?> scheduleNewRound(@AuthenticationPrincipal CustomUserDetails customUserDetails,@RequestBody @Valid ScheduleRoundRequest request,BindingResult bindingResult)
 	{
+		
+		if(customUserDetails ==null || customUserDetails.getExecutive() ==null)
+		{
+			throw new JobDescriptionException("Unauthorized", HttpStatus.UNAUTHORIZED);
+		}
+		
 		if(bindingResult.hasErrors())
 		{
 			throw new JobDescriptionException("Invalid Data", HttpStatus.BAD_REQUEST);
@@ -317,9 +323,29 @@ public class JobDescriptionController {
 			throw new JobDescriptionException("Jd not found", HttpStatus.NOT_FOUND);
 		}
 		
-		if(!jobDescription.getJdStatus().equalsIgnoreCase("approved"))
+		if(!jobDescription.getExecutive().getExecutiveId().equals(customUserDetails.getExecutive().getExecutiveId()))
+		{
+			throw new JobDescriptionException("You are not allowed to create the New round", null);
+		}
+		
+		if(jobDescription.getJdStatus().equalsIgnoreCase("pending"))
 		{
 			throw new JobDescriptionException("Jd not approved", HttpStatus.NOT_FOUND);
+		}
+		
+		if(jobDescription.getJdStatus().equalsIgnoreCase("rejected"))
+		{
+			throw new JobDescriptionException("Jd is rejected", HttpStatus.NOT_FOUND);
+		}
+		
+		if(jobDescription.getJdStatus().equalsIgnoreCase("closed"))
+		{
+			throw new JobDescriptionException("Jd is closed", HttpStatus.NOT_FOUND);
+		}
+		
+		if(jobDescription.getJdStatus().equalsIgnoreCase("hold"))
+		{
+			throw new JobDescriptionException("Jd is on Hold", HttpStatus.NOT_FOUND);
 		}
 		
 		
@@ -351,11 +377,6 @@ public class JobDescriptionController {
 		
 		
 		return ResponseEntity.ok( new ApiResponse<>("success","New Round Created and Jd Updated", null));
-		
-		
-		
-		
-		
 		
 	}
 	

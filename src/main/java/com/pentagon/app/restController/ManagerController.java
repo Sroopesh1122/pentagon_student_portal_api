@@ -61,6 +61,7 @@ import com.pentagon.app.service.ExecutiveService;
 import com.pentagon.app.service.JdStatusRoundHistoryService;
 import com.pentagon.app.service.JobDescriptionService;
 import com.pentagon.app.service.ManagerService;
+import com.pentagon.app.service.StudentService;
 import com.pentagon.app.service.TrainerService;
 import com.pentagon.app.serviceImpl.CloudinaryServiceImp;
 import com.pentagon.app.serviceImpl.MailService;
@@ -84,7 +85,6 @@ public class ManagerController {
 	@Autowired
 	private IdGeneration idGeneration;
 
-
 	@Autowired
 	private ActivityLogService activityLogService;
 
@@ -105,130 +105,112 @@ public class ManagerController {
 
 	@Autowired
 	private TrainerService trainerService;
-	
+
 	@Autowired
 	private JdStatusRoundHistoryService jdStatusRoundHistoryService;
-	
-	
+
 	@Autowired
 	private HtmlTemplates htmlTemplates;
-	
+
 	@Autowired
 	private JobDescriptionMapper jobDescriptionMapper;
-	
+
 	@Autowired
 	private CloudinaryServiceImp cloudinaryService;
-	
-	
+
+	@Autowired
+	private StudentService studentService;
+
 	@Value("${FRONTEND_URL}")
 	private String FRONTEND_URL;
 
 	@PutMapping("/secure/")
 	@PreAuthorize("hasRole('MANAGER')")
-	public ResponseEntity<?> updateManager(
-			@AuthenticationPrincipal CustomUserDetails managerDetails,
-			@RequestParam String managerId,
-			@RequestParam(required = false) String mobile,
+	public ResponseEntity<?> updateManager(@AuthenticationPrincipal CustomUserDetails managerDetails,
+			@RequestParam String managerId, @RequestParam(required = false) String mobile,
 			@RequestPart(required = false) MultipartFile profileImg) {
 
-
-
 		Manager manager = managerService.getManagerById(managerId);
-		
-		if(manager ==null)
-		{
+
+		if (manager == null) {
 			throw new ManagerException("Manger Not Found", HttpStatus.NOT_FOUND);
 		}
 
-		if(profileImg!=null)
-		{
-			if(manager.getProfileImgPublicId() !=null)
-			{
+		if (profileImg != null) {
+			if (manager.getProfileImgPublicId() != null) {
 				cloudinaryService.deleteFile(manager.getProfileImgPublicId(), "image");
 			}
-			Map<String, Object>	uploadResponse  = cloudinaryService.uploadImage(profileImg);
+			Map<String, Object> uploadResponse = cloudinaryService.uploadImage(profileImg);
 			manager.setProfileImgPublicId(uploadResponse.get("public_id").toString());
 			manager.setProfileImgUrl(uploadResponse.get("secure_url").toString());
 		}
-		
-		if(mobile !=null)
-		{
+
+		if (mobile != null) {
 			manager.setMobile(mobile);
 		}
 
 		Manager updatedManager = managerService.updateManager(manager);
 
-
 		return ResponseEntity.ok(new ApiResponse<>("success", "Manager Updated Successfully", null));
 	}
-	
-	
+
 	@PostMapping("/secure/executive/block")
 	@PreAuthorize("hasRole('MANAGER')")
-	public ResponseEntity<?> blockExecutive(@AuthenticationPrincipal CustomUserDetails customUserDetails ,@RequestBody BlockUserRequest request)
-	{
+	public ResponseEntity<?> blockExecutive(@AuthenticationPrincipal CustomUserDetails customUserDetails,
+			@RequestBody BlockUserRequest request) {
 		Manager manager = customUserDetails.getManager();
-		
+
 		String executiveId = request.getId();
-		
-		if(manager ==null)
-		{
+
+		if (manager == null) {
 			throw new ManagerException("Unauthorized", HttpStatus.UNAUTHORIZED);
 		}
-		
+
 		Executive executive = executiveService.getExecutiveById(executiveId);
-		
-		if(executive ==null)
-		{
+
+		if (executive == null) {
 			throw new ManagerException("Executive Not Found", HttpStatus.NOT_FOUND);
 		}
-		
-		if(!executive.getManagerId().equals(manager.getManagerId()))
-		{
+
+		if (!executive.getManagerId().equals(manager.getManagerId())) {
 			throw new ManagerException("You are not allowed to block this executive", null);
 		}
-		
+
 		executive.setActive(false);
 		executiveService.updateExecutive(executive);
-		
-		return ResponseEntity.ok(new ApiResponse<>("success", "Executive Successfully Blocked", null));		
-		
+
+		return ResponseEntity.ok(new ApiResponse<>("success", "Executive Successfully Blocked", null));
+
 	}
-	
-	
+
 	@PostMapping("/secure/executive/unblock")
 	@PreAuthorize("hasRole('MANAGER')")
-	public ResponseEntity<?> UnBlockExecutive(@AuthenticationPrincipal CustomUserDetails customUserDetails ,@RequestBody UnblockUserRequest request)
-	{
+	public ResponseEntity<?> UnBlockExecutive(@AuthenticationPrincipal CustomUserDetails customUserDetails,
+			@RequestBody UnblockUserRequest request) {
 		Manager manager = customUserDetails.getManager();
-		
+
 		String executiveId = request.getId();
-		
-		if(manager ==null)
-		{
+
+		if (manager == null) {
 			throw new ManagerException("Unauthorized", HttpStatus.UNAUTHORIZED);
 		}
-	
+
 		Executive executive = executiveService.getExecutiveById(executiveId);
-		
-		if(executive ==null)
-		{
+
+		if (executive == null) {
 			throw new ManagerException("Executive Not Found", HttpStatus.NOT_FOUND);
 		}
-		
-		if(!executive.getManagerId().equals(manager.getManagerId()))
-		{
+
+		if (!executive.getManagerId().equals(manager.getManagerId())) {
 			throw new ManagerException("You are not allowed to unblock this executive", null);
 		}
-		
+
 		executive.setActive(true);
 		executiveService.updateExecutive(executive);
-		
-		return ResponseEntity.ok(new ApiResponse<>("success", "Executive Successfully UnBlocked", null));		
-		
+
+		return ResponseEntity.ok(new ApiResponse<>("success", "Executive Successfully UnBlocked", null));
+
 	}
-	
-	
 
 	// not working
 	@PostMapping("secure/addExecutive")
@@ -261,16 +243,13 @@ public class ManagerController {
 		String htmlContent = htmlContentService.getHtmlContent(executive.getName(), executive.getEmail(), password);
 
 		try {
-			mailService.send(executive.getEmail(), "Welcome to Pentagon – Login Credentials Enclosed",
-					htmlContent);
+			mailService.send(executive.getEmail(), "Welcome to Pentagon – Login Credentials Enclosed", htmlContent);
 		} catch (Exception e) {
 			throw new OtpException("Mail couldn't be sent", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 
-
 		return ResponseEntity.ok(new ApiResponse<>("success", "Executive Added Successfully", null));
 	}
-
 
 	@GetMapping("/secure/viewAllTrainers")
 	@PreAuthorize("hasRole('MANAGER')")
@@ -284,7 +263,7 @@ public class ManagerController {
 
 		Pageable pageable = PageRequest.of(page - 1, limit, Sort.by("createdAt").descending());
 
-		Page<Trainer> trainers = trainerService.viewAllTrainers(stack, name, trainerId, pageable);
+		Page<Trainer> trainers = trainerService.viewAllTrainers(stack, name, trainerId,null, pageable);
 
 		Page<TrainerDTO> TrainerDTOResponse = trainers.map(trainer -> {
 			TrainerDTO Trainerdto = new TrainerDTO();
@@ -302,10 +281,8 @@ public class ManagerController {
 
 		return ResponseEntity.ok(new ApiResponse<>("success", "Trainers fetched successfully", TrainerDTOResponse));
 	}
-	
-	
-	
-     // To Approved or Hold or Reject JD
+
+	// To Approved or Hold or Reject JD
 	@PostMapping("/secure/jd/status")
 	@PreAuthorize("hasRole('MANAGER')")
 	public ResponseEntity<?> updateJdStatus(@AuthenticationPrincipal CustomUserDetails managerDetails,
@@ -313,9 +290,9 @@ public class ManagerController {
 
 		JobDescription findJobDescription = jobDescriptionService.findByJobDescriptionId(request.getJdId())
 				.orElseThrow(() -> new JobDescriptionException("Job Description not found", HttpStatus.NOT_FOUND));
-		
-		if(!request.getStatus().equals("approved")&& !request.getStatus().equals("hold") && !request.getStatus().equals("rejected") )
-		{
+
+		if (!request.getStatus().equals("approved") && !request.getStatus().equals("hold")
+				&& !request.getStatus().equals("rejected")) {
 			throw new ManagerException("Invalid  Status", HttpStatus.BAD_REQUEST);
 		}
 
@@ -325,73 +302,77 @@ public class ManagerController {
 
 		if ("approved".equalsIgnoreCase(request.getStatus())) {
 			jdActionReason = "JD approved by " + managerDetails.getManager().getName() + ", on "
-					+ LocalDateTime.now().toLocalDate()+LocalDateTime.now().toLocalTime();
+					+ LocalDateTime.now().toLocalDate() + LocalDateTime.now().toLocalTime();
 			findJobDescription.setApprovedDate(LocalDateTime.now());
 		} else {
 			jdActionReason = request.getActionReason();
 		}
 
 		findJobDescription.setJdActionReason(jdActionReason);
-		
-		
-		if("approved".equalsIgnoreCase(request.getStatus()))
-		{
+
+		if ("approved".equalsIgnoreCase(request.getStatus())) {
 			findJobDescription.setCurrentRound("Pending Scheduling");
 		}
 		findJobDescription = jobDescriptionService.updateJobDescription(findJobDescription);
-		
-		//Adding Status History
-		JdStatusHistory jdStatusHistory= new JdStatusHistory();
-		
-		if("approved".equalsIgnoreCase(request.getStatus()))
-		{
+
+		// Adding Status History
+		JdStatusHistory jdStatusHistory = new JdStatusHistory();
+
+		if ("approved".equalsIgnoreCase(request.getStatus())) {
 			jdStatusHistory.setStatus("Approved");
 			jdStatusHistory.setDescription("JD approved by " + managerDetails.getManager().getName() + ", on "
-					+ LocalDateTime.now().toLocalDate()+LocalDateTime.now().toLocalTime());
+					+ LocalDateTime.now().toLocalDate() + LocalDateTime.now().toLocalTime());
 			jdStatusHistory.setJobDescription(findJobDescription);
-		}
-		else if("hold".equalsIgnoreCase(request.getStatus()))
-		{
+		} else if ("hold".equalsIgnoreCase(request.getStatus())) {
 			jdStatusHistory.setStatus("Hold");
 			jdStatusHistory.setDescription("JD holded by " + managerDetails.getManager().getName() + ", on "
-					+ LocalDateTime.now().toLocalDate()+LocalDateTime.now().toLocalTime());
+					+ LocalDateTime.now().toLocalDate() + LocalDateTime.now().toLocalTime());
 			jdStatusHistory.setJobDescription(findJobDescription);
-		}
-		else if("rejected".equalsIgnoreCase(request.getStatus()))
-		{
+		} else if ("rejected".equalsIgnoreCase(request.getStatus())) {
 			jdStatusHistory.setStatus("Hold");
 			jdStatusHistory.setDescription("JD rejected by " + managerDetails.getManager().getName() + ", on "
-					+ LocalDateTime.now().toLocalDate()+LocalDateTime.now().toLocalTime());
+					+ LocalDateTime.now().toLocalDate() + LocalDateTime.now().toLocalTime());
 			jdStatusHistory.setJobDescription(findJobDescription);
 		}
-		
+
 		jdStatusRoundHistoryService.addStatus(jdStatusHistory);
-		
-		
-		//Adding Round History
-		if("approved".equalsIgnoreCase(request.getStatus()))
-		{
+
+		// Adding Round History
+		if ("approved".equalsIgnoreCase(request.getStatus())) {
+
+			List<String> emails = studentService.getNotPlacedStudentEmails();
+
+			String applyLink = FRONTEND_URL + "/student/jd/details?id=" + findJobDescription.getJobDescriptionId();
+
+			String mailMessage = htmlTemplates.getNewJdEmail(findJobDescription.getRole(),
+					findJobDescription.getCompanyLogo(), findJobDescription.getCompanyName(),
+					findJobDescription.getJdStack() == null ? "Any" : findJobDescription.getJdStack().getName(),
+					findJobDescription.getSalaryPackage(), applyLink);
+
+			mailService.sendWithBccAsync(null, "New Job Opportunity | Pentagon Space", mailMessage, emails);
+
 			JdRoundHistory jdRoundHistory = new JdRoundHistory();
 			jdRoundHistory.setRound("Pending Scheduling");
 			jdRoundHistory.setJobDescription(findJobDescription);
 			jdStatusRoundHistoryService.addRound(jdRoundHistory);
 		}
-		
+
 		Executive executive = executiveService.getExecutiveById(findJobDescription.getPostedBy());
-		
-		if(executive!=null)
-		{
-			String applicationLink = FRONTEND_URL+"/executive/jd?id="+findJobDescription.getJobDescriptionId();
-			String approvedEmailTemplate = htmlTemplates.generateJDApprovedEmail(executive.getName(), findJobDescription.getRole(),findJobDescription.getCompanyName(), managerDetails.getManager().getName(), findJobDescription.getCompanyLogo(),applicationLink);
-			
+
+		if (executive != null) {
+			String applicationLink = FRONTEND_URL + "/executive/jd?id=" + findJobDescription.getJobDescriptionId();
+			String approvedEmailTemplate = htmlTemplates.generateJDApprovedEmail(executive.getName(),
+					findJobDescription.getRole(), findJobDescription.getCompanyName(),
+					managerDetails.getManager().getName(), findJobDescription.getCompanyLogo(), applicationLink);
+
 			try {
-				mailService.send(executive.getEmail(),"JD Approved", approvedEmailTemplate);
+				mailService.send(executive.getEmail(), "JD Approved", approvedEmailTemplate);
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
-		
+
 		return ResponseEntity.ok(new ApiResponse<>("success", "JD stauts updated", null));
 	}
 
@@ -404,18 +385,17 @@ public class ManagerController {
 		Manager manager = managerDetails.getManager();
 		return ResponseEntity.ok(new ApiResponse<>("success", "Manager Profile", manager));
 	}
-	
+
 	@GetMapping("/secure/{id}")
-	public ResponseEntity<?> getManagerById(@AuthenticationPrincipal CustomUserDetails managerDetails ,@PathVariable("id") String managerId) {
-		
-		
+	public ResponseEntity<?> getManagerById(@AuthenticationPrincipal CustomUserDetails managerDetails,
+			@PathVariable("id") String managerId) {
+
 		Manager manager = managerService.getManagerById(managerId);
-		
-		if(manager ==null)
-		{
+
+		if (manager == null) {
 			throw new ManagerException("Manager Not Found", HttpStatus.NOT_FOUND);
 		}
-		
+
 		return ResponseEntity.ok(new ApiResponse<>("success", "Manager Data", manager));
 	}
 
@@ -466,89 +446,73 @@ public class ManagerController {
 		return ResponseEntity.ok(new ApiResponse<>("success", "Manager Profile", JobDescriptionDTOResponse));
 	}
 
-	
 	@GetMapping("/secure/executives")
 	@PreAuthorize("hasRole('MANAGER')")
 	public ResponseEntity<?> getAllExecutives(@AuthenticationPrincipal CustomUserDetails managerDetails,
-			@RequestParam(defaultValue = "1") int page,
-			@RequestParam(defaultValue = "10") int limit,
+			@RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "10") int limit,
 			@RequestParam(required = false) String q) {
 		Pageable pageable = PageRequest.of(page, limit, Sort.by("createdAt").descending());
 
-		Page<Executive> executives = managerService.getAllExecutives(managerDetails.getManager().getManagerId(),q,
+		Page<Executive> executives = managerService.getAllExecutives(managerDetails.getManager().getManagerId(), q,
 				pageable);
 
 		return ResponseEntity.ok(new ApiResponse<>("success", "Executives data", executives));
 	}
 
-	
-	
 	@GetMapping("/secure/executive/jd-stats/{executiveId}")
 	@PreAuthorize("hasAnyRole('MANAGER','ADMIN')")
 	public ResponseEntity<?> getjobDescriptionStatusByExecutive(@PathVariable String executiveId) {
-	    ExecutiveJDStatusDTO stats = jobDescriptionService.getExecutiveJobDescriptionStats(executiveId);
-	    return ResponseEntity.ok(new ApiResponse<>("success", "Executive JD stats", stats));
+		ExecutiveJDStatusDTO stats = jobDescriptionService.getExecutiveJobDescriptionStats(executiveId);
+		return ResponseEntity.ok(new ApiResponse<>("success", "Executive JD stats", stats));
 	}
-	
+
 	@GetMapping("/secure/{id}/jd-stats")
 	@PreAuthorize("hasAnyRole('MANAGER','ADMIN')")
 	public ResponseEntity<?> getManagerJdStats(@AuthenticationPrincipal CustomUserDetails customUserDetails,
 			@PathVariable String id) {
 		Manager manager = managerService.getManagerById(id);
-		if(manager ==null)
-		{
+		if (manager == null) {
 			throw new ManagerException("User Not Found", HttpStatus.BAD_REQUEST);
 		}
-	   Map<String, Long> jdDetails = (Map)managerService.getManagersJdDetails(manager.getManagerId());
-	    return ResponseEntity.ok(new ApiResponse<>("success", "Manager JD stats", jdDetails ));
+		Map<String, Long> jdDetails = (Map) managerService.getManagersJdDetails(manager.getManagerId());
+		return ResponseEntity.ok(new ApiResponse<>("success", "Manager JD stats", jdDetails));
 	}
-	
-	
-	
-	// return executive name and their js count details 
-	
+
+	// return executive name and their js count details
+
 	@GetMapping("/secure/executives/jd-metrics")
 	@PreAuthorize("hasAnyRole('MANAGER','ADMIN')")
 	public ResponseEntity<?> getJdMetricsByExecutive(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
 		Manager manager = customUserDetails.getManager();
-		if(manager ==null)
-		{
+		if (manager == null) {
 			throw new UsernameNotFoundException("Unauthorized");
 		}
-		
-		Pageable pageable = PageRequest.of(0, Integer.MAX_VALUE,Sort.by("createdAt").descending());
-			
-		
-		List<Map<String, Object>> executivesJdMetricsByName =
-			    executiveService.getExecutivesByManagerIdAndSearchQuery(manager.getManagerId(), null, pageable)
-			        .stream()
-			        .map(e -> (Executive) e)
-			        .map(executive -> {
-			            Map<String, Object> map = new HashMap<>();
-			            map.put("name", executive.getName());
-			            map.put("executiveId", executive.getExecutiveId());
-			            map.put("details", executiveService.getExecutiveJdDetails(executive.getExecutiveId()));
-			            return map;
-			        })
-			        .collect(Collectors.toList());
-		
-	    return ResponseEntity.ok(new ApiResponse<>("success", "Manager JD stats", executivesJdMetricsByName ));
+
+		Pageable pageable = PageRequest.of(0, Integer.MAX_VALUE, Sort.by("createdAt").descending());
+
+		List<Map<String, Object>> executivesJdMetricsByName = executiveService
+				.getExecutivesByManagerIdAndSearchQuery(manager.getManagerId(), null, pageable).stream()
+				.map(e -> (Executive) e).map(executive -> {
+					Map<String, Object> map = new HashMap<>();
+					map.put("name", executive.getName());
+					map.put("executiveId", executive.getExecutiveId());
+					map.put("details", executiveService.getExecutiveJdDetails(executive.getExecutiveId()));
+					return map;
+				}).collect(Collectors.toList());
+
+		return ResponseEntity.ok(new ApiResponse<>("success", "Manager JD stats", executivesJdMetricsByName));
 	}
-	
-	
-	
-	
+
 	@GetMapping("/secure/executive/{id}")
 	@PreAuthorize("hasRole('MANAGER')")
 	public ResponseEntity<?> getExecutiveById(@PathVariable String id) {
-		
+
 		Executive findExecutive = executiveService.getExecutiveById(id);
-		if(findExecutive ==null)
-		{
+		if (findExecutive == null) {
 			throw new AdminException("Executive not found", HttpStatus.NOT_FOUND);
 		}
-		
-		ExecutiveDetails executiveDetails =  new ExecutiveDetails();
+
+		ExecutiveDetails executiveDetails = new ExecutiveDetails();
 		executiveDetails.setActive(findExecutive.isActive());
 		executiveDetails.setCreatedAt(findExecutive.getCreatedAt());
 		executiveDetails.setEmail(findExecutive.getEmail());
@@ -564,68 +528,53 @@ public class ManagerController {
 		executiveDetails.setManagerName(manager.getName());
 		return ResponseEntity.ok(new ApiResponse<>("success", "Executive Data", executiveDetails));
 	}
-	
-	
-	
+
 	@PutMapping("/secure/block/{id}")
 	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<?> blockManager(@PathVariable String id)
-	{
+	public ResponseEntity<?> blockManager(@PathVariable String id) {
 		Manager manager = managerService.getManagerById(id);
-		if(manager ==null)
-		{
+		if (manager == null) {
 			throw new ManagerException("Manager not FOund", HttpStatus.NOT_FOUND);
 		}
-		
-		if(!manager.isActive())
-		{
+
+		if (!manager.isActive()) {
 			throw new ManagerException("Manager is Already blocked", HttpStatus.BAD_REQUEST);
 		}
-		
+
 		manager.setActive(false);
-		
+
 		managerService.updateManager(manager);
-		
-		String  mailMessage= htmlTemplates.getAccountBlockedEmail(manager.getName());
-		
-		mailService.sendAsync(manager.getEmail(),"Account Blocked - Pentagon Space", mailMessage);
-		
-		
-		return ResponseEntity.ok(new ApiResponse<>("success","Manager Blocked Successfully", null));
-		
+
+		String mailMessage = htmlTemplates.getAccountBlockedEmail(manager.getName());
+
+		mailService.sendAsync(manager.getEmail(), "Account Blocked - Pentagon Space", mailMessage);
+
+		return ResponseEntity.ok(new ApiResponse<>("success", "Manager Blocked Successfully", null));
+
 	}
-	
+
 	@PutMapping("/secure/unblock/{id}")
 	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<?> unBlockManager(@PathVariable String id)
-	{
+	public ResponseEntity<?> unBlockManager(@PathVariable String id) {
 		Manager manager = managerService.getManagerById(id);
-		if(manager ==null)
-		{
+		if (manager == null) {
 			throw new ManagerException("Manager not FOund", HttpStatus.NOT_FOUND);
 		}
-		
-		if(manager.isActive())
-		{
+
+		if (manager.isActive()) {
 			throw new ManagerException("Manager is Already active", HttpStatus.BAD_REQUEST);
 		}
-		
+
 		manager.setActive(true);
-		
+
 		managerService.updateManager(manager);
-		
+
 		String mailMessage = htmlContentService.getAccountUnblockedEmail(manager.getName());
-		
+
 		mailService.sendAsync(manager.getEmail(), "Account Unblocked - Pentagon Space", mailMessage);
-		
-		return ResponseEntity.ok(new ApiResponse<>("success","Manager Un-Blocked Successfully", null));
-		
+
+		return ResponseEntity.ok(new ApiResponse<>("success", "Manager Un-Blocked Successfully", null));
+
 	}
-	
-	
-	
-	
-	
-	
 
 }

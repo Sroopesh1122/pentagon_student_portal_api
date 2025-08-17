@@ -40,6 +40,7 @@ import com.pentagon.app.entity.Admin;
 import com.pentagon.app.entity.Executive;
 import com.pentagon.app.entity.JobDescription;
 import com.pentagon.app.entity.Manager;
+import com.pentagon.app.entity.OrganizationBranch;
 import com.pentagon.app.entity.ProgramHead;
 import com.pentagon.app.entity.Stack;
 import com.pentagon.app.entity.StudentAdmin;
@@ -66,6 +67,7 @@ import com.pentagon.app.service.JobDescriptionService;
 import com.pentagon.app.utils.HtmlTemplates;
 import com.pentagon.app.utils.IdGeneration;
 import com.pentagon.app.service.ManagerService;
+import com.pentagon.app.service.OrgBranchService;
 import com.pentagon.app.service.ProgramHeadService;
 import com.pentagon.app.service.StackService;
 import com.pentagon.app.service.StudentAdminService;
@@ -134,6 +136,9 @@ public class AdminController {
 	
 	@Autowired
 	private CloudinaryServiceImp cloudinaryService;
+	
+	@Autowired
+	private OrgBranchService orgBranchService;
 
 	@PostMapping("/secure/addManager")
 	@PreAuthorize("hasRole('ADMIN')")
@@ -246,8 +251,10 @@ public class AdminController {
 	
 	@PostMapping("/secure/program-head/add")
 	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<?> addProgramHead(@AuthenticationPrincipal CustomUserDetails adminDetails,
-			@Valid @RequestBody AddProgramHeadRequest request, BindingResult bindingResult) {
+	public ResponseEntity<?> addProgramHead(
+			@AuthenticationPrincipal CustomUserDetails adminDetails,
+			@Valid @RequestBody AddProgramHeadRequest request,
+			BindingResult bindingResult) {
          
 		
 		if(bindingResult.hasErrors())
@@ -260,6 +267,18 @@ public class AdminController {
 		if(findProgramHead !=null)
 		{
 			throw new AdminException("Email Already exists", HttpStatus.CONFLICT);
+		}
+		
+		OrganizationBranch organizationBranch = orgBranchService.getById(request.getBranchId());
+		
+		if(organizationBranch ==null)
+		{
+			throw new AdminException("Branch Not exists", HttpStatus.CONFLICT);
+		}
+		
+		if(!organizationBranch.getIsActive())
+		{
+			throw new AdminException("This Branch is blocked", HttpStatus.CONFLICT);
 		}
 		
 		ProgramHead newProgramHead = new ProgramHead();
@@ -296,6 +315,7 @@ public class AdminController {
 		trainer.setProgramHead(true);
 		trainer.setCreatedAt(LocalDateTime.now());
 		trainer.setPassword(passwordEncoder.encode(password));
+		trainer.setBranch(organizationBranch);
 		
 		List<Technology> trainerTechnologies = new ArrayList<>();
 		
@@ -344,6 +364,19 @@ public class AdminController {
 		{
 			throw new AdminException("Email Already exists", HttpStatus.CONFLICT);
 		}
+		
+		OrganizationBranch organizationBranch = orgBranchService.getById(request.getBranchId());
+		
+		if(organizationBranch ==null)
+		{
+			throw new AdminException("Branch Not exists", HttpStatus.CONFLICT);
+		}
+		
+		if(!organizationBranch.getIsActive())
+		{
+			throw new AdminException("This Branch is blocked", HttpStatus.CONFLICT);
+		}
+		
 		StudentAdmin studentAdmin =  new StudentAdmin();
 		studentAdmin.setEmail(request.getEmail());
 		studentAdmin.setId(idGeneration.generateId("STU-ADMIN"));
@@ -351,6 +384,7 @@ public class AdminController {
 		String password = passwordGenration.generateRandomPassword();
 		studentAdmin.setPassword(passwordEncoder.encode(password));
 		studentAdmin.setCreatedAt(LocalDateTime.now());	
+		studentAdmin.setBranch(organizationBranch);
 		studentAdmin = studentAdminService.add(studentAdmin);
 		
 		String htmlContent = htmlContentService.getLoginEmailHtmlContent(studentAdmin.getName(), studentAdmin.getEmail(), password);
@@ -473,14 +507,18 @@ public class AdminController {
 
 	@GetMapping("/secure/viewAllTrainers")
 	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<?> viewAllTrainers(@AuthenticationPrincipal CustomUserDetails adminDetails,
-			@RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "10") int limit,
-			@RequestParam(required = false) String stack, @RequestParam(required = false) String name,
-			@RequestParam(required = false) String trainerId) {
+	public ResponseEntity<?> viewAllTrainers(
+			@AuthenticationPrincipal CustomUserDetails adminDetails,
+			@RequestParam(defaultValue = "1") int page, 
+			@RequestParam(defaultValue = "10") int limit,
+			@RequestParam(required = false) String stack, 
+			@RequestParam(required = false) String name,
+			@RequestParam(required = false) String trainerId,
+			@RequestParam(required = false) String branchId) {
 
 		Pageable pageable = PageRequest.of(page - 1, limit, Sort.by("createdAt").descending());
 
-		Page<Trainer> trainers = trainerService.viewAllTrainers(stack, name, trainerId, pageable);
+		Page<Trainer> trainers = trainerService.viewAllTrainers(stack, name, trainerId,branchId, pageable);
 
 		Page<TrainerDTO> TrainerDTOPage = trainers.map(trainer -> {
 			TrainerDTO dto = new TrainerDTO();

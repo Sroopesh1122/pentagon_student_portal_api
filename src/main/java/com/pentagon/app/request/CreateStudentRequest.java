@@ -12,4 +12,5 @@ public class CreateStudentRequest
   private String stackId;
   private String mode; // offline or online
   private String admissionMode; // csr or paid
+  private String branchId;
 }

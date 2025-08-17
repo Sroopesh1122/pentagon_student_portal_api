@@ -102,7 +102,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import com.sendgrid.*;
-
 import com.sendgrid.helpers.mail.Mail;
 import com.sendgrid.helpers.mail.objects.*;
 
@@ -118,7 +117,9 @@ public class MailService {
     @Value("${sendgrid.from.name}")
     private String fromName;
 
+    // ----------------------------
     // 1. Synchronous Send
+    // ----------------------------
     public void send(String toEmail, String subject, String htmlContent) {
         Email from = new Email(fromEmail, fromName);
         Email to = new Email(toEmail);
@@ -127,42 +128,57 @@ public class MailService {
         sendMail(mail);
     }
 
+    // ----------------------------
     // 2. Send with BCC (sync)
+    // ----------------------------
     public void sendWithBcc(String toEmail, String subject, String htmlContent, List<String> bccList) {
         Email from = new Email(fromEmail, fromName);
-        Email to = new Email(toEmail);
         Content content = new Content("text/html", htmlContent);
 
         Mail mail = new Mail();
         mail.setFrom(from);
         mail.setSubject(subject);
+        mail.addContent(content);
 
         Personalization personalization = new Personalization();
-        personalization.addTo(to);
+
+        // If no toEmail is given, use fromEmail as placeholder
+        if (toEmail == null || toEmail.trim().isEmpty()) {
+            personalization.addTo(new Email(fromEmail, fromName));
+        } else {
+            personalization.addTo(new Email(toEmail));
+        }
+
+        // Add BCC recipients
         if (bccList != null && !bccList.isEmpty()) {
             for (String bccEmail : bccList) {
                 personalization.addBcc(new Email(bccEmail));
             }
         }
-        mail.addPersonalization(personalization);
-        mail.addContent(content);
 
+        mail.addPersonalization(personalization);
         sendMail(mail);
     }
 
+    // ----------------------------
     // 3. Asynchronous Send
+    // ----------------------------
     @Async
     public void sendAsync(String toEmail, String subject, String htmlContent) {
         send(toEmail, subject, htmlContent);
     }
 
+    // ----------------------------
     // 4. Asynchronous BCC Send
+    // ----------------------------
     @Async
     public void sendWithBccAsync(String toEmail, String subject, String htmlContent, List<String> bccList) {
         sendWithBcc(toEmail, subject, htmlContent, bccList);
     }
 
+    // ----------------------------
     // Common method to send using SendGrid
+    // ----------------------------
     private void sendMail(Mail mail) {
         SendGrid sg = new SendGrid(sendGridApiKey);
         Request request = new Request();
@@ -173,13 +189,15 @@ public class MailService {
             request.setBody(mail.build());
 
             Response response = sg.api(request);
+
             System.out.println("Status Code: " + response.getStatusCode());
             System.out.println("Body: " + response.getBody());
             System.out.println("Headers: " + response.getHeaders());
 
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new RuntimeException("Failed to send email via SendGrid", e);
         }
     }
 }
+
 

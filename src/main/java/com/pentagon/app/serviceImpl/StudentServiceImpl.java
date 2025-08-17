@@ -125,6 +125,11 @@ public class StudentServiceImpl implements StudentService {
 		student.setUpdatedAt(LocalDateTime.now());
 		studentRepository.save(student);
 	}
+	
+	@Override
+	public List<String> getNotPlacedStudentEmails() {
+		return studentRepository.getNotPacedStudents();
+	}
 
 	
 
@@ -151,8 +156,8 @@ public class StudentServiceImpl implements StudentService {
 	}
 	
 	@Override
-	public Page<Student> findStudent(String q, String batchId, String stackId,EnrollmentStatus status, Pageable pageable) {
-		return studentRepository.findStudents(q, batchId, stackId,status, pageable);
+	public Page<Student> findStudent(String q, String batchId, String stackId,EnrollmentStatus status,String branchId, Pageable pageable) {
+		return studentRepository.findStudents(q, batchId, stackId,status,branchId ,pageable);
 	}
 
 	
@@ -190,18 +195,18 @@ public class StudentServiceImpl implements StudentService {
 	}
 
 	@Override
-	public Long countStudents(EnrollmentStatus status) {
-		return studentRepository.countStudents(status);
+	public Long countStudents(EnrollmentStatus status,String branchId) {
+		return studentRepository.countStudents(status,branchId);
 	}
 
 	@Override
-	public Map<String, Object> countStudentByStack(String stackId) {
+	public Map<String, Object> countStudentByStack(String stackId,String branchId) {
 		
 		Map<String, Object> studentCounts = new HashMap<>();
-		studentCounts.put(EnrollmentStatus.ACTIVE.toString() ,studentRepository.countStudentsByBatch(EnrollmentStatus.ACTIVE,stackId));
-		studentCounts.put(EnrollmentStatus.COMPLETED.toString(), studentRepository.countStudentsByBatch(EnrollmentStatus.COMPLETED,stackId));
-		studentCounts.put(EnrollmentStatus.BLOCKED.toString(),studentRepository.countStudentsByBatch(EnrollmentStatus.BLOCKED,stackId));
-		studentCounts.put(EnrollmentStatus.PLACED.toString(),studentRepository.countStudentsByBatch(EnrollmentStatus.PLACED,stackId));
+		studentCounts.put(EnrollmentStatus.ACTIVE.toString() ,studentRepository.countStudentsByBatch(EnrollmentStatus.ACTIVE,stackId,branchId));
+		studentCounts.put(EnrollmentStatus.COMPLETED.toString(), studentRepository.countStudentsByBatch(EnrollmentStatus.COMPLETED,stackId,branchId));
+		studentCounts.put(EnrollmentStatus.BLOCKED.toString(),studentRepository.countStudentsByBatch(EnrollmentStatus.BLOCKED,stackId,branchId));
+		studentCounts.put(EnrollmentStatus.PLACED.toString(),studentRepository.countStudentsByBatch(EnrollmentStatus.PLACED,stackId,branchId));
 		
 		
 		return studentCounts;

@@ -1,7 +1,6 @@
 package com.pentagon.app.entity;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -10,11 +9,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Column;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
 import jakarta.persistence.JoinColumn;
 import lombok.Data;
 

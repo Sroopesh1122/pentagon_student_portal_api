@@ -9,8 +9,8 @@ import com.pentagon.app.entity.ApplicationStatusHistory;
 @Repository
 public interface ApplicationStatusHistoryRepository extends JpaRepository<ApplicationStatusHistory, Long> {
 
-	@Query("SELECT sh  FROM ApplicationStatusHistory sh WHERE sh.round =:round")
-	public ApplicationStatusHistory findByRound(String round);
+	@Query("SELECT sh  FROM ApplicationStatusHistory sh WHERE sh.round =:round AND sh.studentJdApplication.applicationId =:applicationId")
+	public ApplicationStatusHistory findByRound(String round,String applicationId);
 	
 	
 }

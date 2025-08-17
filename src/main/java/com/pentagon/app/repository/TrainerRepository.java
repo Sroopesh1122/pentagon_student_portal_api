@@ -17,19 +17,19 @@ public interface TrainerRepository extends JpaRepository<Trainer, String> {
 
 	@Query("SELECT t FROM Trainer t WHERE " + "(:stack IS NULL) AND "
 			+ "(:name IS NULL OR LOWER(t.name) LIKE LOWER(CONCAT('%', :name, '%'))) AND "
-			+ "(:trainerId IS NULL OR t.trainerId = :trainerId)")
+			+ "(:trainerId IS NULL OR t.trainerId = :trainerId) AND (:branchId IS NULL OR t.branch.id = :branchId)")
 	Page<Trainer> findByFilters(@Param("stack") String stack, @Param("name") String name,
-			@Param("trainerId") String trainerId, Pageable pageable);
+			@Param("trainerId") String trainerId,String branchId, Pageable pageable);
 
 	@Query("SELECT COUNT(T) FROM Trainer T")
 	int getTrainerCount();
 	
 	boolean existsByEmail(String email);
 	
-	@Query("SELECT t FROM Trainer t WHERE ( :programHeadId IS NULL OR t.programHeadId = :programHeadId ) AND "
+	@Query("SELECT t FROM Trainer t WHERE ( :programHeadId IS NULL OR t.programHeadId = :programHeadId ) AND   (:branchId IS NULL OR t.branch.id = :branchId) AND "
 			+ "(:q IS NULL OR :q = '' OR LOWER(t.email) LIKE LOWER(CONCAT(:q,'%')) "
-			+ "OR LOWER(t.name) LIKE LOWER(CONCAT(:q,'%')) OR t.trainerId = :q)")
-	public Page<Trainer> getAllTrainers(@Param("programHeadId") String programHeadId,@Param("q") String q,  Pageable pageable);
+			+ "OR LOWER(t.name) LIKE LOWER(CONCAT(:q,'%')) OR t.trainerId = :q )")
+	public Page<Trainer> getAllTrainers(@Param("programHeadId") String programHeadId,@Param("q") String q, String branchId, Pageable pageable);
 	
 	public Trainer findByPasswordResetToken(String token);
 	

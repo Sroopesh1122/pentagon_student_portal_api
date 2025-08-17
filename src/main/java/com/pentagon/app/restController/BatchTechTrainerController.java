@@ -29,6 +29,7 @@ import com.pentagon.app.Dto.BatchDTO;
 import com.pentagon.app.Dto.BatchTechTrainerDTO;
 import com.pentagon.app.entity.Batch;
 import com.pentagon.app.entity.BatchTechTrainer;
+import com.pentagon.app.entity.StudentAdmin;
 import com.pentagon.app.entity.Trainer;
 import com.pentagon.app.exception.BatchException;
 import com.pentagon.app.exception.BatchTechTrainerException;
@@ -218,11 +219,12 @@ public class BatchTechTrainerController {
 			@RequestParam(defaultValue = "10") int limit,
 			@RequestParam(required = false) String q,
 			@RequestParam(required =  false) String mode,
-			@RequestParam(required =  false) String stackId)
+			@RequestParam(required =  false) String stackId,
+			@RequestParam(required = false) String branchId)
 	{
 		
 		Pageable pageable = PageRequest.of(page, limit);
-		Page<Batch> batches = batchService.getAllBatches(q, mode, stackId, pageable);
+		Page<Batch> batches = batchService.getAllBatches(q, mode, stackId, branchId,pageable);
 		Page<BatchDTO> batchesDTO  = batches.map(batch->{
 			return batchMapper.toDTO(batch);
 		});
@@ -239,6 +241,18 @@ public class BatchTechTrainerController {
 		return ResponseEntity.ok(new ApiResponse<>("success","Batch Data", batchScheduleInfo));
 	}
 	
+	@GetMapping("/secure/{id}")
+	@PreAuthorize("hasAnyRole('STUDENTADMIN','PROGRAMHEAD','ADMIN','TRAINER','STUDENT')")
+	public ResponseEntity<?> getBatchInco(@PathVariable String id)
+	{
+		Batch batch = batchService.getBatchById(id).orElse(null);
+		if(batch ==null)
+		{
+			throw new BatchException("Batch Not Found", HttpStatus.BAD_REQUEST);
+		}
+		return ResponseEntity.ok(new ApiResponse<>("success","Batch Data", batch));
+	}
+	
 	
 	@GetMapping("/secure/schedule/details/{id}")
 	@PreAuthorize("hasAnyRole('STUDENTADMIN','PROGRAMHEAD','ADMIN','TRAINER','STUDENT')")
@@ -250,26 +264,12 @@ public class BatchTechTrainerController {
 	
 	
 	@PutMapping("/secure/class/complete/{id}")
-	@PreAuthorize("hasAnyRole('STUDENTADMIN','PROGRAMHEAD','ADMIN','TRAINER')")
+	@PreAuthorize("hasAnyRole('STUDENTADMIN')")
 	public ResponseEntity<?> markClassAsComplete(@AuthenticationPrincipal CustomUserDetails userDetails,@PathVariable Integer id)
 	{
 		BatchTechTrainer batchScheduleInfo  = batchTechTrainerService.getById(id);
 		
-		Trainer trainer =null;
-		
-		if(userDetails.getTrainer()== null && userDetails.getProgramHead() ==null )
-		{
-			throw new BatchException("Unauthorized",HttpStatus.UNAUTHORIZED);
-		}
-		
-		if(userDetails.getTrainer()!=null)
-		{
-			trainer = userDetails.getTrainer();
-		}
-		else {
-			trainer = trainerService.getTrainer(userDetails.getProgramHead().getId());
-		}
-		
+		StudentAdmin studentAdmin  = userDetails.getStudentAdmin();
 		
 		
 		if(batchScheduleInfo==null)
@@ -277,9 +277,11 @@ public class BatchTechTrainerController {
 			throw new BatchTechTrainerException("Class Not Found", null);
 		}
 		
-		if(!batchScheduleInfo.getTrainer().getTrainerId().equals(trainer.getTrainerId()))
+		
+		
+		if(!batchScheduleInfo.getBatch().getBranch().getId().equals(studentAdmin.getBranch().getId()))
 		{
-			throw new BatchTechTrainerException("You are not authorized", null);
+			throw new BatchTechTrainerException("You are not authorized, Only branch specific admin are allowed", null);
 		}
 		
 		batchScheduleInfo.setCompleted(true);

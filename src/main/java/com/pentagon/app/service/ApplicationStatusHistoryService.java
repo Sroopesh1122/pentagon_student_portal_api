@@ -6,7 +6,7 @@ public interface ApplicationStatusHistoryService {
 
 	public ApplicationStatusHistory create(ApplicationStatusHistory applicationStatusHistory);
 	
-	public ApplicationStatusHistory findByRound(String round);
+	public ApplicationStatusHistory findByRound(String round,String applicationId);
 	
 	public ApplicationStatusHistory update(ApplicationStatusHistory applicationStatusHistory);
 	

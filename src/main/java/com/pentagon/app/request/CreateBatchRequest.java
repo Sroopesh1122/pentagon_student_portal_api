@@ -1,6 +1,6 @@
 package com.pentagon.app.request;
 
-import java.util.List;
+import java.time.LocalDate;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
@@ -16,7 +16,8 @@ public class CreateBatchRequest {
 	@NotBlank
 	private String stackId;
 	
-//	private List<ScheduleDetails> scheduleDetails;
+	private LocalDate startDate;
+	
 	
 }
 

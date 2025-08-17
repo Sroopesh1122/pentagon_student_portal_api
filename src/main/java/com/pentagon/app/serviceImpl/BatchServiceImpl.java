@@ -24,8 +24,8 @@ public class BatchServiceImpl implements BatchService {
     }
 
     @Override
-    public Page<Batch> getAllBatches(String q, String mode, String stackId, Pageable pageable) {
-    	return batchRepository.findAll(q, mode, stackId, pageable);
+    public Page<Batch> getAllBatches(String q, String mode, String stackId,String branchId ,Pageable pageable) {
+    	return batchRepository.findAll(q, mode, stackId,branchId ,pageable);
     }
 
     @Override
@@ -49,24 +49,24 @@ public class BatchServiceImpl implements BatchService {
 	}
 
 	@Override
-	public Long countCompletedBatch() {
-		return batchRepository.countBatch(true);
+	public Long countCompletedBatch(String branchId) {
+		return batchRepository.countBatch(true,branchId);
 	}
 
 	@Override
-	public Long countOnGoingBatch() {
+	public Long countOnGoingBatch(String branchId) {
 		// TODO Auto-generated method stub
-		return batchRepository.countBatch(false);
+		return batchRepository.countBatch(false ,branchId);
 	}
 
 	@Override
-	public Long countCompletedBatchByStack(String stackId) {
-		return batchRepository.countBatchByStack(stackId, true);
+	public Long countCompletedBatchByStack(String stackId,String branchId) {
+		return batchRepository.countBatchByStack(stackId, true,branchId);
 	}
 
 	@Override
-	public Long countOnGOingBatchByStack(String stackId) {
-		return batchRepository.countBatchByStack(stackId, false);
+	public Long countOnGOingBatchByStack(String stackId,String branchId) {
+		return batchRepository.countBatchByStack(stackId, false,branchId);
 	}
 
 }

@@ -81,6 +81,11 @@ public class Trainer {
     private List<Technology> technologies;
     
     
+    @JoinColumn(name = "branch_id")
+    @ManyToOne
+    private OrganizationBranch branch;
+    
+    
     @JsonIgnore
     @OneToMany(mappedBy = "trainer")
     private List<BatchTechTrainer> batchTechTrainer;

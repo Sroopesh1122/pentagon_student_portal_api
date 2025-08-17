@@ -282,14 +282,18 @@ public class TrainerController {
 
 	@GetMapping("/secure/all")
 	@PreAuthorize("hasAnyRole('STUDENTADMIN','ADMIN','PROGRAMHEAD')")
-	public ResponseEntity<?> getAllTrainers(@AuthenticationPrincipal CustomUserDetails programHeadDetails,
-			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int limit,
-			@RequestParam(required = false) String q) {
+	public ResponseEntity<?> getAllTrainers(
+			@AuthenticationPrincipal CustomUserDetails programHeadDetails,
+			@RequestParam(defaultValue = "0") int page,
+			@RequestParam(defaultValue = "10") int limit,
+			@RequestParam(required = false) String q,
+			@RequestParam(required = false) String branchId,
+			@RequestParam(required = false) String programHeadId) {
 
 		Pageable pageable = PageRequest.of(page, limit, Sort.by("createdAt").descending());
-
+		
 		// if we pass null then all trainers are fetched under every program Head
-		Page<TrainerDTO> trainers = trainerService.getAllTrainers(null, q, pageable)
+		Page<TrainerDTO> trainers = trainerService.getAllTrainers(programHeadId, q,branchId, pageable)
 				.map(trainer -> trainerMapper.toDTO(trainer));
 
 		return ResponseEntity.ok(new ApiResponse<>("success", "Trainers data", trainers));

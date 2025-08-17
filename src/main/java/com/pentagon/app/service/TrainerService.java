@@ -19,7 +19,7 @@ public interface TrainerService {
 
 	public Trainer updateTrainer(Trainer trainer);
 	
-	public Page<Trainer> viewAllTrainers(String stack, String name, String trainerId, Pageable pageable);
+	public Page<Trainer> viewAllTrainers(String stack, String name, String trainerId,String branchId, Pageable pageable);
 
 	public String loginWithPassword(TrainerLoginRequest trainerLoginRequest);
 
@@ -31,7 +31,7 @@ public interface TrainerService {
 	
 	public Trainer disableTrainerById(String Id);
 	
-	public Page<Trainer> getAllTrainers(String programHeadId, String q, Pageable pageable);
+	public Page<Trainer> getAllTrainers(String programHeadId, String q,String branchId, Pageable pageable);
 	
 	public Trainer findByPasswordResetToken(String token);
 	
