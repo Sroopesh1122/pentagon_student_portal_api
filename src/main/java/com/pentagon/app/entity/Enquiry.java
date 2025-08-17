@@ -19,6 +19,8 @@ public class Enquiry {
     @NotBlank(message = "Name is required")
     @Column(length = 100, nullable = false)
     private String name;
+    
+    
 
     @Email(message = "Invalid email format")
     @Column(length = 150, nullable = false)
